@@ -19,7 +19,7 @@ jobs:
       - name: Рассчитать номер урока
         id: lesson
         run: |
-          START_DATE="2026-06-11"
+          START_DATE="2026-06-06"
           TODAY=$(date +%Y-%m-%d)
           DAYS=$(( ( $(date -d "$TODAY" +%s) - $(date -d "$START_DATE" +%s) ) / 86400 + 1 ))
           echo "num=$DAYS" >> $GITHUB_OUTPUT
