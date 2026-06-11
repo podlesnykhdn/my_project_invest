@@ -109,6 +109,87 @@ def format_progress(num):
 
 # ─── ОСНОВНАЯ ЛОГИКА ──────────────────────────────────────────────────────────
 
+
+TERMS_FILE = BASE_DIR / "terms.json"
+TERMS_LOG  = LOGS_DIR / "terms_progress.json"
+
+def load_terms():
+    with open(TERMS_FILE, encoding="utf-8") as f:
+        return json.load(f)
+
+def load_terms_progress():
+    """Загружаем прогресс по терминам — какие уже показывали."""
+    if TERMS_LOG.exists():
+        with open(TERMS_LOG, encoding="utf-8") as f:
+            return json.load(f)
+    return {"shown": [], "confirmed": []}
+
+def save_terms_progress(progress):
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    with open(TERMS_LOG, "w", encoding="utf-8") as f:
+        json.dump(progress, f, ensure_ascii=False, indent=2)
+
+def get_term_of_day(terms, progress):
+    """Выбираем следующий термин — по порядку, не повторяя пока не пройдём все."""
+    shown = progress.get("shown", [])
+    # Если прошли все — начинаем сначала (повторение)
+    if len(shown) >= len(terms):
+        progress["shown"] = []
+        shown = []
+        save_terms_progress(progress)
+    # Берём следующий непоказанный
+    for i, term in enumerate(terms):
+        if i not in shown:
+            return term, i
+    return terms[0], 0
+
+def format_term(term):
+    """Форматируем карточку термина."""
+    import re
+    full = term["full"]
+    full = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", full)
+    # Параграфы
+    paragraphs = [p.strip() for p in full.split("\n") if p.strip()]
+    body = "\n".join(paragraphs)
+
+    return (
+        f"{term['emoji']} <b>Термин дня: {term['term']}</b>\n"
+        f"{'─' * 28}\n"
+        f"<i>{term['short']}</i>\n\n"
+        f"{body}\n\n"
+        f"{'─' * 28}\n"
+        f"📌 <b>Связь с твоим портфелем:</b>\n"
+        f"{term.get('связь_с_портфелем', '')}\n\n"
+        f"<i>Напиши /understood если усвоил этот термин — перейдём к следующему.</i>"
+    )
+
+def run_term_of_day():
+    """Отправляем термин дня — второе сообщение от Ментора."""
+    log = load_log()
+
+    if log.get("term_sent"):
+        print(f"Термин сегодня уже отправлен")
+        return
+
+    terms    = load_terms()
+    progress = load_terms_progress()
+    term, idx = get_term_of_day(terms, progress)
+
+    msg = format_term(term)
+    result = send(msg)
+    print(f"Термин '{term['term']}' отправлен: {result.get('ok')}")
+
+    # Сохраняем в лог
+    log["term_sent"]  = True
+    log["term_index"] = idx
+    log["term_name"]  = term["term"]
+    save_log(log)
+
+    # Отмечаем термин как показанный
+    progress.setdefault("shown", []).append(idx)
+    save_terms_progress(progress)
+
+
 def run_morning():
     """Утренняя отправка урока."""
     log = load_log()
@@ -134,6 +215,9 @@ def run_morning():
         "message_id":   result.get("result", {}).get("message_id"),
     })
 
+    # Отправляем термин дня через 1 час (второе сообщение)
+    run_term_of_day()
+
 def run_command():
     """Обработка входящих команд."""
     url = f"https://api.telegram.org/bot{TOKEN}/getUpdates?timeout=5"
@@ -152,11 +236,14 @@ def run_command():
         if text == "/start":
             send(
                 "👋 Привет! Я твой <b>Ментор по инвестициям</b>.\n\n"
-                "Каждое утро я буду присылать тебе короткий урок "
-                "о фондовом рынке — от основ к стратегиям.\n\n"
+                "Каждое утро присылаю:\n"
+                "• Урок об инвестициях\n"
+                "• Термин дня — ключевое понятие с примером\n\n"
                 "<b>Команды:</b>\n"
                 "/lesson — получить урок прямо сейчас\n"
-                "/progress — посмотреть прогресс обучения"
+                "/progress — прогресс обучения\n"
+                "/terms — все термины и прогресс\n"
+                "/understood — отметить термин как усвоенный"
             )
 
         elif text == "/lesson":
@@ -172,6 +259,46 @@ def run_command():
         elif text == "/progress":
             num = get_lesson_num()
             send(format_progress(num))
+
+        elif text == "/understood":
+            progress = load_terms_progress()
+            confirmed = progress.get("confirmed", [])
+            term_idx  = load_log().get("term_index")
+            if term_idx is not None and term_idx not in confirmed:
+                confirmed.append(term_idx)
+                progress["confirmed"] = confirmed
+                save_terms_progress(progress)
+                terms = load_terms()
+                total = len(terms)
+                done  = len(confirmed)
+                send(
+                    f"✅ Отлично! Термин усвоен.\n\n"
+                    f"Прогресс: {done}/{total} терминов\n"
+                    f"{'█' * done}{'░' * (total-done)}\n\n"
+                    f"Завтра изучим следующий!"
+                )
+            else:
+                send("Термин уже отмечен как усвоенный! Завтра будет новый.")
+
+        elif text == "/terms":
+            progress = load_terms_progress()
+            terms = load_terms()
+            confirmed = progress.get("confirmed", [])
+            done = len(confirmed)
+            total = len(terms)
+            pct = int(done/total*100)
+            bar = "█" * done + "░" * (total-done)
+            lines = [
+                f"📚 <b>Словарь терминов</b>",
+                f"Усвоено: {done}/{total} ({pct}%)",
+                f"[{bar}]",
+                f"",
+                f"<b>Усвоенные термины:</b>"
+            ]
+            for i, term in enumerate(terms):
+                icon = "✅" if i in confirmed else "⬜"
+                lines.append(f"{icon} {term['emoji']} {term['term']}")
+            send("\n".join(lines))
 
 if __name__ == "__main__":
     print(f"Ментор-бот запущен, режим: {MODE}")
