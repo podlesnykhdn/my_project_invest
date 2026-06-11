@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "2.1",
+    "version": "2.2",
     "updated": "2026-06-11",
     "description": "Движок правил для анализа портфеля. Используется сборщиком, письмами и Telegram ботами.",
     "thresholds": {
@@ -623,27 +623,180 @@
       }
     },
     "advisor": {
-      "buy_signal": {
-        "conditions": [
-          "Цена акции снизилась > 10% без фундаментальных причин",
-          "Объём торгов вырос > 50% при стабильной или растущей цене",
-          "Позитивные новости по компании + стабильный рынок"
+      "description": "Советник — два режима: утренняя сводка по расписанию + мгновенные алерты при важных событиях",
+      "morning_report": {
+        "time": "07:00 МСК",
+        "description": "Ежедневная утренняя сводка в Telegram",
+        "sections": [
+          {
+            "id": "portfolio_summary",
+            "title": "Портфель сегодня",
+            "description": "Стоимость портфеля в рублях и изменение за день",
+            "format": [
+              "Общая стоимость: {total_value} руб. ({total_change_rub:+.0f} руб. / {total_change_pct:+.1f}%)",
+              "По позициям:",
+              "  X5:   {x5_price} руб. ({x5_change_rub:+.0f} руб.) — {x5_signal}",
+              "  LENT: {lent_price} руб. ({lent_change_rub:+.0f} руб.) — {lent_signal}",
+              "  SBER: {sber_price} руб. ({sber_change_rub:+.0f} руб.) — {sber_signal}",
+              "  BELU: {belu_price} руб. ({belu_change_rub:+.0f} руб.) — {belu_signal}",
+              "  TGLD: {tgld_price} руб. ({tgld_change_rub:+.0f} руб.) — {tgld_signal}"
+            ]
+          },
+          {
+            "id": "macro_snapshot",
+            "title": "Макро сегодня",
+            "description": "Ключевые индикаторы и их влияние на портфель",
+            "format": [
+              "USD: {usd_rate} руб. ({usd_change:+.1f}%) {usd_signal}",
+              "CNY: {cny_rate} руб. ({cny_change:+.1f}%) {cny_signal}",
+              "Нефть Brent: ${oil_price} ({oil_change:+.1f}%) {oil_signal}",
+              "IMOEX: {imoex_value} ({imoex_change:+.1f}%) {imoex_signal}",
+              "Ставка ЦБ: {cbr_rate}% {cbr_signal}"
+            ]
+          },
+          {
+            "id": "rules_fired",
+            "title": "Что сработало",
+            "description": "Только правила которые сработали сегодня — не пустые строки",
+            "format": [
+              "Сработавших правил: {rules_count}",
+              "{rules_list}"
+            ],
+            "empty_message": "Значимых событий не выявлено — стабильная ситуация"
+          },
+          {
+            "id": "portfolio_advice",
+            "title": "Советы по портфелю",
+            "description": "Конкретные рекомендации на основе сработавших правил",
+            "signals": {
+              "hold": "✅ Держать — стабильная ситуация",
+              "watch": "👀 Наблюдать — есть факторы риска",
+              "risk": "⚠️ Риск — рекомендую внимание",
+              "opportunity": "💡 Возможность — рассмотри докупку"
+            },
+            "per_position": true,
+            "show_reason": true
+          },
+          {
+            "id": "dividend_calendar",
+            "title": "Дивидендный календарь",
+            "description": "Показывать только в дивидендный сезон (май-июль) или если до отсечки < 30 дней",
+            "format": [
+              "До отсечки {ticker}: {days} дней",
+              "Ожидаемый дивиденд: {div_per_share} руб./акц.",
+              "Твой доход ({qty} акций): ~{total_div} руб."
+            ],
+            "condition": "current_month in [5,6,7] or days_to_record_date < 30"
+          },
+          {
+            "id": "screener_top",
+            "title": "Лучшие акции дня",
+            "description": "Топ-3 из скринера с оценкой B и выше",
+            "format": [
+              "{grade} {ticker} ({price} руб.) — score: {score}/100",
+              "  Почему: {top_reasons}"
+            ],
+            "min_grade": "B",
+            "show_top_n": 3
+          },
+          {
+            "id": "top_volume_brief",
+            "title": "Топ по объёму",
+            "description": "Три самые торгуемые акции дня — индикатор интереса рынка",
+            "format": [
+              "{rank}. {ticker} — {turnover} руб. ({change:+.1f}%)"
+            ],
+            "show_top_n": 3
+          },
+          {
+            "id": "weekly_summary",
+            "title": "Итог недели",
+            "description": "Только по пятницам — недельная статистика",
+            "condition": "weekday == 4",
+            "format": [
+              "За неделю портфель: {weekly_change_rub:+.0f} руб. ({weekly_change_pct:+.1f}%)",
+              "Лучшая позиция: {best_ticker} ({best_change:+.1f}%)",
+              "Худшая позиция: {worst_ticker} ({worst_change:+.1f}%)",
+              "Топ событие недели: {top_event}"
+            ]
+          }
         ]
       },
-      "watch_signal": {
-        "conditions": [
-          "Акция в боковике более 2 недель",
-          "Объём торгов снижается",
-          "Нейтральные новости"
+      "instant_alerts": {
+        "description": "Мгновенные алерты — отправляются сразу при срабатывании условия",
+        "max_per_day": 5,
+        "alerts": [
+          {
+            "id": "GRADE_A_STOCK",
+            "trigger": "screener_score >= 75",
+            "priority": "high",
+            "message": "🟢 АЛЕРТ: Акция с оценкой A!\n{ticker} ({name}) — {price} руб.\nScore: {score}/100\nПочему: {reasons}\nОбъём: {volume} руб. (+{volume_growth}% к среднему)",
+            "log": true
+          },
+          {
+            "id": "PORTFOLIO_DROP_SHARP",
+            "trigger": "total_portfolio_change_pct <= -3.0",
+            "priority": "high",
+            "message": "⚠️ АЛЕРТ: Портфель упал на {change_pct:.1f}%\nПотери: -{loss_rub} руб.\nГлавная причина: {top_reason}\nРекомендация: {advice}",
+            "log": true
+          },
+          {
+            "id": "USD_THRESHOLD",
+            "trigger": "usd_change >= 2.0 or usd_change <= -2.0",
+            "priority": "medium",
+            "message": "💱 АЛЕРТ: Доллар {direction} на {usd_change:.1f}%\nКурс: {usd_rate} руб.\nВлияние на портфель:\n{portfolio_impact}",
+            "log": true
+          },
+          {
+            "id": "SANCTIONS_NEWS",
+            "trigger": "news_contains(['санкции', 'sanctions']) and news_relevance_high",
+            "priority": "high",
+            "message": "🚨 АЛЕРТ: Санкционные новости!\n{news_title}\nВлияние на портфель:\n{portfolio_impact}",
+            "log": true
+          },
+          {
+            "id": "DIVIDEND_RECORD_SOON",
+            "trigger": "days_to_record_date <= 5",
+            "priority": "high",
+            "message": "📅 АЛЕРТ: Дивидендная отсечка через {days} дней!\nАкция: {ticker}\nДивиденд: {div_per_share} руб./акц.\nТвой доход: ~{total_div} руб.\nОтсечка: {record_date}",
+            "log": true
+          },
+          {
+            "id": "IPO_NEW",
+            "trigger": "new_listing_this_week",
+            "priority": "medium",
+            "message": "🆕 АЛЕРТ: Новое IPO на MOEX!\n{ticker} ({name})\nДата размещения: {listing_date}\nЦена: {price} руб.\nОценка перспектив: {ai_assessment}",
+            "log": true
+          },
+          {
+            "id": "OIL_SHARP_MOVE",
+            "trigger": "abs(oil_change) >= 3.0",
+            "priority": "medium",
+            "message": "🛢 АЛЕРТ: Нефть Brent {direction} на {oil_change:.1f}%\nЦена: ${oil_price}\nВлияние на рубль и портфель:\n{portfolio_impact}",
+            "log": true
+          },
+          {
+            "id": "IMOEX_SHARP_MOVE",
+            "trigger": "abs(imoex_change) >= 2.0",
+            "priority": "medium",
+            "message": "📉 АЛЕРТ: IMOEX {direction} на {imoex_change:.1f}%\nЗначение: {imoex_value}\nТвой портфель: {portfolio_change_rub:+.0f} руб.\n{advice}",
+            "log": true
+          }
         ]
       },
-      "risk_signal": {
-        "conditions": [
-          "Санкционные новости по компании или сектору",
-          "Падение цены > 5% за день",
-          "Негативная отчётность",
-          "Рост доллара > 3% (давление на импортёров)"
-        ]
+      "message_format": {
+        "morning_header": "📊 Советник — {date}, {weekday}\n{'—'*30}",
+        "alert_header": "🔔 {priority_emoji} {alert_id}",
+        "footer": "\n📁 Лог: github.com/podlesnykhdn/my_prodject_invest/logs/advisor/{date}.json",
+        "max_message_length": 4000,
+        "split_long_messages": true
+      },
+      "rate_limit": {
+        "morning_report": 1,
+        "instant_alerts": 5,
+        "total_per_day": 6,
+        "cooldown_same_alert_hours": 4,
+        "exceeded_message": "Лимит сообщений на сегодня исчерпан. Все данные сохранены в логах."
       }
     },
     "macro_indicators": {
