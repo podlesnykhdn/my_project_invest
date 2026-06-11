@@ -138,6 +138,16 @@ tr:hover td{background:var(--surface2);}
       <div id="growth-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка...</div></div>
     </div>
   </div>
+
+  <div class="section-title" style="margin-top:24px">Новые размещения на MOEX (IPO / SPO)</div>
+  <div id="ipo-notice"></div>
+  <div class="sc" style="margin-bottom:8px;">
+    <div class="sc-head" style="display:flex;align-items:center;justify-content:space-between;">
+      <div><h3>Новые компании на бирже</h3><p>Размещения за последние 90 дней + экспертная оценка</p></div>
+      <button class="btn" id="btn-ipo" onclick="loadIPO()" style="font-size:0.75rem;padding:6px 12px;">Оценить</button>
+    </div>
+    <div id="ipo-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Нажми «Оценить» для загрузки</div></div>
+  </div>
 </div>
 
 <div class="panel" id="tab-mentor">
@@ -369,6 +379,79 @@ async function loadAnalyst(){
     const text=await callClaude(`Инвестиционный аналитик. Портфель (${today}): X5 42акц.дивид., Лента LENT 53акц., Сбер SBER 74акц.дивид., Novabev BELU 12акц.дивид., TGLD золото 4618паёв. ~280тыс.руб. Долгосрочная дивидендная стратегия. По каждой позиции: ситуация+факторы+вывод. Честно, без выдуманных цен. До 300 слов. Русский.`,700);
     box.innerHTML=`<div class="lesson-num">СВОДКА · ${today.toUpperCase()}</div>${renderMd(text)}`;
   }catch(e){box.innerHTML='<p style="color:var(--red)">Ошибка — попробуй ещё раз.</p>';}
+  btn.disabled=false;
+}
+
+async function loadIPO(){
+  const btn=document.getElementById('btn-ipo');
+  btn.disabled=true;
+  document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка новых размещений...</div>';
+
+  try{
+    // Fetch recently listed securities (last 90 days) from MOEX
+    const today = new Date();
+    const from = new Date(today - 90*24*60*60*1000).toISOString().slice(0,10);
+    const url = `https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=securities,marketdata`;
+    const data = await moexGet(url);
+
+    const sc=data.securities.columns, mc=data.marketdata.columns;
+    const mktMap={};
+    for(const r of data.marketdata.data){
+      const d=Object.fromEntries(mc.map((c,i)=>[c,r[i]]));
+      mktMap[d.SECID]=d;
+    }
+
+    // Get securities with LISTINGDATE in last 90 days
+    const newStocks = data.securities.data
+      .map(r=>Object.fromEntries(sc.map((c,i)=>[c,r[i]])))
+      .filter(d=>{
+        if(!d.LISTDATE) return false;
+        return new Date(d.LISTDATE) >= new Date(from);
+      })
+      .slice(0,10);
+
+    if(newStocks.length===0){
+      document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Новых размещений за последние 90 дней не найдено.</div>';
+      btn.disabled=false;
+      return;
+    }
+
+    // Show basic info first
+    document.getElementById('ipo-list').innerHTML=newStocks.map(d=>{
+      const mkt=mktMap[d.SECID]||{};
+      const price=mkt.LAST||mkt.PREVPRICE||0;
+      const pct=mkt.PREVPRICE&&mkt.LAST?(mkt.LAST-mkt.PREVPRICE)/mkt.PREVPRICE*100:0;
+      const cls=pct>=0?'up':'dn', sign=pct>=0?'+':'';
+      return `<div class="sc-item" id="ipo-${d.SECID}" style="flex-direction:column;align-items:flex-start;gap:6px;">
+        <div style="display:flex;justify-content:space-between;width:100%;">
+          <div><div class="si-name">${d.SHORTNAME||d.SECID}</div>
+          <div class="si-ticker">${d.SECID} · размещение: ${d.LISTDATE}</div></div>
+          <div><div class="si-price">${price?fmt(price)+' ₽':'—'}</div>
+          <div class="si-ch ${cls}">${price?(sign+pct.toFixed(1)+'%'):'—'}</div></div>
+        </div>
+        <div id="ipo-opinion-${d.SECID}" style="font-size:0.75rem;color:var(--muted);padding:6px 8px;background:var(--surface2);border-radius:6px;width:100%;">Загружаю оценку...</div>
+      </div>`;
+    }).join('');
+
+    // Get AI opinion for each new stock
+    const names = newStocks.map(d=>`${d.SHORTNAME||d.SECID} (${d.SECID}), размещение ${d.LISTDATE}`).join('; ');
+    const text = await callClaude(
+      `Ты эксперт по IPO на Московской бирже. Оцени кратко перспективы каждой из этих недавно размещённых компаний: ${names}. По каждой: 1-2 предложения — отрасль, риски, потенциал. Формат: ТИКЕР: оценка. Честно, без лишних слов. Русский язык.`,
+      800
+    );
+
+    // Parse and display opinions
+    const lines = text.split('\n').filter(l=>l.trim());
+    for(const stock of newStocks){
+      const line = lines.find(l=>l.includes(stock.SECID)||l.includes(stock.SHORTNAME||''));
+      const el = document.getElementById(`ipo-opinion-${stock.SECID}`);
+      if(el) el.textContent = line ? line.replace(/^[^:]+:\s*/,'') : 'Данных для оценки недостаточно.';
+    }
+
+  } catch(e){
+    console.log('IPO error:',e);
+    document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Ошибка загрузки. Открывай без VPN.</div>';
+  }
   btn.disabled=false;
 }
 
