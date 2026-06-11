@@ -143,7 +143,7 @@ tr:hover td{background:var(--surface2);}
   <div id="ipo-notice"></div>
   <div class="sc" style="margin-bottom:8px;">
     <div class="sc-head" style="display:flex;align-items:center;justify-content:space-between;">
-      <div><h3>Новые компании на бирже</h3><p>Размещения за последние 90 дней + экспертная оценка</p></div>
+      <div><h3>Новые компании на бирже</h3><p>Размещения за последнюю неделю + экспертная оценка</p></div>
       <button class="btn" id="btn-ipo" onclick="loadIPO()" style="font-size:0.75rem;padding:6px 12px;">Оценить</button>
     </div>
     <div id="ipo-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Нажми «Оценить» для загрузки</div></div>
@@ -390,7 +390,7 @@ async function loadIPO(){
   try{
     // Fetch recently listed securities (last 90 days) from MOEX
     const today = new Date();
-    const from = new Date(today - 90*24*60*60*1000).toISOString().slice(0,10);
+    const from = new Date(today - 7*24*60*60*1000).toISOString().slice(0,10);
     const url = `https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=securities,marketdata`;
     const data = await moexGet(url);
 
