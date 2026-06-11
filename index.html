@@ -144,9 +144,9 @@ tr:hover td{background:var(--surface2);}
   <div class="sc" style="margin-bottom:8px;">
     <div class="sc-head" style="display:flex;align-items:center;justify-content:space-between;">
       <div><h3>Новые компании на бирже</h3><p>Размещения за последнюю неделю + экспертная оценка</p></div>
-      <button class="btn" id="btn-ipo" onclick="loadIPO()" style="font-size:0.75rem;padding:6px 12px;">Оценить</button>
+      <span id="ipo-last-update" style="font-size:0.7rem;color:var(--muted);"></span>
     </div>
-    <div id="ipo-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Нажми «Оценить» для загрузки</div></div>
+    <div id="ipo-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка...</div></div>
   </div>
 </div>
 
@@ -382,10 +382,25 @@ async function loadAnalyst(){
   btn.disabled=false;
 }
 
-async function loadIPO(){
-  const btn=document.getElementById('btn-ipo');
-  btn.disabled=true;
+async function loadIPO(force=false){
+  // Auto-cache: reload only once per day
+  const cacheKey='ipo-cache', tsKey='ipo-ts';
+  const lastTs = parseInt(localStorage.getItem(tsKey)||'0');
+  const now = Date.now();
+  const ONE_DAY = 24*60*60*1000;
+
+  if(!force && now-lastTs < ONE_DAY){
+    const cached = localStorage.getItem(cacheKey);
+    if(cached){
+      document.getElementById('ipo-list').innerHTML = cached;
+      const d = new Date(lastTs);
+      document.getElementById('ipo-last-update').textContent = 'Обновлено: '+d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+      return;
+    }
+  }
+
   document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка новых размещений...</div>';
+  document.getElementById('ipo-last-update').textContent='';
 
   try{
     // Fetch recently listed securities (last 90 days) from MOEX
@@ -448,11 +463,16 @@ async function loadIPO(){
       if(el) el.textContent = line ? line.replace(/^[^:]+:\s*/,'') : 'Данных для оценки недостаточно.';
     }
 
+    // Save to cache
+    localStorage.setItem(cacheKey, document.getElementById('ipo-list').innerHTML);
+    localStorage.setItem(tsKey, Date.now().toString());
+    const d=new Date();
+    document.getElementById('ipo-last-update').textContent='Обновлено: '+d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+
   } catch(e){
     console.log('IPO error:',e);
     document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Ошибка загрузки. Открывай без VPN.</div>';
   }
-  btn.disabled=false;
 }
 
 function getWeekKey(){
@@ -479,6 +499,7 @@ function getVolTrend(ticker, history, currentWeek){
 async function loadAll(){
   document.getElementById('last-update').textContent='Обновлено в '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
   await Promise.all([loadPortfolio(),loadScreener()]);
+  loadIPO();
 }
 
 loadAll();
