@@ -198,15 +198,22 @@ def collect_moex(rules):
             r = dict(zip(cols, row))
             price = r.get("LAST") or r.get("PREVPRICE") or 0
             prev  = r.get("PREVPRICE") or price
+            # Используем CHANGE напрямую из MOEX — точнее чем вычислять
+            change = r.get("CHANGE") or 0
+            # LASTTOPREVPRICE = отношение last/prev, из него точный процент
+            ltp = r.get("LASTTOPREVPRICE")
+            pct = round((ltp - 1) * 100, 2) if ltp else (
+                round(change / prev * 100, 2) if prev and change else 0
+            )
             if price:
                 quotes[r["SECID"]] = {
                     "price":  round(price, 2),
                     "prev":   round(prev, 2),
-                    "change": round(price - prev, 2),
-                    "pct":    round((price - prev) / prev * 100, 2) if prev else 0,
+                    "change": round(change, 2),
+                    "pct":    pct,
                     "volume": r.get("VALTODAY") or 0,
                 }
-                print(f"  {r['SECID']}: {price} руб. ({quotes[r['SECID']]['pct']:+.1f}%)")
+                print(f"  {r['SECID']}: {price} руб. ({pct:+.1f}%)")
 
     parse_board("TQBR", share_tickers)
     parse_board("TQTF", etf_tickers)
@@ -325,8 +332,8 @@ def collect_assets(rules):
     scoring_criteria = rules.get("watchlist_assets", {}).get("scoring_assets", {})
     usd_change = 0  # будет передан позже через run_rules
 
-    # Тикеры для запроса
-    tickers = [a["ticker"] for a in assets_config]
+    # Тикеры для запроса (SILV=серебро, TGLD=золото; нефти нет на TQTF)
+    tickers = [a["ticker"] for a in assets_config if a["ticker"] != "OILR"]
     result = {}
 
     try:
