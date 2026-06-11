@@ -368,7 +368,6 @@ async function loadMentor(){
     const text=await callClaude(`Ментор для новичка-инвестора. Урок №${n}. 1-5:основы акций/биржи. 6-10:котировки/дивиденды/P/E. 11+:стратегии/риски. Урок №${n}: до 200 слов, простой язык, пример, ключевая мысль. Русский.`,600);
     box.innerHTML=`<div class="lesson-num">УРОК ${n}</div>${renderMd(text)}`;
   }catch(e){box.innerHTML='<p style="color:var(--red)">Ошибка — попробуй ещё раз.</p>';}
-  btn.disabled=false;
 }
 
 async function loadAnalyst(){
@@ -379,7 +378,6 @@ async function loadAnalyst(){
     const text=await callClaude(`Инвестиционный аналитик. Портфель (${today}): X5 42акц.дивид., Лента LENT 53акц., Сбер SBER 74акц.дивид., Novabev BELU 12акц.дивид., TGLD золото 4618паёв. ~280тыс.руб. Долгосрочная дивидендная стратегия. По каждой позиции: ситуация+факторы+вывод. Честно, без выдуманных цен. До 300 слов. Русский.`,700);
     box.innerHTML=`<div class="lesson-num">СВОДКА · ${today.toUpperCase()}</div>${renderMd(text)}`;
   }catch(e){box.innerHTML='<p style="color:var(--red)">Ошибка — попробуй ещё раз.</p>';}
-  btn.disabled=false;
 }
 
 async function loadIPO(force=false){
@@ -498,7 +496,7 @@ function getVolTrend(ticker, history, currentWeek){
 
 async function loadAll(){
   document.getElementById('last-update').textContent='Обновлено в '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  await Promise.all([loadPortfolio(),loadScreener()]);
+  await Promise.all([loadPortfolio(),loadScreener(),loadIPO()]);
   loadIPO();
 }
 
