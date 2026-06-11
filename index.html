@@ -7,101 +7,77 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 :root {
-  --bg: #0b0e1a; --surface: #111827; --surface2: #1a2235;
-  --border: #1f2d45; --accent: #3b82f6; --green: #10b981;
-  --red: #ef4444; --warn: #f59e0b; --purple: #8b5cf6;
-  --text: #e2e8f0; --muted: #64748b;
+  --bg:#0b0e1a;--surface:#111827;--surface2:#1a2235;--border:#1f2d45;
+  --accent:#3b82f6;--green:#10b981;--red:#ef4444;--warn:#f59e0b;
+  --text:#e2e8f0;--muted:#64748b;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 56px; }
-.logo { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent); }
-.logo span { color: var(--muted); }
-.hdr-right { display: flex; align-items: center; gap: 16px; }
-.last-update { font-size: 0.75rem; color: var(--muted); }
-.refresh-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 5px 12px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; font-family: 'Inter', sans-serif; }
-.refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
-nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; gap: 2px; }
-.tab { padding: 11px 18px; font-size: 0.85rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; user-select: none; }
-.tab:hover { color: var(--text); }
-.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-main { max-width: 980px; margin: 0 auto; padding: 28px 16px; }
-.panel { display: none; }
-.panel.active { display: block; }
-
-/* SUMMARY CARDS */
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 24px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; }
-.card .lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 5px; }
-.card .val { font-size: 1.3rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); }
-.card .val.up { color: var(--green); }
-.card .val.dn { color: var(--red); }
-
-/* PORTFOLIO TABLE */
-.section-title { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; margin-top: 24px; }
-.tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
-table { width: 100%; border-collapse: collapse; }
-th { background: #0d1525; padding: 10px 14px; text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
-td { padding: 12px 14px; border-top: 1px solid var(--border); font-size: 0.88rem; }
-tr:hover td { background: var(--surface2); }
-.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
-.badge.yes { background: #052e16; color: #4ade80; border: 1px solid #166534; }
-.badge.no  { background: #1c1004; color: #fbbf24; border: 1px solid #92400e; }
-.badge.etf { background: #0c1a3a; color: #60a5fa; border: 1px solid #1d4ed8; }
-.up { color: var(--green); }
-.dn { color: var(--red); }
-.neu { color: var(--muted); }
-.loading-cell { color: var(--muted); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
-
-/* SPINNER */
-.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* SCREENER */
-.screener-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 600px) { .screener-grid { grid-template-columns: 1fr; } }
-.screener-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.screener-card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-.screener-card-header .icon { font-size: 1rem; }
-.screener-card-header h3 { font-size: 0.82rem; font-weight: 600; color: var(--text); }
-.screener-card-header p { font-size: 0.72rem; color: var(--muted); }
-.screener-item { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.screener-item:first-child { border-top: none; }
-.si-left .name { font-size: 0.85rem; font-weight: 500; }
-.si-left .ticker { font-size: 0.72rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-.si-right { text-align: right; }
-.si-right .price { font-size: 0.88rem; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
-.si-right .change { font-size: 0.72rem; }
-
-/* AI PANEL */
-.ai-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.ai-header h2 { font-size: 0.95rem; font-weight: 600; }
-.ai-header p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-.btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; font-family: 'Inter', sans-serif; white-space: nowrap; }
-.btn:hover { opacity: 0.85; }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn.green { background: var(--green); }
-.ai-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; min-height: 180px; line-height: 1.75; font-size: 0.9rem; }
-.ai-box.loading { display: flex; align-items: center; gap: 12px; color: var(--muted); }
-.ai-box h3 { font-size: 0.92rem; font-weight: 600; margin: 16px 0 6px; color: var(--accent); }
-.ai-box h3:first-child { margin-top: 0; }
-.ai-box p { margin-bottom: 8px; color: #cbd5e1; }
-.ai-box ul { padding-left: 20px; margin-bottom: 8px; }
-.ai-box li { margin-bottom: 5px; color: #cbd5e1; }
-.ai-box strong { color: var(--text); }
-.lesson-num { display: inline-block; background: var(--accent); color: #fff; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
-.placeholder { color: var(--muted); text-align: center; padding: 48px 0; }
-.placeholder .icon { font-size: 2rem; margin-bottom: 10px; }
-.placeholder p { font-size: 0.88rem; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:56px;}
+.logo{font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:var(--accent);}
+.logo span{color:var(--muted);}
+.refresh-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 12px;font-size:0.75rem;cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:2px;}
+.tab{padding:11px 18px;font-size:0.85rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;user-select:none;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+main{max-width:980px;margin:0 auto;padding:28px 16px;}
+.panel{display:none;}.panel.active{display:block;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;}
+.card .lbl{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:5px;}
+.card .val{font-size:1.25rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--muted);}
+.section-title{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:12px;margin-top:24px;}
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px;}
+table{width:100%;border-collapse:collapse;}
+th{background:#0d1525;padding:10px 14px;text-align:left;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;}
+td{padding:12px 14px;border-top:1px solid var(--border);font-size:0.85rem;}
+tr:hover td{background:var(--surface2);}
+.mono{font-family:'JetBrains Mono',monospace;font-size:0.8rem;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600;}
+.badge.yes{background:#052e16;color:#4ade80;border:1px solid #166534;}
+.badge.no{background:#1c1004;color:#fbbf24;border:1px solid #92400e;}
+.badge.etf{background:#0c1a3a;color:#60a5fa;border:1px solid #1d4ed8;}
+.notice{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;color:var(--muted);font-size:0.85rem;text-align:center;margin-bottom:16px;}
+.notice strong{color:var(--warn);}
+.screener-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.screener-grid{grid-template-columns:1fr;}}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.sc-head{padding:12px 16px;border-bottom:1px solid var(--border);}
+.sc-head h3{font-size:0.82rem;font-weight:600;}
+.sc-head p{font-size:0.72rem;color:var(--muted);}
+.sc-item{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sc-item:first-child{border-top:none;}
+.si-name{font-size:0.82rem;font-weight:500;}
+.si-ticker{font-size:0.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.si-price{font-size:0.85rem;font-weight:600;font-family:'JetBrains Mono',monospace;text-align:right;}
+.si-ch{font-size:0.72rem;text-align:right;}
+.ai-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.ai-header h2{font-size:0.95rem;font-weight:600;}
+.ai-header p{font-size:0.78rem;color:var(--muted);margin-top:2px;}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn:hover{opacity:0.85;}.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn.green{background:var(--green);}
+.ai-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px 28px;min-height:160px;line-height:1.75;font-size:0.9rem;}
+.ai-box h3{font-size:0.9rem;font-weight:600;margin:14px 0 5px;color:var(--accent);}
+.ai-box h3:first-child{margin-top:0;}
+.ai-box p{margin-bottom:8px;color:#cbd5e1;}
+.ai-box ul{padding-left:18px;margin-bottom:8px;}
+.ai-box li{margin-bottom:4px;color:#cbd5e1;}
+.ai-box strong{color:var(--text);}
+.lesson-num{display:inline-block;background:var(--accent);color:#fff;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;}
+.placeholder{color:var(--muted);text-align:center;padding:40px 0;}
+.placeholder .icon{font-size:2rem;margin-bottom:10px;}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">my_prodject_invest <span>/ MOEX</span></div>
-  <div class="hdr-right">
-    <span class="last-update" id="last-update">Загрузка...</span>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="last-update" style="font-size:0.75rem;color:var(--muted)"></span>
     <button class="refresh-btn" onclick="loadAll()">Обновить</button>
   </div>
 </header>
@@ -115,60 +91,44 @@ tr:hover td { background: var(--surface2); }
 
 <main>
 
-<!-- PORTFOLIO TAB -->
 <div class="panel active" id="tab-portfolio">
-  <div class="cards" id="summary-cards">
-    <div class="card"><div class="lbl">Стоимость портфеля</div><div class="val" id="total-val">—</div></div>
-    <div class="card"><div class="lbl">Изменение за день</div><div class="val" id="total-change">—</div></div>
+  <div class="cards">
+    <div class="card"><div class="lbl">Стоимость портфеля</div><div class="val" id="c-total">—</div></div>
+    <div class="card"><div class="lbl">Изменение за день</div><div class="val" id="c-change">—</div></div>
     <div class="card"><div class="lbl">Позиций</div><div class="val">5</div></div>
-    <div class="card"><div class="lbl">Данные MOEX</div><div class="val" id="data-status" style="font-size:0.75rem;padding-top:4px">Загрузка...</div></div>
+    <div class="card"><div class="lbl">Статус данных</div><div class="val" id="c-status" style="font-size:0.8rem;padding-top:4px">—</div></div>
   </div>
-
+  <div id="moex-notice"></div>
   <div class="section-title">Мой портфель</div>
   <div class="tbl-wrap">
     <table>
-      <thead>
-        <tr>
-          <th>Компания</th><th>Тикер</th><th>Кол-во</th>
-          <th>Цена</th><th>Изм. за день</th><th>Объём торгов</th><th>Стоимость</th><th>Дивиденды</th>
-        </tr>
-      </thead>
-      <tbody id="portfolio-tbody">
-        <tr><td colspan="8" class="loading-cell" style="text-align:center;padding:20px;"><span class="spinner"></span> Загрузка данных MOEX...</td></tr>
-      </tbody>
+      <thead><tr>
+        <th>Компания</th><th>Тикер</th><th>Кол-во</th>
+        <th>Цена</th><th>Изм. за день</th><th>Объём (руб.)</th><th>Стоимость</th><th>Дивид.</th>
+      </tr></thead>
+      <tbody id="ptbody"></tbody>
     </table>
   </div>
 </div>
 
-<!-- SCREENER TAB -->
 <div class="panel" id="tab-screener">
-  <div class="section-title" style="margin-top:0">Скринер рынка</div>
+  <div class="section-title" style="margin-top:0">Скринер рынка MOEX</div>
+  <div id="screener-notice"></div>
   <div class="screener-grid">
-    <div class="screener-card">
-      <div class="screener-card-header">
-        <div class="icon">🔥</div>
-        <div><h3>Топ по объёму торгов</h3><p>Самые активно торгуемые акции сегодня</p></div>
-      </div>
-      <div id="top-volume">
-        <div style="padding:20px;text-align:center;color:var(--muted);font-size:0.82rem;"><span class="spinner"></span> Загрузка...</div>
-      </div>
+    <div class="sc">
+      <div class="sc-head"><h3>Топ по объёму торгов</h3><p>Самые активные бумаги сегодня</p></div>
+      <div id="vol-list"><div style="padding:20px;text-align:center;color:var(--muted);font-size:0.82rem;">Загрузка...</div></div>
     </div>
-    <div class="screener-card">
-      <div class="screener-card-header">
-        <div class="icon">📈</div>
-        <div><h3>Недооценённые с потенциалом</h3><p>Низкая цена + рост за месяц</p></div>
-      </div>
-      <div id="top-growth">
-        <div style="padding:20px;text-align:center;color:var(--muted);font-size:0.82rem;"><span class="spinner"></span> Загрузка...</div>
-      </div>
+    <div class="sc">
+      <div class="sc-head"><h3>Недооценённые с потенциалом</h3><p>До 500 ₽ + рост сегодня</p></div>
+      <div id="growth-list"><div style="padding:20px;text-align:center;color:var(--muted);font-size:0.82rem;">Загрузка...</div></div>
     </div>
   </div>
 </div>
 
-<!-- MENTOR TAB -->
 <div class="panel" id="tab-mentor">
   <div class="ai-header">
-    <div><h2>Ментор — урок дня</h2><p>Структурированное обучение инвестициям с нуля</p></div>
+    <div><h2>Ментор — урок дня</h2><p>Обучение инвестициям с нуля, шаг за шагом</p></div>
     <button class="btn" id="btn-mentor" onclick="loadMentor()">Получить урок</button>
   </div>
   <div class="ai-box" id="mentor-box">
@@ -176,7 +136,6 @@ tr:hover td { background: var(--surface2); }
   </div>
 </div>
 
-<!-- ANALYST TAB -->
 <div class="panel" id="tab-analyst">
   <div class="ai-header">
     <div><h2>Аналитик — сводка по портфелю</h2><p>Новости и факторы влияния на твои акции</p></div>
@@ -191,226 +150,200 @@ tr:hover td { background: var(--surface2); }
 
 <script>
 const PORTFOLIO = [
-  { name: "Корп. центр X5",  ticker: "X5",   qty: 42,   div: true  },
-  { name: "Лента",            ticker: "LENT",  qty: 53,   div: false },
-  { name: "Сбербанк",         ticker: "SBER",  qty: 74,   div: true  },
-  { name: "Novabev Group",    ticker: "BELU",  qty: 12,   div: true  },
-  { name: "Фонд Золото",      ticker: "TGLD",  qty: 4618, div: false, etf: true },
+  {name:"Корп. центр X5", ticker:"X5",   qty:42,   div:true},
+  {name:"Лента",           ticker:"LENT",  qty:53,   div:false},
+  {name:"Сбербанк",        ticker:"SBER",  qty:74,   div:true},
+  {name:"Novabev Group",   ticker:"BELU",  qty:12,   div:true},
+  {name:"Фонд Золото",     ticker:"TGLD",  qty:4618, div:false, etf:true},
 ];
 
+const STATIC = {
+  X5:   {price:3200, change:0, pct:0, vol:0},
+  LENT: {price:1050, change:0, pct:0, vol:0},
+  SBER: {price:298,  change:0, pct:0, vol:0},
+  BELU: {price:510,  change:0, pct:0, vol:0},
+  TGLD: {price:12,   change:0, pct:0, vol:0},
+};
+
 function switchTab(name) {
-  const names = ['portfolio','screener','mentor','analyst'];
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
+  ['portfolio','screener','mentor','analyst'].forEach((n,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', n===name);
+    document.getElementById('tab-'+n).classList.toggle('active', n===name);
+  });
 }
 
 function fmt(n) { return new Intl.NumberFormat('ru-RU').format(Math.round(n)); }
 function fmtVol(v) {
-  if (!v || v === 0) return '—';
-  if (v >= 1e9) return (v/1e9).toFixed(1)+'B';
-  if (v >= 1e6) return (v/1e6).toFixed(0)+'M';
-  if (v >= 1e3) return (v/1e3).toFixed(0)+'K';
+  if (!v) return '—';
+  if (v>=1e9) return (v/1e9).toFixed(1)+' B';
+  if (v>=1e6) return (v/1e6).toFixed(0)+' M';
+  if (v>=1e3) return (v/1e3).toFixed(0)+' K';
   return v;
 }
 
-async function fetchMOEX(tickers) {
-  const url = `https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?securities=${tickers.join(',')}&iss.meta=off&iss.only=securities,marketdata&callback=?`;
-  // Use JSONP-style or direct fetch
-  const res = await fetch(`https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?securities=${tickers.join(',')}&iss.meta=off&iss.only=marketdata`);
-  const data = await res.json();
-  const cols = data.marketdata.columns;
-  const result = {};
-  for (const row of data.marketdata.data) {
-    const d = Object.fromEntries(cols.map((c,i)=>[c, row[i]]));
-    result[d.SECID] = {
-      price: d.LAST || d.PREVPRICE || 0,
-      change: d.CHANGE || 0,
-      changePct: d.LASTTOPREVPRICE ? (d.LASTTOPREVPRICE - 1)*100 : 0,
-      volume: d.VOLTODAY || 0,
-      turnover: d.VALTODAY || 0,
-    };
-  }
-  return result;
-}
-
-async function fetchTopByVolume() {
-  const res = await fetch('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata&sort_column=VALTODAY&sort_order=desc');
-  const data = await res.json();
-  const cols = data.marketdata.columns;
-  return data.marketdata.data
-    .map(row => Object.fromEntries(cols.map((c,i)=>[c,row[i]])))
-    .filter(d => d.LAST && d.VALTODAY > 0)
-    .sort((a,b) => b.VALTODAY - a.VALTODAY)
-    .slice(0, 8);
-}
-
-async function fetchTopGrowth() {
-  const res = await fetch('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities');
-  const data = await res.json();
-  const mktCols = data.marketdata.columns;
-  const secCols = data.securities.columns;
-  const secMap = {};
-  for (const row of data.securities.data) {
-    const d = Object.fromEntries(secCols.map((c,i)=>[c,row[i]]));
-    secMap[d.SECID] = d.SHORTNAME || d.SECID;
-  }
-  return data.marketdata.data
-    .map(row => {
-      const d = Object.fromEntries(mktCols.map((c,i)=>[c,row[i]]));
-      return { ...d, NAME: secMap[d.SECID] || d.SECID };
-    })
-    .filter(d => d.LAST && d.LAST > 0 && d.LAST < 500 && d.CHANGE > 0)
-    .sort((a,b) => (b.CHANGE/b.PREVPRICE||0) - (a.CHANGE/a.PREVPRICE||0))
-    .slice(0, 8);
+async function moexFetch(url) {
+  // Try direct, then via allorigins proxy
+  try {
+    const r = await fetch(url, {signal: AbortSignal.timeout(5000)});
+    if (r.ok) return await r.json();
+  } catch(e) {}
+  // Fallback: allorigins proxy
+  const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+  const r = await fetch(proxy, {signal: AbortSignal.timeout(8000)});
+  const d = await r.json();
+  return JSON.parse(d.contents);
 }
 
 async function loadPortfolio() {
-  const tickers = PORTFOLIO.map(p => p.ticker);
+  const tickers = PORTFOLIO.map(p=>p.ticker).join(',');
+  const url = `https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?securities=${tickers}&iss.meta=off&iss.only=marketdata`;
+  let quotes = {};
+  let live = false;
   try {
-    const quotes = await fetchMOEX(tickers);
-    let totalVal = 0, totalChange = 0;
-    const rows = PORTFOLIO.map(pos => {
-      const q = quotes[pos.ticker] || {};
-      const price = q.price || 0;
-      const change = q.change || 0;
-      const changePct = q.changePct || 0;
-      const vol = q.turnover || 0;
-      const posVal = price * pos.qty;
-      totalVal += posVal;
-      totalChange += change * pos.qty;
-      const chCls = change > 0 ? 'up' : change < 0 ? 'dn' : 'neu';
-      const chSign = change > 0 ? '+' : '';
-      const badge = pos.etf ? '<span class="badge etf">ETF</span>' : pos.div ? '<span class="badge yes">Да</span>' : '<span class="badge no">Нет</span>';
-      return `<tr>
-        <td>${pos.name}</td>
-        <td class="mono">${pos.ticker}</td>
-        <td>${fmt(pos.qty)}</td>
-        <td class="mono">${price ? fmt(price)+' ₽' : '—'}</td>
-        <td class="mono ${chCls}">${price ? chSign+change.toFixed(2)+' ('+chSign+changePct.toFixed(1)+'%)' : '—'}</td>
-        <td class="mono">${fmtVol(vol)} ₽</td>
-        <td class="mono">${price ? fmt(posVal)+' ₽' : '—'}</td>
-        <td>${badge}</td>
-      </tr>`;
-    });
-    document.getElementById('portfolio-tbody').innerHTML = rows.join('');
-    const chCls = totalChange >= 0 ? 'up' : 'dn';
-    const chSign = totalChange >= 0 ? '+' : '';
-    document.getElementById('total-val').textContent = fmt(totalVal) + ' ₽';
-    document.getElementById('total-change').className = 'val ' + chCls;
-    document.getElementById('total-change').textContent = chSign + fmt(totalChange) + ' ₽';
-    document.getElementById('data-status').textContent = 'MOEX Live';
-    document.getElementById('data-status').style.color = '#10b981';
-  } catch(e) {
-    document.getElementById('portfolio-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);font-size:0.82rem;">Биржа закрыта или нет данных. Открывается по будням 10:00–18:40 МСК.</td></tr>';
-    document.getElementById('data-status').textContent = 'Биржа закрыта';
-    document.getElementById('data-status').style.color = '#f59e0b';
+    const data = await moexFetch(url);
+    const cols = data.marketdata.columns;
+    for (const row of data.marketdata.data) {
+      const d = Object.fromEntries(cols.map((c,i)=>[c,row[i]]));
+      if (d.LAST || d.PREVPRICE) {
+        const price = d.LAST || d.PREVPRICE;
+        const prev  = d.PREVPRICE || price;
+        quotes[d.SECID] = {
+          price, prev,
+          change: price - prev,
+          pct: prev ? (price-prev)/prev*100 : 0,
+          vol: d.VALTODAY || 0
+        };
+        live = true;
+      }
+    }
+  } catch(e) { console.log('MOEX error:', e); }
+
+  if (!live) {
+    document.getElementById('moex-notice').innerHTML =
+      '<div class="notice"><strong>Биржа закрыта</strong> — показаны последние известные цены. MOEX работает по будням 10:00–18:40 МСК.</div>';
+    document.getElementById('c-status').textContent = 'Биржа закрыта';
+    document.getElementById('c-status').style.color = 'var(--warn)';
+    quotes = STATIC;
+  } else {
+    document.getElementById('moex-notice').innerHTML = '';
+    document.getElementById('c-status').textContent = 'MOEX Live';
+    document.getElementById('c-status').style.color = 'var(--green)';
   }
+
+  let totalVal=0, totalCh=0;
+  const rows = PORTFOLIO.map(pos => {
+    const q = quotes[pos.ticker] || STATIC[pos.ticker] || {};
+    const price = q.price||0, ch = q.change||0, pct = q.pct||0, vol = q.vol||0;
+    const posVal = price * pos.qty;
+    totalVal += posVal; totalCh += ch * pos.qty;
+    const cls = ch>0?'up':ch<0?'dn':'neu';
+    const sign = ch>0?'+':'';
+    const badge = pos.etf ? '<span class="badge etf">ETF</span>'
+                : pos.div ? '<span class="badge yes">Да</span>'
+                :            '<span class="badge no">Нет</span>';
+    return `<tr>
+      <td>${pos.name}</td>
+      <td class="mono">${pos.ticker}</td>
+      <td class="mono">${fmt(pos.qty)}</td>
+      <td class="mono">${price?fmt(price)+' ₽':'—'}</td>
+      <td class="mono ${cls}">${price?(sign+ch.toFixed(2)+' ('+sign+pct.toFixed(1)+'%)'):'—'}</td>
+      <td class="mono">${fmtVol(vol)}</td>
+      <td class="mono">${price?fmt(posVal)+' ₽':'—'}</td>
+      <td>${badge}</td>
+    </tr>`;
+  });
+  document.getElementById('ptbody').innerHTML = rows.join('');
+  const cls = totalCh>=0?'up':'dn', sign=totalCh>=0?'+':'';
+  document.getElementById('c-total').textContent = fmt(totalVal)+' ₽';
+  document.getElementById('c-change').className = 'val '+cls;
+  document.getElementById('c-change').textContent = sign+fmt(totalCh)+' ₽';
 }
 
 async function loadScreener() {
+  const url = 'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities';
   try {
-    const volData = await fetchTopByVolume();
-    document.getElementById('top-volume').innerHTML = volData.map(d => {
-      const chPct = d.PREVPRICE ? ((d.LAST - d.PREVPRICE)/d.PREVPRICE*100) : 0;
-      const cls = chPct >= 0 ? 'up' : 'dn';
-      const sign = chPct >= 0 ? '+' : '';
-      return `<div class="screener-item">
-        <div class="si-left"><div class="name">${d.SHORTNAME||d.SECID}</div><div class="ticker">${d.SECID} · ${fmtVol(d.VALTODAY)} ₽</div></div>
-        <div class="si-right"><div class="price mono">${fmt(d.LAST)} ₽</div><div class="change ${cls}">${sign}${chPct.toFixed(1)}%</div></div>
+    const data = await moexFetch(url);
+    const mc = data.marketdata.columns, sc = data.securities.columns;
+    const names = {};
+    for (const r of data.securities.data) {
+      const d = Object.fromEntries(sc.map((c,i)=>[c,r[i]]));
+      names[d.SECID] = d.SHORTNAME||d.SECID;
+    }
+    const items = data.marketdata.data
+      .map(r => { const d=Object.fromEntries(mc.map((c,i)=>[c,r[i]])); return {...d, NAME:names[d.SECID]||d.SECID}; })
+      .filter(d => d.LAST && d.LAST>0);
+
+    // Top by volume
+    const byVol = [...items].filter(d=>d.VALTODAY>0).sort((a,b)=>b.VALTODAY-a.VALTODAY).slice(0,8);
+    document.getElementById('vol-list').innerHTML = byVol.length ? byVol.map(d => {
+      const pct = d.PREVPRICE ? (d.LAST-d.PREVPRICE)/d.PREVPRICE*100 : 0;
+      const cls=pct>=0?'up':'dn', sign=pct>=0?'+':'';
+      return `<div class="sc-item">
+        <div><div class="si-name">${d.NAME}</div><div class="si-ticker">${d.SECID} · ${fmtVol(d.VALTODAY)} ₽</div></div>
+        <div><div class="si-price">${fmt(d.LAST)} ₽</div><div class="si-ch ${cls}">${sign}${pct.toFixed(1)}%</div></div>
       </div>`;
-    }).join('');
-  } catch(e) {
-    document.getElementById('top-volume').innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:0.82rem;">Биржа закрыта</div>';
-  }
-  try {
-    const growthData = await fetchTopGrowth();
-    document.getElementById('top-growth').innerHTML = growthData.map(d => {
-      const chPct = d.PREVPRICE ? ((d.LAST - d.PREVPRICE)/d.PREVPRICE*100) : 0;
-      return `<div class="screener-item">
-        <div class="si-left"><div class="name">${d.NAME}</div><div class="ticker">${d.SECID} · до 500 ₽</div></div>
-        <div class="si-right"><div class="price mono">${fmt(d.LAST)} ₽</div><div class="change up">+${chPct.toFixed(1)}%</div></div>
+    }).join('') : '<div style="padding:16px;text-align:center;color:var(--muted);font-size:0.82rem;">Нет данных</div>';
+
+    // Growth under 500
+    const byGrowth = [...items].filter(d=>d.LAST<500&&d.LAST>1&&d.CHANGE>0).sort((a,b)=>(b.CHANGE/b.PREVPRICE)-(a.CHANGE/a.PREVPRICE)).slice(0,8);
+    document.getElementById('growth-list').innerHTML = byGrowth.length ? byGrowth.map(d => {
+      const pct = d.PREVPRICE ? (d.LAST-d.PREVPRICE)/d.PREVPRICE*100 : 0;
+      return `<div class="sc-item">
+        <div><div class="si-name">${d.NAME}</div><div class="si-ticker">${d.SECID} · до 500 ₽</div></div>
+        <div><div class="si-price">${fmt(d.LAST)} ₽</div><div class="si-ch up">+${pct.toFixed(1)}%</div></div>
       </div>`;
-    }).join('');
+    }).join('') : '<div style="padding:16px;text-align:center;color:var(--muted);font-size:0.82rem;">Биржа закрыта</div>';
+
+    document.getElementById('screener-notice').innerHTML = '';
   } catch(e) {
-    document.getElementById('top-growth').innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:0.82rem;">Нет данных</div>';
+    document.getElementById('screener-notice').innerHTML = '<div class="notice"><strong>Биржа закрыта</strong> — скринер доступен по будням 10:00–18:40 МСК.</div>';
+    document.getElementById('vol-list').innerHTML = '';
+    document.getElementById('growth-list').innerHTML = '';
   }
 }
 
-function getLessonNum() {
-  const n = parseInt(localStorage.getItem('lessonNum')||'0')+1;
-  localStorage.setItem('lessonNum',n); return n;
-}
-
-function renderMd(text) {
-  return text
-    .replace(/### (.+)/g,'<h3>$1</h3>')
-    .replace(/## (.+)/g,'<h3>$1</h3>')
+function renderMd(t) {
+  return t.replace(/### (.+)/g,'<h3>$1</h3>').replace(/## (.+)/g,'<h3>$1</h3>')
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-    .replace(/^- (.+)/gm,'<li>$1</li>')
-    .replace(/(<li>[\s\S]+?<\/li>)/g,'<ul>$1</ul>')
-    .split(/
+    .split(/\n\n+/).map(p=>p.startsWith('<')?p:'<p>'+p+'</p>').join('');
+}
 
-+/).map(p => p.startsWith('<') ? p : '<p>'+p+'</p>').join('');
+async function callClaude(prompt) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})
+  });
+  const d = await r.json();
+  return d.content.map(b=>b.text||'').join('');
 }
 
 async function loadMentor() {
-  const box = document.getElementById('mentor-box');
-  const btn = document.getElementById('btn-mentor');
-  btn.disabled = true;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span> Ментор готовит урок...</div>';
-  box.className = 'ai-box loading';
-  const n = getLessonNum();
+  const box=document.getElementById('mentor-box'), btn=document.getElementById('btn-mentor');
+  btn.disabled=true;
+  box.className='ai-box'; box.innerHTML='<p style="color:var(--muted)">Готовлю урок...</p>';
+  const n = (parseInt(localStorage.getItem('ln')||'5')+1);
+  localStorage.setItem('ln',n);
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1000,
-        messages:[{role:'user',content:`Ты ментор по инвестициям для новичка. Урок №${n}. Уроки 1-5: основы акций и биржи. Уроки 6-10: котировки, дивиденды, P/E. Уроки 11+: стратегии и риски. Напиши урок №${n}: до 250 слов, простой язык, конкретные примеры, ключевая мысль в конце. Только русский.`}]
-      })
-    });
-    const data = await res.json();
-    const text = data.content.map(b=>b.text||'').join('');
-    box.className = 'ai-box';
+    const text = await callClaude(`Ментор для новичка-инвестора. Урок №${n}. 1-5: основы акций/биржи. 6-10: котировки/дивиденды/P/E. 11+: стратегии/риски. Напиши урок №${n}: до 200 слов, простой язык, пример, ключевая мысль. Русский язык.`);
     box.innerHTML = `<div class="lesson-num">УРОК ${n}</div>${renderMd(text)}`;
-  } catch(e) {
-    box.className = 'ai-box';
-    box.innerHTML = '<p style="color:var(--red)">Ошибка. Попробуй ещё раз.</p>';
-  }
-  btn.disabled = false;
+  } catch(e) { box.innerHTML='<p style="color:var(--red)">Ошибка. Попробуй ещё раз.</p>'; }
+  btn.disabled=false;
 }
 
 async function loadAnalyst() {
-  const box = document.getElementById('analyst-box');
-  const btn = document.getElementById('btn-analyst');
-  btn.disabled = true;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span> Аналитик изучает рынок...</div>';
-  box.className = 'ai-box loading';
-  const today = new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  const box=document.getElementById('analyst-box'), btn=document.getElementById('btn-analyst');
+  btn.disabled=true;
+  box.className='ai-box'; box.innerHTML='<p style="color:var(--muted)">Анализирую рынок...</p>';
+  const today = new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1000,
-        messages:[{role:'user',content:`Ты инвестиционный аналитик. Портфель на ${today}: X5 (42 акц., дивид.), Лента LENT (53 акц.), Сбербанк SBER (74 акц., дивид.), Novabev BELU (12 акц., дивид.), TGLD золото (4618 паёв). ~280 000 руб. Стратегия: дивидендная, долгосрочная. По каждой позиции: ситуация, факторы влияния, вывод (держать/наблюдать/риски). Честно, без выдуманных цен. До 350 слов. Только русский.`}]
-      })
-    });
-    const data = await res.json();
-    const text = data.content.map(b=>b.text||'').join('');
-    box.className = 'ai-box';
+    const text = await callClaude(`Инвестиционный аналитик. Портфель (${today}): X5 42акц.дивид., Лента LENT 53акц., Сбер SBER 74акц.дивид., Novabev BELU 12акц.дивид., TGLD золото 4618паёв. ~280тыс.руб. Долгосрочная дивидендная стратегия. По каждой позиции: ситуация+факторы+вывод. Честно, без выдуманных цен. До 300 слов. Русский.`);
     box.innerHTML = `<div class="lesson-num">СВОДКА · ${today.toUpperCase()}</div>${renderMd(text)}`;
-  } catch(e) {
-    box.className = 'ai-box';
-    box.innerHTML = '<p style="color:var(--red)">Ошибка. Попробуй ещё раз.</p>';
-  }
-  btn.disabled = false;
+  } catch(e) { box.innerHTML='<p style="color:var(--red)">Ошибка. Попробуй ещё раз.</p>'; }
+  btn.disabled=false;
 }
 
 async function loadAll() {
-  const now = new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('last-update').textContent = 'Обновлено в '+now;
+  document.getElementById('last-update').textContent = 'Обновлено в '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
   await Promise.all([loadPortfolio(), loadScreener()]);
 }
 
