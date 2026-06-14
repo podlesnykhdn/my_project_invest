@@ -1,0 +1,290 @@
+{
+  "meta": {
+    "date": "2026-06-14",
+    "time": "11:46",
+    "month": 6,
+    "weekday": 6,
+    "is_friday": false
+  },
+  "currency": {
+    "usd": 71.91,
+    "eur": 82.97,
+    "cny": 10.6064,
+    "usd_prev": 71.91,
+    "usd_change": 0.0
+  },
+  "oil": {
+    "price": null,
+    "change": null,
+    "change_pct": null,
+    "source": "недоступен ❌",
+    "is_cached": false
+  },
+  "portfolio": {
+    "total_value": 225376.0,
+    "total_change": 516.0,
+    "total_pct": 0.23,
+    "positions": [
+      {
+        "ticker": "X5",
+        "name": "Корп. центр X5",
+        "qty": 42,
+        "price": 2399.5,
+        "change": 6.5,
+        "pct": -73.0,
+        "value": 100779.0,
+        "day_rub": 273.0
+      },
+      {
+        "ticker": "LENT",
+        "name": "Лента",
+        "qty": 53,
+        "price": 1833,
+        "change": 3,
+        "pct": -84.0,
+        "value": 97149,
+        "day_rub": 159
+      },
+      {
+        "ticker": "SBER",
+        "name": "Сбербанк",
+        "qty": 74,
+        "price": 322.04,
+        "change": 0.84,
+        "pct": -74.0,
+        "value": 23831.0,
+        "day_rub": 62.0
+      },
+      {
+        "ticker": "BELU",
+        "name": "Novabev Group",
+        "qty": 12,
+        "price": 301.4,
+        "change": 1.8,
+        "pct": -40.0,
+        "value": 3617.0,
+        "day_rub": 22.0
+      },
+      {
+        "ticker": "TGLD",
+        "name": "Фонд Золото",
+        "qty": 4618,
+        "price": 0,
+        "change": 0,
+        "pct": 0,
+        "value": 0,
+        "day_rub": 0
+      }
+    ]
+  },
+  "quotes": {
+    "BELU": {
+      "price": 301.4,
+      "prev": 301.4,
+      "change": 1.8,
+      "pct": -40.0,
+      "volume": 17166360
+    },
+    "LENT": {
+      "price": 1833,
+      "prev": 1833,
+      "change": 3,
+      "pct": -84.0,
+      "volume": 10405654
+    },
+    "SBER": {
+      "price": 322.04,
+      "prev": 322.04,
+      "change": 0.84,
+      "pct": -74.0,
+      "volume": 793124839
+    },
+    "X5": {
+      "price": 2399.5,
+      "prev": 2399.5,
+      "change": 6.5,
+      "pct": -73.0,
+      "volume": 157620982
+    }
+  },
+  "screener": {
+    "top_volume": [
+      {
+        "ticker": "PLZL",
+        "name": "Полюс",
+        "price": 2019.4,
+        "prev": 2019.4,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 902364575
+      },
+      {
+        "ticker": "VTBR",
+        "name": "ВТБ ао",
+        "price": 75.8,
+        "prev": 75.8,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 851268471
+      },
+      {
+        "ticker": "SBER",
+        "name": "Сбербанк",
+        "price": 322.04,
+        "prev": 322.04,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 793124839
+      },
+      {
+        "ticker": "SMLT",
+        "name": "Самолет ао",
+        "price": 409.8,
+        "prev": 409.8,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 556396425
+      },
+      {
+        "ticker": "LKOH",
+        "name": "ЛУКОЙЛ",
+        "price": 4679,
+        "prev": 4679,
+        "change": 0,
+        "pct": 0.0,
+        "volume": 517504398
+      },
+      {
+        "ticker": "GAZP",
+        "name": "ГАЗПРОМ ао",
+        "price": 113,
+        "prev": 113,
+        "change": 0,
+        "pct": 0.0,
+        "volume": 469364046
+      },
+      {
+        "ticker": "AFKS",
+        "name": "Система ао",
+        "price": 13.22,
+        "prev": 13.22,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 363203012
+      },
+      {
+        "ticker": "ROSN",
+        "name": "Роснефть",
+        "price": 362.05,
+        "prev": 362.05,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 343657481
+      },
+      {
+        "ticker": "GMKN",
+        "name": "ГМКНорНик",
+        "price": 129.02,
+        "prev": 129.02,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 280762921
+      },
+      {
+        "ticker": "T",
+        "name": "Т-Техно ао",
+        "price": 295.3,
+        "prev": 295.3,
+        "change": 0.0,
+        "pct": 0.0,
+        "volume": 265964480
+      }
+    ],
+    "cheap_growth": []
+  },
+  "assets": [
+    {
+      "name": "Золото",
+      "ticker": "TGLD",
+      "in_portfolio": true,
+      "why_watch": "Защитный актив. Растёт при ослаблении рубля, геополитике, инфляции и снижении ставки ФРС.",
+      "price": 0,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "🔴 D",
+      "reasons": [],
+      "signals": {
+        "buy_zone": "Рубль ослабляется (USD > +2%) + мировое золото растёт",
+        "risk_zone": "Рубль укрепляется + ставка ФРС растёт",
+        "neutral": "Стабильный курс рубля и нейтральная ФРС"
+      },
+      "note": ""
+    },
+    {
+      "name": "Нефть (рублёвая)",
+      "ticker": "BR-",
+      "in_portfolio": false,
+      "why_watch": "Влияет на курс рубля и весь российский рынок. Рост нефти → укрепление рубля → позитив для акций.",
+      "price": 0,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "🔴 D",
+      "reasons": [],
+      "signals": {
+        "buy_zone": "Нефть Brent растёт + рубль стабилен",
+        "risk_zone": "Нефть падает > 3% + ОПЕК+ снимает ограничения",
+        "neutral": "Нефть в диапазоне $70-85"
+      },
+      "note": ""
+    },
+    {
+      "name": "Серебро",
+      "ticker": "SILV",
+      "in_portfolio": false,
+      "why_watch": "Более волатильный аналог золота. Реагирует на промышленный спрос (электроника, солнечные панели) + защитный актив.",
+      "price": 0,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "🔴 D",
+      "reasons": [],
+      "signals": {
+        "buy_zone": "Золото растёт + промышленный спрос растёт + рубль слабеет",
+        "risk_zone": "Промышленный спрос падает (рецессия) + рубль укрепляется",
+        "neutral": "Золото стабильно, промышленность без изменений"
+      },
+      "note": "Серебро исторически растёт быстрее золота в бычьем цикле и падает быстрее в медвежьем"
+    }
+  ],
+  "news": {
+    "portfolio_news": {
+      "X5": [],
+      "LENT": [],
+      "SBER": [],
+      "BELU": [],
+      "TGLD": []
+    },
+    "global_alerts": [],
+    "total_collected": 115
+  },
+  "rules_fired": [
+    {
+      "rule_id": "USD_STABLE",
+      "signal": "ok",
+      "message": "Курс доллара стабилен (71.9 руб.)",
+      "portfolio_impact": {}
+    },
+    {
+      "rule_id": "DIV_SEASON_ACTIVE",
+      "signal": "info",
+      "message": "Дивидендный сезон — следи за датами отсечек по X5, Сберу и Novabev",
+      "portfolio_impact": {}
+    }
+  ],
+  "portfolio_signals": {}
+}
