@@ -333,7 +333,7 @@ def _grade(score):
 
 # ─── 5. АКТИВЫ: ЗОЛОТО, НЕФТЬ, СЕРЕБРО (MOEX) ───────────────────────────────
 
-def collect_assets(rules):
+def collect_assets(rules, oil=None):
     print("[5/7] Активы на MOEX (золото, нефть, серебро)...")
     assets_config = rules.get("watchlist_assets", {}).get("commodities", [])
     scoring_criteria = rules.get("watchlist_assets", {}).get("scoring_assets", {})
@@ -406,6 +406,26 @@ def collect_assets(rules):
     for asset in assets_config:
         ticker = asset["ticker"]
         q = result.get(ticker, {})
+
+        # Нефть Brent — берём из collect_oil(), а не из MOEX TQTF
+        if ticker == "BR-" and oil and oil.get("price"):
+            assets_out.append({
+                "name":         asset["name"],
+                "ticker":       "Brent",
+                "in_portfolio": asset["in_portfolio"],
+                "why_watch":    asset["why_watch"],
+                "price":        oil.get("price", 0),
+                "change":       0,
+                "pct":          0,
+                "volume":       0,
+                "score":        0,
+                "grade":        "ℹ️",
+                "reasons":      [f"Источник: {oil.get('source','?')}"],
+                "signals":      asset["signals"],
+                "note":         asset.get("note", "") + " (цена в USD/баррель)",
+            })
+            continue
+
         assets_out.append({
             "name":         asset["name"],
             "ticker":       ticker,
@@ -422,7 +442,7 @@ def collect_assets(rules):
             "note":         asset.get("note", ""),
         })
 
-    print(f"  Активов получено: {len([a for a in assets_out if a['price'] > 0])}/3")
+    print(f"  Активов получено: {len([a for a in assets_out if a['price'] > 0])}/{len(assets_out)}")
     return assets_out
 
 
@@ -660,7 +680,7 @@ def collect():
     oil      = collect_oil()
     quotes   = collect_moex(rules)
     screener = collect_screener(rules)
-    assets   = collect_assets(rules)
+    assets   = collect_assets(rules, oil)
     news     = collect_news(rules)
 
     fired_rules, portfolio_signals = run_rules(rules, currency, oil, quotes, news)
