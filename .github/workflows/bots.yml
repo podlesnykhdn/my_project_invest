@@ -2,17 +2,15 @@ name: Telegram боты
 
 on:
   schedule:
-    - cron: '0 4 * * *'
-    - cron: '30 9 * * 1-5'
-    - cron: '30 11 * * 1-5'
+    - cron: '0,30 4-15 * * *'
   workflow_dispatch:
     inputs:
       mode:
         description: 'Режим'
         required: true
-        default: 'morning'
+        default: 'auto'
         type: choice
-        options: [morning, alerts, command]
+        options: [auto, morning, alerts, command]
 
 jobs:
   run-bots:
@@ -27,11 +25,9 @@ jobs:
       - name: Определить режим
         id: mode
         run: |
-          HOUR=$(date -u +%H)
           INPUT="${{ github.event.inputs.mode }}"
           if [ -n "$INPUT" ]; then echo "mode=$INPUT" >> $GITHUB_OUTPUT
-          elif [ "$HOUR" = "04" ]; then echo "mode=morning" >> $GITHUB_OUTPUT
-          else echo "mode=alerts" >> $GITHUB_OUTPUT; fi
+          else echo "mode=auto" >> $GITHUB_OUTPUT; fi
       - name: Ментор
         env:
           MENTOR_BOT_TOKEN: ${{ secrets.MENTOR_BOT_TOKEN }}
@@ -50,5 +46,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main || true
           git add logs/**
-          git diff --staged --quiet || git commit -m "logs $(date +%Y-%m-%d)"
+          git diff --staged --quiet || git commit -m "logs $(date +%Y-%m-%d_%H%M)"
           git push origin main
