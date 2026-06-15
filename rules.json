@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "2.4.1",
+    "version": "2.5",
     "updated": "2026-06-15",
     "description": "Движок правил для анализа портфеля. Используется сборщиком, письмами и Telegram ботами.",
     "thresholds": {
@@ -1655,5 +1655,52 @@
         "your_shares": 4618
       }
     }
+  },
+  "dividend_payers_directory": {
+    "description": "Справочник компаний MOEX с историей дивидендных выплат 2+ года. Используется для оценки акций из скринера. Обновлено 15.06.2026.",
+    "source": "dohod.ru/ik/analytics/dividend, smart-lab.ru — общеизвестные дивидендные платильщики",
+    "tickers": [
+      "SBER",
+      "SBERP",
+      "LKOH",
+      "GAZP",
+      "ROSN",
+      "TATN",
+      "TATNP",
+      "NVTK",
+      "SNGS",
+      "SNGSP",
+      "MTSS",
+      "MGNT",
+      "X5",
+      "BELU",
+      "PHOR",
+      "TRNFP",
+      "CHMF",
+      "NLMK",
+      "MAGN",
+      "ALRS",
+      "IRAO",
+      "FEES",
+      "HYDR",
+      "RTKM",
+      "RTKMP",
+      "MOEX",
+      "AFKS",
+      "VTBR",
+      "SIBN",
+      "PLZL",
+      "POLY",
+      "RUAL",
+      "FLOT",
+      "UPRO",
+      "OGKB",
+      "LSNG",
+      "LSNGP",
+      "KMAZ",
+      "KZOS",
+      "NKHP"
+    ],
+    "note": "Если тикер из скринера есть в этом списке — у компании есть история дивидендов 2+ лет (даёт +10 к score). Если тикера нет — не значит что компания не платит, просто данных нет в этом справочнике."
   }
 }
