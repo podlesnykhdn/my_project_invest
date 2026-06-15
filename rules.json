@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "2.3",
-    "updated": "2026-06-11",
+    "version": "2.4",
+    "updated": "2026-06-15",
     "description": "Движок правил для анализа портфеля. Используется сборщиком, письмами и Telegram ботами.",
     "thresholds": {
       "usd_change_alert": 2.0,
@@ -1525,6 +1525,134 @@
           "note": "Серебро и золото движутся в одном направлении. Рост серебра — подтверждение тренда для TGLD."
         }
       ]
+    }
+  },
+  "dividend_calendar": {
+    "description": "Календарь дивидендов портфеля. Источники: bcs.ru, investmint.ru, interfax.ru. Обновлено 15.06.2026.",
+    "updated": "2026-06-15",
+    "X5": {
+      "name": "Корпоративный центр X5",
+      "history": [
+        {
+          "period": "2024 год",
+          "amount_per_share": 648,
+          "record_date": "2026-07-07",
+          "payment_date": "2026-07-21",
+          "status": "approved"
+        },
+        {
+          "period": "9М 2025",
+          "amount_per_share": 368,
+          "record_date": null,
+          "payment_date": null,
+          "status": "approved_no_date"
+        },
+        {
+          "period": "2023 год",
+          "amount_per_share": null,
+          "record_date": null,
+          "payment_date": null,
+          "status": "historical"
+        }
+      ],
+      "next_payment": {
+        "amount_per_share": 648,
+        "record_date": "2026-07-07",
+        "payment_date": "2026-07-21",
+        "status": "подтверждено советом директоров",
+        "your_shares": 42,
+        "your_total_gross": 27216,
+        "your_total_net": 23678
+      }
+    },
+    "SBER": {
+      "name": "Сбербанк",
+      "history": [
+        {
+          "period": "2025 год",
+          "amount_per_share": 37.64,
+          "record_date": null,
+          "payment_date": "2026-08-03",
+          "status": "recommended"
+        },
+        {
+          "period": "2024 год",
+          "amount_per_share": 34.84,
+          "record_date": "2025-07-18",
+          "payment_date": "2025-07-31",
+          "status": "paid"
+        }
+      ],
+      "next_payment": {
+        "amount_per_share": 37.64,
+        "record_date": null,
+        "payment_date": "2026-08-03",
+        "status": "рекомендовано советом директоров, дата отсечки уточняется",
+        "your_shares": 74,
+        "your_total_gross": 2785.36,
+        "your_total_net": 2423.27
+      }
+    },
+    "BELU": {
+      "name": "Novabev Group",
+      "history": [
+        {
+          "period": "2 кв. 2025",
+          "amount_per_share": 20,
+          "record_date": "2025-10-18",
+          "payment_date": "2025-11-24",
+          "status": "paid"
+        },
+        {
+          "period": "1 кв. 2025",
+          "amount_per_share": 25,
+          "record_date": "2024-10-10",
+          "payment_date": "2024-10-11",
+          "status": "paid"
+        },
+        {
+          "period": "2024 год",
+          "amount_per_share": 12.5,
+          "record_date": "2024-05-10",
+          "payment_date": "2024-05-13",
+          "status": "paid"
+        },
+        {
+          "period": "2023 год",
+          "amount_per_share": 225,
+          "record_date": "2024-10-11",
+          "payment_date": null,
+          "status": "paid"
+        }
+      ],
+      "next_payment": {
+        "amount_per_share_min": 27,
+        "amount_per_share_max": 42,
+        "record_date": null,
+        "payment_date": null,
+        "status": "прогноз аналитиков на 2026 год: 27-42 руб./акц. (доходность 7.4-11.5%)",
+        "your_shares": 12,
+        "your_total_gross_min": 324,
+        "your_total_gross_max": 504,
+        "your_total_net_min": 282,
+        "your_total_net_max": 438
+      }
+    },
+    "LENT": {
+      "name": "Лента",
+      "history": [],
+      "next_payment": {
+        "status": "Лента не платит дивиденды — стратегия реинвестирования прибыли в рост сети",
+        "your_shares": 53
+      }
+    },
+    "TGLD": {
+      "name": "Фонд Золото",
+      "history": [],
+      "next_payment": {
+        "status": "ETF не платит дивиденды — доход формируется только за счёт роста цены золота",
+        "your_shares": 4618
+      }
     }
   }
 }
