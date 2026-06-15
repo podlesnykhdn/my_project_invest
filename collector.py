@@ -629,7 +629,10 @@ def build_dividend_calendar(rules):
     today = date.today()
     result = {}
 
+    META_KEYS = {"description", "updated", "source"}
     for ticker, info in calendar.items():
+        if ticker in META_KEYS or not isinstance(info, dict):
+            continue
         next_pay = info.get("next_payment", {})
         entry = {
             "name":    info.get("name", ticker),
