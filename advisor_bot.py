@@ -320,11 +320,13 @@ def build_morning_report(data):
     if cheap:
         lines.append(f"\n─ ─ ─\n🔍 <b>Перспективные акции</b>")
         for s in cheap[:3]:
+            div_mark = " 💰" if s.get("pays_dividends") else ""
             lines.append(
-                f"  {s.get('grade','?')} <b>{s['ticker']}</b> "
+                f"  {s.get('grade','?')} <b>{s['ticker']}</b>{div_mark} "
                 f"{fmt_price(s['price'])}  "
                 f"+{s['pct']:.1f}%  score:{s['score']}"
             )
+        lines.append("  <i>💰 = есть история дивидендов 2+ лет</i>")
 
     # 6. АКТИВЫ
     assets = data.get("assets", [])
