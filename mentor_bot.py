@@ -223,15 +223,23 @@ def run_command():
     url = f"https://api.telegram.org/bot{TOKEN}/getUpdates?timeout=5"
     req = urllib.request.Request(url)
     with urllib.request.urlopen(req, timeout=15) as r:
-        updates = json.loads(r.read()).get("result", [])
+        result = json.loads(r.read())
+        updates = result.get("result", [])
 
-    for update in updates[-5:]:  # последние 5 сообщений
+    print(f"Получено обновлений: {len(updates)}")
+    for u in updates:
+        m = u.get("message", {})
+        print(f"  update_id={u.get('update_id')} text={m.get('text','')!r} chat_id={m.get('chat',{}).get('id')}")
+
+    for update in updates[-10:]:  # последние 10 сообщений
         msg  = update.get("message", {})
         text = msg.get("text", "")
         cid  = str(msg.get("chat", {}).get("id", ""))
 
         if cid != str(CHAT_ID):
             continue
+
+        print(f"Обрабатываю команду: {text!r}")
 
         if text == "/start":
             send(
