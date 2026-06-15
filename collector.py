@@ -715,10 +715,34 @@ def build_dividend_calendar(rules, screener_tickers=None):
                 "amount_per_share":    h.get("value"),
             })
 
+        # Дополняем анонсированными данными которых ещё нет в MOEX ISS
+        announced = rules.get("announced_dividends", {}).get("data", {}).get(ticker)
+        announced_out = None
+        if announced and not next_payment:
+            rd = announced.get("record_date")
+            days_to_record = None
+            if rd:
+                try:
+                    rd_date = datetime.strptime(rd, "%Y-%m-%d").date()
+                    days_to_record = (rd_date - today).days
+                except ValueError:
+                    pass
+            announced_out = {**announced, "days_to_record": days_to_record}
+            if "amount_per_share" in announced and shares:
+                gross = round(announced["amount_per_share"] * shares, 2)
+                announced_out["your_total_gross"] = gross
+                announced_out["your_total_net"]   = round(gross * 0.87, 2)
+                announced_out["your_shares"] = shares
+            elif "amount_per_share_min" in announced and shares:
+                announced_out["your_shares"] = shares
+                announced_out["your_total_net_min"] = round(announced["amount_per_share_min"] * shares * 0.87, 2)
+                announced_out["your_total_net_max"] = round(announced["amount_per_share_max"] * shares * 0.87, 2)
+
         result[ticker] = {
-            "history":        history_out,
-            "next_payment":   next_payment,
-            "pays_dividends": len(history_raw) > 0,
+            "history":          history_out,
+            "next_payment":     next_payment,       # факт из MOEX ISS
+            "announced":        announced_out,       # анонс из внешних источников
+            "pays_dividends":   len(history_raw) > 0 or announced is not None,
         }
 
     return result
