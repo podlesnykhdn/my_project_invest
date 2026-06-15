@@ -83,6 +83,10 @@ SIGNAL_EMOJI = {
     "mixed": "🟡", "ok": "✅", "high_risk": "🔴", "low_risk": "🟢",
 }
 
+def fmt(n):
+    if n is None: return "—"
+    return f"{n:,.0f}".replace(",", " ")
+
 def fmt_rub(n):
     if n is None: return "—"
     return f"{n:+,.0f} ₽".replace(",", " ")
@@ -288,15 +292,27 @@ def build_morning_report(data):
     if upcoming:
         lines.append(f"\n─ ─ ─\n📅 <b>Дивидендный календарь</b>")
         for days, ticker, info in upcoming[:3]:
-            label = "выплата" if info.get("days_to_payment") is not None else "отсечка"
-            date_str = info.get("payment_date") or info.get("record_date")
             amt = info.get("amount_per_share")
+            shares = info.get("your_shares", 0)
+
+            # Показываем отсечку и выплату раздельно, если обе известны
+            rec_date = info.get("record_date")
+            pay_date = info.get("payment_date")
+            dtr = info.get("days_to_record")
+            dtp = info.get("days_to_payment")
+
+            lines.append(f"  💰 <b>{ticker}</b>")
+            if rec_date and dtr is not None and dtr >= 0:
+                lines.append(f"     📌 Отсечка: через {dtr} дн. ({rec_date})")
+            if pay_date and dtp is not None and dtp >= 0:
+                lines.append(f"     💵 Выплата: через {dtp} дн. ({pay_date})")
+            elif not pay_date and rec_date:
+                lines.append(f"     💵 Выплата: ~10 раб. дней после отсечки")
+
             if amt:
-                lines.append(f"  💰 <b>{ticker}</b>: {label} через {days} дн. ({date_str})")
-                lines.append(f"     {amt} ₽/акц. × {info.get('your_shares',0)} = <b>{fmt_rub(info.get('your_total_net',0)).replace('+','')}</b>")
+                lines.append(f"     Сумма: {amt} ₽/акц. × {shares} = <b>{fmt(info.get('your_total_net',0))} ₽</b> (после налога 13%)")
             elif "amount_per_share_min" in info:
-                lines.append(f"  💰 <b>{ticker}</b>: {label} через {days} дн. ({date_str})")
-                lines.append(f"     прогноз {info['amount_per_share_min']}–{info['amount_per_share_max']} ₽/акц.")
+                lines.append(f"     Прогноз: {info['amount_per_share_min']}–{info['amount_per_share_max']} ₽/акц.")
 
     # 5. СКРИНЕР — топ-3
     screener = data.get("screener", {})
