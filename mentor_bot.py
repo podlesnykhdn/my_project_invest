@@ -220,6 +220,23 @@ def run_morning():
 
 def run_command():
     """Обработка входящих команд."""
+
+    # Диагностика: проверяем webhook
+    try:
+        wh_req = urllib.request.Request(f"https://api.telegram.org/bot{TOKEN}/getWebhookInfo")
+        with urllib.request.urlopen(wh_req, timeout=10) as r:
+            wh = json.loads(r.read())
+        print(f"Webhook info: {wh.get('result', {})}")
+        webhook_url = wh.get("result", {}).get("url", "")
+        if webhook_url:
+            print(f"[WARN] Установлен webhook: {webhook_url} — удаляю, чтобы getUpdates заработал")
+            del_req = urllib.request.Request(f"https://api.telegram.org/bot{TOKEN}/deleteWebhook")
+            with urllib.request.urlopen(del_req, timeout=10) as r:
+                print(f"deleteWebhook result: {json.loads(r.read())}")
+    except Exception as e:
+        print(f"[ERROR] webhook check: {e}")
+
+    # Пробуем getUpdates с offset=-1 чтобы захватить любые ожидающие
     url = f"https://api.telegram.org/bot{TOKEN}/getUpdates?timeout=5&limit=100"
     req = urllib.request.Request(url)
     try:
