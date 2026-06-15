@@ -221,6 +221,17 @@ def run_morning():
 def run_command():
     """Обработка входящих команд."""
 
+    # Диагностика: кто этот бот
+    try:
+        me_req = urllib.request.Request(f"https://api.telegram.org/bot{TOKEN}/getMe")
+        with urllib.request.urlopen(me_req, timeout=10) as r:
+            me = json.loads(r.read())
+        print(f"Бот: {me.get('result', {})}")
+    except Exception as e:
+        print(f"[ERROR] getMe: {e}")
+
+    print(f"CHAT_ID из секрета: {CHAT_ID}")
+
     # Диагностика: проверяем webhook
     try:
         wh_req = urllib.request.Request(f"https://api.telegram.org/bot{TOKEN}/getWebhookInfo")
