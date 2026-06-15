@@ -613,6 +613,64 @@ def _merge_signals(signals, impact):
             signals[ticker] = []
         signals[ticker].append(data)
 
+
+# ─── ДИВИДЕНДНЫЙ КАЛЕНДАРЬ ────────────────────────────────────────────────────
+
+def build_dividend_calendar(rules):
+    print("[7/7] Дивидендный календарь...")
+    calendar = rules.get("dividend_calendar", {})
+    today = date.today()
+    result = {}
+
+    for ticker, info in calendar.items():
+        next_pay = info.get("next_payment", {})
+        entry = {
+            "name":    info.get("name", ticker),
+            "history": info.get("history", []),
+            "status":  next_pay.get("status", ""),
+        }
+
+        # Считаем дни до даты отсечки/выплаты если есть
+        record_date  = next_pay.get("record_date")
+        payment_date = next_pay.get("payment_date")
+
+        days_to_record  = None
+        days_to_payment = None
+        if record_date:
+            try:
+                rd = datetime.strptime(record_date, "%Y-%m-%d").date()
+                days_to_record = (rd - today).days
+            except ValueError:
+                pass
+        if payment_date:
+            try:
+                pd_ = datetime.strptime(payment_date, "%Y-%m-%d").date()
+                days_to_payment = (pd_ - today).days
+            except ValueError:
+                pass
+
+        entry["record_date"]     = record_date
+        entry["payment_date"]    = payment_date
+        entry["days_to_record"]  = days_to_record
+        entry["days_to_payment"] = days_to_payment
+
+        # Сумма дивиденда и доход
+        if "amount_per_share" in next_pay:
+            entry["amount_per_share"] = next_pay["amount_per_share"]
+            entry["your_total_gross"] = next_pay.get("your_total_gross")
+            entry["your_total_net"]   = next_pay.get("your_total_net")
+        elif "amount_per_share_min" in next_pay:
+            entry["amount_per_share_min"] = next_pay["amount_per_share_min"]
+            entry["amount_per_share_max"] = next_pay["amount_per_share_max"]
+            entry["your_total_net_min"]   = next_pay.get("your_total_net_min")
+            entry["your_total_net_max"]   = next_pay.get("your_total_net_max")
+
+        entry["your_shares"] = next_pay.get("your_shares", 0)
+
+        result[ticker] = entry
+
+    return result
+
 # ─── РАСЧЁТ СТОИМОСТИ ПОРТФЕЛЯ ────────────────────────────────────────────────
 
 def calc_portfolio(rules, quotes):
@@ -685,6 +743,7 @@ def collect():
 
     fired_rules, portfolio_signals = run_rules(rules, currency, oil, quotes, news)
     portfolio = calc_portfolio(rules, quotes)
+    dividends = build_dividend_calendar(rules)
 
     usd_change = 0.0
     if currency.get("usd") and currency.get("usd_prev"):
@@ -709,6 +768,7 @@ def collect():
         "quotes":    quotes,
         "screener":  screener,
         "assets":    assets,
+        "dividends": dividends,
         "news":      news,
         "rules_fired":        fired_rules,
         "portfolio_signals":  portfolio_signals,
