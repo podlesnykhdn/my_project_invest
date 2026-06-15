@@ -321,6 +321,20 @@ function showOffline(){
 }
 
 async function loadScreener(){
+  // Подгружаем дивиденды из последнего лога сборщика
+  window._screenerDividends = {};
+  try{
+    for(let i=0;i<5;i++){
+      const dte = new Date(Date.now() - i*86400000).toISOString().slice(0,10);
+      const res = await fetch(`https://raw.githubusercontent.com/podlesnykhdn/my_prodject_invest/main/logs/collector/${dte}.json`);
+      if(res.ok){
+        const logData = await res.json();
+        window._screenerDividends = logData.dividends || {};
+        break;
+      }
+    }
+  }catch(e){}
+
   try{
     const data = await moexGet('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities');
     const mc=data.marketdata.columns, sc=data.securities.columns;
