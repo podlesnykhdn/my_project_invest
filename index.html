@@ -356,9 +356,11 @@ async function loadScreener(){
     document.getElementById('growth-list').innerHTML=byGrowth.map(d=>{
       const pct=d.PREVPRICE?(d.LAST-d.PREVPRICE)/d.PREVPRICE*100:0;
       const volTrend = getVolTrend(d.SECID, trimmed, weekKey);
+      const divPayers = ['SBER','SBERP','LKOH','GAZP','ROSN','TATN','TATNP','NVTK','SNGS','SNGSP','MTSS','MGNT','X5','BELU','PHOR','TRNFP','CHMF','NLMK','MAGN','ALRS','IRAO','FEES','HYDR','RTKM','RTKMP','MOEX','AFKS','VTBR','SIBN','PLZL','POLY','RUAL','FLOT','UPRO','OGKB','LSNG','LSNGP','KMAZ','KZOS','NKHP'];
+      const divMark = divPayers.includes(d.SECID) ? ' 💰' : '';
       return `<div class="sc-item">
         <div>
-          <div class="si-name">${d.NAME}</div>
+          <div class="si-name">${d.NAME}${divMark}</div>
           <div class="si-ticker">${d.SECID} · ${fmtVol(d.VALTODAY)} ₽ ${volTrend}</div>
         </div>
         <div><div class="si-price">${fmt(d.LAST)} ₽</div><div class="si-ch up">+${pct.toFixed(1)}%</div></div>
