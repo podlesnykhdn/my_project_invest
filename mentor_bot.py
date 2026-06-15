@@ -260,6 +260,20 @@ def run_command():
             num = get_lesson_num()
             send(format_progress(num))
 
+        elif text.startswith("/catchup"):
+            # /catchup 12 14 — присылает уроки с 12 по 14 включительно
+            parts = text.split()
+            if len(parts) == 3:
+                try:
+                    start, end = int(parts[1]), int(parts[2])
+                    for n in range(start, end + 1):
+                        lesson, num = load_lesson(n)
+                        send(format_lesson(lesson, num))
+                except ValueError:
+                    send("Используй формат: /catchup 12 14")
+            else:
+                send("Используй формат: /catchup 12 14 — пришлю уроки с 12 по 14")
+
         elif text == "/understood":
             progress = load_terms_progress()
             confirmed = progress.get("confirmed", [])
