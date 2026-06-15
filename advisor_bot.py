@@ -274,6 +274,30 @@ def build_morning_report(data):
             name = ticker_names.get(ticker, ticker)
             lines.append(f"  {emoji} <b>{name}</b>: {reason}")
 
+    # 4.5. ДИВИДЕНДНЫЙ КАЛЕНДАРЬ
+    dividends = data.get("dividends", {})
+    upcoming = []
+    for ticker, info in dividends.items():
+        dtp = info.get("days_to_payment")
+        dtr = info.get("days_to_record")
+        d = dtp if dtp is not None else dtr
+        if d is not None and 0 <= d <= 45:
+            upcoming.append((d, ticker, info))
+    upcoming.sort(key=lambda x: x[0])
+
+    if upcoming:
+        lines.append(f"\n─ ─ ─\n📅 <b>Дивидендный календарь</b>")
+        for days, ticker, info in upcoming[:3]:
+            label = "выплата" if info.get("days_to_payment") is not None else "отсечка"
+            date_str = info.get("payment_date") or info.get("record_date")
+            amt = info.get("amount_per_share")
+            if amt:
+                lines.append(f"  💰 <b>{ticker}</b>: {label} через {days} дн. ({date_str})")
+                lines.append(f"     {amt} ₽/акц. × {info.get('your_shares',0)} = <b>{fmt_rub(info.get('your_total_net',0)).replace('+','')}</b>")
+            elif "amount_per_share_min" in info:
+                lines.append(f"  💰 <b>{ticker}</b>: {label} через {days} дн. ({date_str})")
+                lines.append(f"     прогноз {info['amount_per_share_min']}–{info['amount_per_share_max']} ₽/акц.")
+
     # 5. СКРИНЕР — топ-3
     screener = data.get("screener", {})
     cheap = screener.get("cheap_growth", [])
