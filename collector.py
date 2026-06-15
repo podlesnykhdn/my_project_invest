@@ -200,11 +200,14 @@ def collect_moex(rules):
             prev  = r.get("PREVPRICE") or price
             # Используем CHANGE напрямую из MOEX — точнее чем вычислять
             change = r.get("CHANGE") or 0
-            # LASTTOPREVPRICE = отношение last/prev, из него точный процент
+            # LASTTOPREVPRICE на MOEX уже задано в процентах
             ltp = r.get("LASTTOPREVPRICE")
-            pct = round((ltp - 1) * 100, 2) if ltp else (
-                round(change / prev * 100, 2) if prev and change else 0
-            )
+            if ltp is not None:
+                pct = round(ltp, 2)
+            elif prev:
+                pct = round(change / prev * 100, 2)
+            else:
+                pct = 0
             if price:
                 quotes[r["SECID"]] = {
                     "price":  round(price, 2),
@@ -215,8 +218,12 @@ def collect_moex(rules):
                 }
                 print(f"  {r['SECID']}: {price} руб. ({pct:+.1f}%)")
 
+    print(f"  Запрос акций TQBR: {share_tickers}")
     parse_board("TQBR", share_tickers)
+    print(f"  Запрос ETF TQTF: {etf_tickers}")
     parse_board("TQTF", etf_tickers)
+    if "TGLD" not in quotes:
+        print("  [WARN] TGLD не получен с TQTF — проверка борда")
     return quotes
 
 # ─── 4. СКРИНЕР MOEX ─────────────────────────────────────────────────────────
