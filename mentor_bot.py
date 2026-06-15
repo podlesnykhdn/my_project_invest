@@ -306,3 +306,13 @@ if __name__ == "__main__":
         run_morning()
     elif MODE == "command":
         run_command()
+    elif MODE == "alerts":
+        run_term_of_day()
+    elif MODE == "auto":
+        log = load_log()
+        if not log.get("morning_sent"):
+            run_morning()
+        elif not log.get("term_sent"):
+            run_term_of_day()
+        else:
+            print("Урок и термин дня уже отправлены сегодня")
