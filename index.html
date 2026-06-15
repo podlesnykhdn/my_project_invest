@@ -581,8 +581,9 @@ async function loadDividends(){
       const next = info.next_payment;
       const name = PORTFOLIO_NAMES[ticker] || ticker;
 
-      let amountHtml, totalHtml = '', countdownHtml = '';
+      let amountHtml, totalHtml = '', countdownHtml = '', sourceHtml = '';
       let isNext = false;
+      const ann = info.announced;
 
       if(next){
         amountHtml = `<div class="div-amount">${next.amount_per_share} ₽/акц.</div>`;
@@ -594,6 +595,30 @@ async function loadDividends(){
           isNext = days <= 30;
           const cls = days <= 7 ? 'soon' : '';
           countdownHtml = `<div class="div-countdown ${cls}">Отсечка через ${days} дн. (${next.record_date})</div>`;
+        }
+      } else if(ann){
+        if('amount_per_share' in ann){
+          amountHtml = `<div class="div-amount">${ann.amount_per_share} ₽/акц. <span style="font-size:0.7rem;color:var(--muted);">(анонс)</span></div>`;
+          if(ann.your_total_net){
+            totalHtml = `<div class="div-total">Твой доход: <b>${fmt(ann.your_total_net)} ₽</b> (после налога 13%)</div>`;
+          }
+        } else if('amount_per_share_min' in ann){
+          amountHtml = `<div class="div-amount">${ann.amount_per_share_min}–${ann.amount_per_share_max} ₽/акц. <span style="font-size:0.7rem;color:var(--muted);">(прогноз)</span></div>`;
+          if(ann.your_total_net_min){
+            totalHtml = `<div class="div-total">Твой доход: <b>${fmt(ann.your_total_net_min)}–${fmt(ann.your_total_net_max)} ₽</b> (прогноз)</div>`;
+          }
+        }
+        const days = ann.days_to_record;
+        if(days != null && days >= 0){
+          isNext = days <= 30;
+          const cls = days <= 7 ? 'soon' : '';
+          const dateStr = ann.record_date || ann.payment_date || '?';
+          countdownHtml = `<div class="div-countdown ${cls}">Отсечка через ${days} дн. (${dateStr})</div>`;
+        } else if(ann.payment_date){
+          countdownHtml = `<div class="div-countdown">Выплата ориентировочно ${ann.payment_date}</div>`;
+        }
+        if(ann.status){
+          sourceHtml = `<div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">${ann.status}<br>Источник: ${ann.source}</div>`;
         }
       } else if(info.pays_dividends){
         amountHtml = `<div class="div-amount none">Следующая выплата не объявлена</div>`;
@@ -616,6 +641,7 @@ async function loadDividends(){
         ${amountHtml}
         ${countdownHtml}
         ${totalHtml}
+        ${sourceHtml}
         ${historyHtml}
       </div>`;
     }).join('');
