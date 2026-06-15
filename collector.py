@@ -339,35 +339,45 @@ def collect_assets(rules):
     scoring_criteria = rules.get("watchlist_assets", {}).get("scoring_assets", {})
     usd_change = 0  # будет передан позже через run_rules
 
-    # Тикеры для запроса (SILV=серебро, TGLD=золото; нефти нет на TQTF)
-    tickers = [a["ticker"] for a in assets_config if a["ticker"] != "OILR"]
     result = {}
 
+    def pct_from(r, price, prev, change):
+        ltp = r.get("LASTTOPREVPRICE")
+        if ltp is not None:
+            return round(ltp, 2)
+        if prev:
+            return round(change / prev * 100, 2)
+        return 0
+
     try:
+        # Золото (TGLD) и Серебро (SILV) — борд TQTF
+        etf_tickers = [a["ticker"] for a in assets_config if a["ticker"] in ("TGLD", "SILV")]
         url = (f"https://iss.moex.com/iss/engines/stock/markets/shares/"
                f"boards/TQTF/securities.json"
-               f"?securities={','.join(tickers)}&iss.meta=off&iss.only=marketdata")
+               f"?securities={','.join(etf_tickers)}&iss.meta=off&iss.only=marketdata")
         data = safe_fetch(url)
         if data:
             d = json.loads(data)
             cols = d["marketdata"]["columns"]
             for row in d["marketdata"]["data"]:
                 r = dict(zip(cols, row))
-                price = r.get("LAST") or r.get("PREVPRICE") or 0
-                prev  = r.get("PREVPRICE") or price
-                vol   = r.get("VALTODAY") or 0
+                price  = r.get("LAST") or r.get("PREVPRICE") or 0
+                prev   = r.get("PREVPRICE") or price
+                vol    = r.get("VALTODAY") or 0
+                change = r.get("CHANGE") or 0
                 if price:
-                    pct = round((price - prev) / prev * 100, 2) if prev else 0
+                    pct = pct_from(r, price, prev, change)
                     result[r["SECID"]] = {
-                        "price":  round(price, 2),
-                        "prev":   round(prev, 2),
-                        "change": round(price - prev, 2),
-                        "pct":    pct,
-                        "volume": vol,
-                        "score":  0,
-                        "grade":  "🔴 D",
+                        "price": round(price, 2), "prev": round(prev, 2),
+                        "change": round(change, 2), "pct": pct, "volume": vol,
+                        "score": 0, "grade": "🔴 D",
                     }
                     print(f"  {r['SECID']}: {price} руб. ({pct:+.1f}%)")
+        else:
+            print(f"  [WARN] TQTF (золото/серебро) недоступен")
+
+        # Нефть Brent — переиспользуем уже полученную цену из collect_oil()
+        # (BR- как тикер на TQTF не существует, поэтому работаем через данные нефти)
     except Exception as e:
         print(f"  [ERROR] assets: {e}")
 
