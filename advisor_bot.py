@@ -266,8 +266,11 @@ def build_morning_report(data):
     if p_signals:
         lines.append(f"\n─ ─ ─\n🎯 <b>По позициям</b>")
         ticker_names = {
-            "X5": "X5", "LENT": "Лента", "SBER": "Сбербанк",
-            "BELU": "Novabev", "TGLD": "Золото"
+            "X5":   "ИКС 5 (Пятёрочка/Перекрёсток)",
+            "LENT": "Лента",
+            "SBER": "Сбербанк",
+            "BELU": "НоваБев Групп",
+            "TGLD": "ТБанк Золото (БПИФ)"
         }
         for ticker, signals in p_signals.items():
             if not signals:
