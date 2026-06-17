@@ -226,6 +226,117 @@ def collect_moex(rules):
         print("  [WARN] TGLD не получен с TQTF — проверка борда")
     return quotes
 
+
+# ─── МАЛОИЗВЕСТНЫЕ АКЦИИ С РАСТУЩИМ ОБЪЁМОМ ──────────────────────────────────
+
+def collect_rising_interest(rules, all_items, vol_history):
+    """
+    Ищет малоизвестные акции где объём растёт неделя к неделе.
+    Признаки малоизвестности: не в топ-20 по капитализации, цена < 1000 руб.
+    Сигнал: объём сегодня > среднего объёма прошлой недели на 30%+
+    """
+    print("  [Rising interest] Анализ роста объёма...")
+
+    # Топ-20 известных голубых фишек — исключаем
+    blue_chips = {
+        "SBER","SBERP","LKOH","GAZP","ROSN","NVTK","TATN","TATNP",
+        "MGNT","YNDX","MTSS","MOEX","PLZL","GMKN","CHMF","NLMK",
+        "MAGN","ALRS","SNGS","SNGSP"
+    }
+
+    # Портфельные тикеры тоже исключаем
+    portfolio_tickers = {p["ticker"] for p in rules["portfolio"]["positions"]}
+    exclude = blue_chips | portfolio_tickers
+
+    week_key = _get_week_key()
+    prev_week_key = _get_prev_week_key()
+
+    result = []
+    for item in all_items:
+        ticker = item["ticker"]
+        if ticker in exclude:
+            continue
+        if item["price"] <= 0 or item["price"] > 1000:
+            continue
+        if item["volume"] < 1_000_000:  # минимум 1 млн руб. оборота
+            continue
+
+        # Сравниваем с прошлой неделей
+        prev_vol = vol_history.get(prev_week_key, {}).get(ticker, 0)
+        curr_vol = item["volume"]
+
+        if prev_vol > 0:
+            growth = (curr_vol - prev_vol) / prev_vol * 100
+        elif curr_vol > 5_000_000:
+            # Новая акция в радаре — сразу интересна если объём хороший
+            growth = 100
+        else:
+            continue
+
+        if growth < 30:  # рост объёма менее 30% — не интересно
+            continue
+
+        # Дополнительные сигналы
+        signals = []
+        if growth >= 200:
+            signals.append("🚀 объём x3+")
+        elif growth >= 100:
+            signals.append("📈 объём x2")
+        else:
+            signals.append(f"↗️ объём +{growth:.0f}%")
+
+        if item["pct"] > 0:
+            signals.append(f"цена +{item['pct']:.1f}%")
+        elif item["pct"] < -3:
+            signals.append(f"⚠️ цена {item['pct']:.1f}%")
+
+        # Дивиденды
+        div_info = rules.get("dividend_payers_directory_temp", {})
+        pays_div = item.get("pays_dividends", False)
+        if pays_div:
+            signals.append("💰 дивиденды")
+
+        result.append({
+            "ticker":      ticker,
+            "name":        item["name"],
+            "price":       item["price"],
+            "pct":         item["pct"],
+            "volume":      curr_vol,
+            "prev_volume": prev_vol,
+            "vol_growth":  round(growth, 1),
+            "signals":     signals,
+            "score":       _score_rising(growth, item["pct"], curr_vol),
+        })
+
+    # Сортируем по score
+    result.sort(key=lambda x: x["score"], reverse=True)
+    print(f"  [Rising interest] Найдено: {len(result[:8])} акций")
+    return result[:8]
+
+def _get_week_key():
+    d = date.today()
+    week = d.isocalendar()[1]
+    return f"{d.year}-W{week:02d}"
+
+def _get_prev_week_key():
+    from datetime import timedelta
+    d = date.today() - timedelta(days=7)
+    week = d.isocalendar()[1]
+    return f"{d.year}-W{week:02d}"
+
+def _score_rising(vol_growth, price_pct, volume):
+    score = 0
+    if vol_growth >= 200: score += 40
+    elif vol_growth >= 100: score += 30
+    elif vol_growth >= 50: score += 20
+    else: score += 10
+    if price_pct > 2: score += 20
+    elif price_pct > 0: score += 10
+    if volume >= 50_000_000: score += 20
+    elif volume >= 10_000_000: score += 10
+    return score
+
+
 # ─── 4. СКРИНЕР MOEX ─────────────────────────────────────────────────────────
 
 def collect_screener(rules):
@@ -292,9 +403,25 @@ def collect_screener(rules):
         print(f"  Топ по объёму: {len(top_vol)} акций")
         print(f"  Дешёвые перспективные: {len(cheap_sorted)} акций")
 
+        # Сохраняем объёмы для недельной статистики
+        vol_history = _load_vol_history()
+        week_key = _get_week_key()
+        if week_key not in vol_history:
+            vol_history[week_key] = {}
+        for item in items:
+            if item["volume"] > 0:
+                # Накапливаем объём за неделю (суммируем дни)
+                prev = vol_history[week_key].get(item["ticker"], 0)
+                vol_history[week_key][item["ticker"]] = prev + item["volume"]
+        _save_vol_history(vol_history)
+
+        # Малоизвестные с растущим объёмом
+        rising = collect_rising_interest(rules, items, vol_history)
+
         return {
-            "top_volume":  top_vol,
-            "cheap_growth": cheap_sorted,
+            "top_volume":    top_vol,
+            "cheap_growth":  cheap_sorted,
+            "rising_interest": rising,
         }
 
     except Exception as e:
@@ -323,6 +450,24 @@ def _score_stock(stock, rules):
     if stock["pct"] > 10.0:
         score -= 15
     return min(max(score, 0), 100)
+
+def _load_vol_history():
+    vol_file = LOGS_DIR / "vol_history.json"
+    if vol_file.exists():
+        try:
+            with open(vol_file, encoding="utf-8") as f:
+                data = json.load(f)
+            # Оставляем только последние 4 недели
+            weeks = sorted(data.keys())[-4:]
+            return {w: data[w] for w in weeks}
+        except Exception:
+            return {}
+    return {}
+
+def _save_vol_history(data):
+    (LOGS_DIR).mkdir(parents=True, exist_ok=True)
+    with open(LOGS_DIR / "vol_history.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 def _grade(score):
     if score >= 75: return "🟢 A"
