@@ -671,7 +671,6 @@ async function loadDividends(){
 async function loadRisingInterest(){
   const box = document.getElementById('rising-list');
   try{
-    // Берём из последнего лога сборщика
     const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
       {headers:{'Accept':'application/vnd.github.v3+json'}});
     if(!listRes.ok){ box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет данных</div>'; return; }
@@ -680,47 +679,43 @@ async function loadRisingInterest(){
     if(!sorted.length){ box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет логов</div>'; return; }
     const fileRes = await fetch(sorted[0].download_url);
     const logData = await fileRes.json();
-    const rising = logData?.screener?.rising_interest || [];
+    const rising = (logData && logData.screener && logData.screener.rising_interest) ? logData.screener.rising_interest : [];
 
     if(!rising.length){
-      box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Биржа закрыта или нет сигналов сегодня</div>';
+      box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Биржа закрыта или нет сигналов. Данные накапливаются первую неделю.</div>';
       return;
     }
 
-    box.innerHTML = rising.map(s => {
+    const divData = window._screenerDividends || {};
+    box.innerHTML = rising.map(function(s){
       const signals = (s.signals||[]).join(' · ');
-      const volGrowth = s.vol_growth >= 0 ? '+'+s.vol_growth+'%' : s.vol_growth+'%';
+      const volGrowth = (s.vol_growth >= 0 ? '+' : '') + s.vol_growth + '%';
       const cls = s.pct >= 0 ? 'up' : 'dn';
-      const divInfo = (window._screenerDividends||{})[s.ticker];
+      const pctStr = (s.pct >= 0 ? '+' : '') + s.pct.toFixed(1) + '%';
+      const di = divData[s.ticker];
       let divLine = '';
-      if(divInfo?.next_payment){
-        const np = divInfo.next_payment;
-        divLine = `<div style="font-size:0.7rem;color:var(--green);">💰 ${np.amount_per_share} ₽/акц. · отсечка ${np.days_to_record} дн.</div>`;
-      } else if(divInfo?.announced){
-        const ann = divInfo.announced;
-        const amt = ann.amount_per_share || `${ann.amount_per_share_min}-${ann.amount_per_share_max}`;
-        divLine = `<div style="font-size:0.7rem;color:var(--green);">💰 ${amt} ₽/акц. (анонс)</div>`;
+      if(di && di.next_payment){
+        const np = di.next_payment;
+        divLine = '<div style="font-size:0.7rem;color:var(--green);">💰 ' + np.amount_per_share + ' ₽/акц. · отсечка ' + np.days_to_record + ' дн.</div>';
+      } else if(di && di.announced && di.announced.amount_per_share){
+        divLine = '<div style="font-size:0.7rem;color:var(--green);">💰 ' + di.announced.amount_per_share + ' ₽/акц. (анонс)</div>';
       }
-      return \`<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <div style="display:flex;justify-content:space-between;width:100%;">
-          <div>
-            <div class="si-name">\${s.name}</div>
-            <div class="si-ticker">\${s.ticker} · объём \${fmtVol(s.volume)} · <span style="color:var(--green);">\${volGrowth} к пр.неделе</span></div>
-          </div>
-          <div>
-            <div class="si-price">\${fmt(s.price)} ₽</div>
-            <div class="si-ch \${cls}">\${s.pct >= 0?'+':''}\${s.pct.toFixed(1)}%</div>
-          </div>
-        </div>
-        \${divLine}
-        <div style="font-size:0.7rem;color:var(--muted);">\${signals}</div>
-      </div>\`;
+      return '<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;">'
+        + '<div style="display:flex;justify-content:space-between;width:100%;">'
+        + '<div><div class="si-name">' + s.name + '</div>'
+        + '<div class="si-ticker">' + s.ticker + ' · ' + fmtVol(s.volume) + ' · <span style="color:var(--green);">' + volGrowth + ' н/н</span></div></div>'
+        + '<div><div class="si-price">' + fmt(s.price) + ' ₽</div>'
+        + '<div class="si-ch ' + cls + '">' + pctStr + '</div></div></div>'
+        + divLine
+        + '<div style="font-size:0.7rem;color:var(--muted);">' + signals + '</div>'
+        + '</div>';
     }).join('');
   } catch(e){
-    box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Ошибка загрузки. Открывай без VPN.</div>';
+    box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Ошибка. Открывай без VPN.</div>';
     console.log('Rising error:', e);
   }
 }
+
 
 async function loadAll(){
   document.getElementById('last-update').textContent='Обновлено в '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
