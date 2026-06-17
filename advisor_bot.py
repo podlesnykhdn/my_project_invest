@@ -348,6 +348,16 @@ def build_morning_report(data):
                 f"{fmt_price(a['price'])}  ({ch:+.1f}%)  {a.get('grade','?')}"
             )
 
+    # 6.5. РАСТУЩИЙ ИНТЕРЕС
+    rising = screener.get("rising_interest", [])
+    if rising:
+        lines.append(f"\n─ ─ ─\n🔭 <b>Растущий интерес</b>")
+        for s in rising[:3]:
+            vg = s.get("vol_growth", 0)
+            sigs = " · ".join(s.get("signals", [])[:2])
+            lines.append(f"  <b>{s['ticker']}</b> {s.get('name','')[:18]}")
+            lines.append(f"     {fmt_price(s['price'])}  объём +{vg:.0f}% н/н  {sigs}")
+
     # 7. ТОП ПО ОБЪЁМУ (3 штуки)
     top_vol = screener.get("top_volume", [])
     if top_vol:
