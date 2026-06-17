@@ -199,11 +199,11 @@ tr:hover td{background:var(--surface2);}
 
 <script>
 const PORTFOLIO = [
-  {name:"Корп. центр X5", ticker:"X5",   board:"TQBR", qty:42,   div:true},
-  {name:"Лента",           ticker:"LENT",  board:"TQBR", qty:53,   div:false},
-  {name:"Сбербанк",        ticker:"SBER",  board:"TQBR", qty:74,   div:true},
-  {name:"Novabev Group",   ticker:"BELU",  board:"TQBR", qty:12,   div:true},
-  {name:"Фонд Золото",     ticker:"TGLD",  board:"TQTF", qty:4618, div:false, etf:true},
+  {name:"ПАО «Корпоративный центр ИКС 5»", short:"ИКС 5",        ticker:"X5",   board:"TQBR", qty:42,   div:true},
+  {name:"МКПАО «Лента»",                    short:"Лента",         ticker:"LENT",  board:"TQBR", qty:53,   div:false},
+  {name:"ПАО Сбербанк",                     short:"Сбербанк",      ticker:"SBER",  board:"TQBR", qty:74,   div:true},
+  {name:"ПАО «НоваБев Групп»",              short:"НоваБев Групп", ticker:"BELU",  board:"TQBR", qty:12,   div:true},
+  {name:"БПИФ «Тинькофф Золото»",           short:"ТБанк Золото",  ticker:"TGLD",  board:"TQTF", qty:4618, div:false, etf:true},
 ];
 
 function switchTab(name) {
@@ -288,7 +288,7 @@ async function loadPortfolio(){
       const cls=ch>0?'up':ch<0?'dn':'neu', sign=ch>=0?'+':'';
       const badge=pos.etf?'<span class="badge etf">ETF</span>':pos.div?'<span class="badge yes">Да</span>':'<span class="badge no">Нет</span>';
       return `<tr>
-        <td>${pos.name}</td><td class="mono">${pos.ticker}</td><td class="mono">${fmt(pos.qty)}</td>
+        <td title="${pos.name}">${pos.short||pos.name}</td><td class="mono">${pos.ticker}</td><td class="mono">${fmt(pos.qty)}</td>
         <td class="mono">${price?fmt(price)+' ₽':'—'}</td>
         <td class="mono ${cls}">${price?(sign+ch.toFixed(2)+' ('+sign+pct.toFixed(1)+'%)'):'—'}</td>
         <td class="mono">${fmtVol(vol)}</td>
@@ -562,7 +562,7 @@ function getVolTrend(ticker, history, currentWeek){
   return '<span style="color:var(--muted);font-size:0.68rem;">→</span>';
 }
 
-const PORTFOLIO_NAMES = {X5:"Корп. центр X5", LENT:"Лента", SBER:"Сбербанк", BELU:"Novabev Group", TGLD:"Фонд Золото"};
+const PORTFOLIO_NAMES = {X5:"ПАО «Корпоративный центр ИКС 5»", LENT:"МКПАО «Лента»", SBER:"ПАО Сбербанк", BELU:"ПАО «НоваБев Групп»", TGLD:"БПИФ «Тинькофф Золото»"};
 
 async function loadDividends(){
   const box = document.getElementById('dividend-calendar');
