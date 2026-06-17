@@ -155,6 +155,14 @@ tr:hover td{background:var(--surface2);}
       <div id="growth-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка...</div></div>
     </div>
   </div>
+  <div class="section-title" style="margin-top:20px">Растущий интерес — малоизвестные акции</div>
+  <div class="sc" style="margin-bottom:16px;">
+    <div class="sc-head">
+      <h3>Объём растёт неделя к неделе</h3>
+      <p>Малоизвестные акции (до 1000 руб.) где кто-то системно набирает позицию</p>
+    </div>
+    <div id="rising-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка из лога...</div></div>
+  </div>
 
   <div class="section-title" style="margin-top:24px">Новые размещения на MOEX (IPO / SPO)</div>
   <div id="ipo-notice"></div>
@@ -660,9 +668,63 @@ async function loadDividends(){
   }
 }
 
+async function loadRisingInterest(){
+  const box = document.getElementById('rising-list');
+  try{
+    // Берём из последнего лога сборщика
+    const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
+      {headers:{'Accept':'application/vnd.github.v3+json'}});
+    if(!listRes.ok){ box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет данных</div>'; return; }
+    const files = await listRes.json();
+    const sorted = files.filter(f=>f.name.endsWith('.json')).sort((a,b)=>b.name.localeCompare(a.name));
+    if(!sorted.length){ box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет логов</div>'; return; }
+    const fileRes = await fetch(sorted[0].download_url);
+    const logData = await fileRes.json();
+    const rising = logData?.screener?.rising_interest || [];
+
+    if(!rising.length){
+      box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Биржа закрыта или нет сигналов сегодня</div>';
+      return;
+    }
+
+    box.innerHTML = rising.map(s => {
+      const signals = (s.signals||[]).join(' · ');
+      const volGrowth = s.vol_growth >= 0 ? '+'+s.vol_growth+'%' : s.vol_growth+'%';
+      const cls = s.pct >= 0 ? 'up' : 'dn';
+      const divInfo = (window._screenerDividends||{})[s.ticker];
+      let divLine = '';
+      if(divInfo?.next_payment){
+        const np = divInfo.next_payment;
+        divLine = `<div style="font-size:0.7rem;color:var(--green);">💰 ${np.amount_per_share} ₽/акц. · отсечка ${np.days_to_record} дн.</div>`;
+      } else if(divInfo?.announced){
+        const ann = divInfo.announced;
+        const amt = ann.amount_per_share || `${ann.amount_per_share_min}-${ann.amount_per_share_max}`;
+        divLine = `<div style="font-size:0.7rem;color:var(--green);">💰 ${amt} ₽/акц. (анонс)</div>`;
+      }
+      return \`<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;">
+        <div style="display:flex;justify-content:space-between;width:100%;">
+          <div>
+            <div class="si-name">\${s.name}</div>
+            <div class="si-ticker">\${s.ticker} · объём \${fmtVol(s.volume)} · <span style="color:var(--green);">\${volGrowth} к пр.неделе</span></div>
+          </div>
+          <div>
+            <div class="si-price">\${fmt(s.price)} ₽</div>
+            <div class="si-ch \${cls}">\${s.pct >= 0?'+':''}\${s.pct.toFixed(1)}%</div>
+          </div>
+        </div>
+        \${divLine}
+        <div style="font-size:0.7rem;color:var(--muted);">\${signals}</div>
+      </div>\`;
+    }).join('');
+  } catch(e){
+    box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Ошибка загрузки. Открывай без VPN.</div>';
+    console.log('Rising error:', e);
+  }
+}
+
 async function loadAll(){
   document.getElementById('last-update').textContent='Обновлено в '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  await Promise.all([loadPortfolio(),loadScreener(),loadIPO(),loadDividends()]);
+  await Promise.all([loadPortfolio(),loadScreener(),loadIPO(),loadDividends(),loadRisingInterest()]);
   loadIPO();
 }
 
