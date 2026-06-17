@@ -321,19 +321,23 @@ function showOffline(){
 }
 
 async function loadScreener(){
-  // Подгружаем дивиденды из последнего лога сборщика
+  // Подгружаем дивиденды из последнего лога через GitHub API
   window._screenerDividends = {};
   try{
-    for(let i=0;i<5;i++){
-      const dte = new Date(Date.now() - i*86400000).toISOString().slice(0,10);
-      const res = await fetch(`https://raw.githubusercontent.com/podlesnykhdn/my_prodject_invest/main/logs/collector/${dte}.json`);
-      if(res.ok){
-        const logData = await res.json();
-        window._screenerDividends = logData.dividends || {};
-        break;
+    const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
+      {headers:{'Accept':'application/vnd.github.v3+json'}});
+    if(listRes.ok){
+      const files = await listRes.json();
+      const sorted = files.filter(f=>f.name.endsWith('.json')).sort((a,b)=>b.name.localeCompare(a.name));
+      if(sorted.length){
+        const fileRes = await fetch(sorted[0].download_url);
+        if(fileRes.ok){
+          const logData = await fileRes.json();
+          window._screenerDividends = logData.dividends || {};
+        }
       }
     }
-  }catch(e){}
+  }catch(e){ console.log('Screener dividends error:', e); }
 
   try{
     const data = await moexGet('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities');
@@ -556,16 +560,20 @@ const PORTFOLIO_NAMES = {X5:"Корп. центр X5", LENT:"Лента", SBER:"
 async function loadDividends(){
   const box = document.getElementById('dividend-calendar');
   try{
-    // Берём последний лог сборщика — там динамические данные с MOEX ISS
-    const today = new Date().toISOString().slice(0,10);
+    // Берём последний лог сборщика через GitHub API
     let logData = null;
-    for(let i=0;i<5;i++){
-      const d = new Date(Date.now() - i*86400000).toISOString().slice(0,10);
-      try{
-        const res = await fetch(`https://raw.githubusercontent.com/podlesnykhdn/my_prodject_invest/main/logs/collector/${d}.json`);
-        if(res.ok){ logData = await res.json(); break; }
-      }catch(e){}
-    }
+    try{
+      const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
+        {headers:{'Accept':'application/vnd.github.v3+json'}});
+      if(listRes.ok){
+        const files = await listRes.json();
+        const sorted = files.filter(f=>f.name.endsWith('.json')).sort((a,b)=>b.name.localeCompare(a.name));
+        if(sorted.length){
+          const fileRes = await fetch(sorted[0].download_url);
+          if(fileRes.ok) logData = await fileRes.json();
+        }
+      }
+    }catch(e){ console.log('Dividends load error:', e); }
     if(!logData || !logData.dividends){
       box.innerHTML = '<div class="notice">Данные по дивидендам пока не собраны. Запусти сборщик через Actions.</div>';
       return;
