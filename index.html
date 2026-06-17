@@ -486,7 +486,6 @@ async function loadIPO(force=false){
 
     if(newStocks.length===0){
       document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Новых размещений за последние 90 дней не найдено.</div>';
-      btn.disabled=false;
       return;
     }
 
