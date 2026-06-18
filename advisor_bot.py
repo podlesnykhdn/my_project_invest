@@ -376,6 +376,33 @@ def build_morning_report(data):
         lines.append(f"\n─ ─ ─\n📅 <b>Пятница — итог недели</b>")
         lines.append("Полная недельная статистика в логах репозитория.")
 
+    # 8. ДВУХНЕДЕЛЬНЫЙ ОТЧЁТ (если наступил период)
+    bw = data.get("biweekly_report")
+    if bw:
+        diff_rub = bw.get("diff_rub", 0)
+        diff_pct = bw.get("diff_pct", 0)
+        trend = "📈" if diff_rub >= 0 else "📉"
+        sign = "+" if diff_rub >= 0 else ""
+        lines.append(f"\n─ ─ ─\n{trend} <b>Двухнедельный итог портфеля</b>")
+        lines.append(f"За период {bw.get('prev_date')} → {bw.get('curr_date')}:")
+        lines.append(f"Было: <b>{fmt(bw.get('prev_value',0))} ₽</b>")
+        lines.append(f"Стало: <b>{fmt(bw.get('curr_value',0))} ₽</b>")
+        lines.append(f"Изменение: <b>{sign}{fmt(diff_rub)} ₽ ({sign}{diff_pct:.1f}%)</b>")
+        lines.append("")
+        # По позициям
+        for pos in bw.get("positions", []):
+            p = pos["pct"]
+            arrow = "▲" if p >= 0 else "▼"
+            sign2 = "+" if p >= 0 else ""
+            lines.append(f"  {arrow} <b>{pos['ticker']}</b>: {fmt_price(pos['prev_price'])} → {fmt_price(pos['curr_price'])} ({sign2}{p:.1f}%)")
+        # Лучшая/худшая
+        best  = bw.get("best")
+        worst = bw.get("worst")
+        if best:
+            lines.append(f"\n🏆 Лучшая: <b>{best['ticker']}</b> +{best['pct']:.1f}%")
+        if worst and worst['ticker'] != best.get('ticker'):
+            lines.append(f"📌 Слабее всех: <b>{worst['ticker']}</b> {worst['pct']:+.1f}%")
+
     # Итоговый вывод
     fired  = data.get("rules_fired", [])
     psigs  = data.get("portfolio_signals", {})
