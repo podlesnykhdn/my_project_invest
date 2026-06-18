@@ -132,7 +132,7 @@ tr:hover td{background:var(--surface2);}
     <table>
       <thead><tr>
         <th>Компания</th><th>Тикер</th><th>Кол-во</th>
-        <th>Цена</th><th>Изм. за день</th><th>Объём</th><th>Стоимость</th><th>Дивид.</th>
+        <th>Цена</th><th>Пред. цена</th><th>Изм. за день</th><th>Объём</th><th>Стоимость</th><th>ATH</th><th>Дивид.</th>
       </tr></thead>
       <tbody id="ptbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);font-size:0.8rem;">Загрузка...</td></tr></tbody>
     </table>
@@ -719,7 +719,7 @@ async function loadRisingInterest(){
 
 async function loadAll(){
   document.getElementById('last-update').textContent='Обновлено в '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  await Promise.all([loadPortfolio(),loadScreener(),loadIPO(),loadDividends(),loadRisingInterest()]);
+  await Promise.all([loadPortfolio(),loadPortfolioLog(),loadScreener(),loadIPO(),loadDividends(),loadRisingInterest()]);
   loadIPO();
 }
 
