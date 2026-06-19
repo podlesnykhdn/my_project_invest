@@ -266,6 +266,10 @@ function switchTab(name) {
     document.querySelectorAll('.tab')[i].classList.toggle('active',n===name);
     document.getElementById('tab-'+n).classList.toggle('active',n===name);
   });
+  if(name==='ofz' && !window._ofzLoaded){
+    window._ofzLoaded = true;
+    loadOFZ();
+  }
 }
 
 function fmt(n){return new Intl.NumberFormat('ru-RU').format(Math.round(n));}
@@ -789,6 +793,125 @@ async function loadRisingInterest(){
     box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Ошибка. Открывай без VPN.</div>';
     console.log('Rising error:', e);
   }
+}
+
+
+
+// ─── ОФЗ ───────────────────────────────────────────────────────────────────
+
+async function loadOFZ(){
+  // Загружаем все ОФЗ с MOEX ISS
+  try{
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0,10);
+
+    // Запрашиваем список ОФЗ с MOEX ISS
+    const url = 'https://iss.moex.com/iss/engines/stock/markets/bonds/boards/TQOB/securities.json'
+      + '?iss.meta=off&iss.only=securities,marketdata&limit=500';
+    const data = await moexGet(url);
+
+    const sc = data.securities.columns;
+    const mc = data.marketdata.columns;
+
+    // Индексы нужных полей
+    const iSecid    = sc.indexOf('SECID');
+    const iMatdate  = sc.indexOf('MATDATE');
+    const iCoupon   = sc.indexOf('COUPONVALUE');
+    const iNominal  = sc.indexOf('FACEVALUE');
+
+    const mSecid    = mc.indexOf('SECID');
+    const mPrice    = mc.indexOf('LAST');
+    const mPrevPrice= mc.indexOf('PREVPRICE');
+    const mYield    = mc.indexOf('YIELDATPREVWAPRICE');
+
+    // Индексируем маркет-данные по тикеру
+    const mktMap = {};
+    for(const row of data.marketdata.data){
+      mktMap[row[mSecid]] = row;
+    }
+
+    const now = today.getTime();
+    const bonds = [];
+
+    for(const row of data.securities.data){
+      const secid   = row[iSecid];
+      const matdate = row[iMatdate];
+      const coupon  = row[iCoupon] || 0;
+      const nominal = row[iNominal] || 1000;
+
+      if(!matdate || !secid) continue;
+      // Только ОФЗ-ПД (фиксированный купон) — исключаем флоатеры и амортизационные
+      if(!secid.startsWith('SU')) continue;
+
+      const mat = new Date(matdate).getTime();
+      if(mat <= now) continue; // уже погашена
+
+      const mkt   = mktMap[secid] || [];
+      const price = mkt[mPrice] || mkt[mPrevPrice] || 0;
+      if(!price || price < 10) continue;
+
+      const yld = mkt[mYield] || 0;
+
+      const yearsLeft = (mat - now) / (365.25 * 24 * 3600 * 1000);
+      const couponPct = price ? (coupon * 2 / (price * nominal / 100) * 100) : 0;
+
+      bonds.push({
+        secid,
+        matdate,
+        yearsLeft,
+        price:     Math.round(price * 10) / 10,
+        coupon,
+        yld:       Math.round(yld * 100) / 100,
+        couponPct: Math.round(couponPct * 100) / 100,
+        nominal,
+      });
+    }
+
+    // Сортируем по доходности (убывание) внутри каждой группы
+    const short  = bonds.filter(b => b.yearsLeft <  3).sort((a,b)=>b.yld-a.yld).slice(0,15);
+    const mid    = bonds.filter(b => b.yearsLeft >= 3 && b.yearsLeft < 10).sort((a,b)=>b.yld-a.yld).slice(0,15);
+    const long_  = bonds.filter(b => b.yearsLeft >= 10).sort((a,b)=>b.yld-a.yld).slice(0,15);
+
+    renderOFZ('ofz-short', short);
+    renderOFZ('ofz-mid',   mid);
+    renderOFZ('ofz-long',  long_);
+
+    document.getElementById('ofz-cbr').innerHTML =
+      'Данные на ' + today.toLocaleDateString('ru-RU') + '<br>'
+      + 'Ключевая ставка ЦБ: уточни на cbr.ru';
+
+  } catch(e){
+    console.log('OFZ error:', e);
+    ['ofz-short','ofz-mid','ofz-long'].forEach(id=>{
+      document.getElementById(id).innerHTML =
+        '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--muted);">'
+        + 'Открывай без VPN — MOEX недоступен</td></tr>';
+    });
+  }
+}
+
+function renderOFZ(tbodyId, bonds){
+  const tbody = document.getElementById(tbodyId);
+  if(!bonds.length){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--muted);">Нет данных</td></tr>';
+    return;
+  }
+  tbody.innerHTML = bonds.map(b => {
+    const yldCls = b.yld >= 14 ? 'style="color:var(--green);font-weight:700;"'
+                 : b.yld >= 12 ? 'style="color:var(--warn);"' : '';
+    const years = b.yearsLeft.toFixed(1);
+    const mat   = b.matdate.slice(0,10);
+    const priceRub = Math.round(b.price * b.nominal / 100);
+    return '<tr>'
+      + '<td class="mono" style="font-size:0.8rem;">' + b.secid + '</td>'
+      + '<td class="mono">' + mat + '</td>'
+      + '<td class="mono">' + years + '</td>'
+      + '<td class="mono">' + b.price + '% <span style="color:var(--muted);font-size:0.72rem;">(' + priceRub + ' ₽)</span></td>'
+      + '<td class="mono">' + b.coupon + ' ₽</td>'
+      + '<td class="mono" ' + yldCls + '>' + (b.yld ? b.yld + '%' : '—') + '</td>'
+      + '<td class="mono">' + (b.couponPct ? b.couponPct.toFixed(1) + '%' : '—') + '</td>'
+      + '</tr>';
+  }).join('');
 }
 
 
