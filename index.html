@@ -278,7 +278,7 @@ const PORTFOLIO = [
 ];
 
 function switchTab(name) {
-  ['portfolio','screener','mentor','analyst','ofz','market'].forEach((n,i)=>{
+  ['portfolio','screener','mentor','analyst','market','ofz'].forEach((n,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',n===name);
     document.getElementById('tab-'+n).classList.toggle('active',n===name);
   });
