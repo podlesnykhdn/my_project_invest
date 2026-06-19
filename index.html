@@ -354,6 +354,71 @@ async function fetchQuotes(){
   return quotes;
 }
 
+
+function getWeekKey(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const start = new Date(y,0,1);
+  const week = Math.ceil(((d-start)/86400000+start.getDay()+1)/7);
+  return y+'-W'+String(week).padStart(2,'0');
+}
+
+function getVolTrend(ticker, history, currentWeek){
+  const weeks = Object.keys(history).sort();
+  if(weeks.length < 2) return '';
+  const prevWeek = weeks[weeks.length-2];
+  if(prevWeek === currentWeek || !history[prevWeek]) return '';
+  const prev = history[prevWeek][ticker] || 0;
+  const curr = (history[currentWeek] || {})[ticker] || 0;
+  if(!prev || !curr) return '';
+  const diff = (curr-prev)/prev*100;
+  if(diff > 10) return '<span style="color:var(--green);font-size:0.68rem;">▲'+diff.toFixed(0)+'%</span>';
+  if(diff < -10) return '<span style="color:var(--red);font-size:0.68rem;">▼'+Math.abs(diff).toFixed(0)+'%</span>';
+  return '<span style="color:var(--muted);font-size:0.68rem;">→</span>';
+}
+
+async function loadIPO(){
+  const box = document.getElementById('ipo-list');
+  const upd = document.getElementById('ipo-last-update');
+  if(!box) return;
+  try{
+    const today = new Date();
+    const from = new Date(today - 7*24*60*60*1000).toISOString().slice(0,10);
+    const url = 'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=securities,marketdata';
+    const data = await moexGet(url);
+    const sc = data.securities.columns;
+    const mc = data.marketdata.columns;
+    const mktMap = {};
+    for(const r of data.marketdata.data){
+      const d = Object.fromEntries(mc.map((c,i)=>[c,r[i]]));
+      mktMap[d.SECID] = d;
+    }
+    const newStocks = data.securities.data
+      .map(r=>Object.fromEntries(sc.map((c,i)=>[c,r[i]])))
+      .filter(d=>{ if(!d.LISTDATE) return false; return new Date(d.LISTDATE) >= new Date(from); })
+      .slice(0,10);
+    if(upd) upd.textContent = new Date().toLocaleDateString('ru-RU');
+    if(!newStocks.length){
+      box.innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Новых размещений за последнюю неделю нет</div>';
+      return;
+    }
+    box.innerHTML = newStocks.map(d=>{
+      const mkt = mktMap[d.SECID]||{};
+      const price = mkt.LAST||mkt.PREVPRICE||0;
+      const pct = mkt.LASTTOPREVPRICE||0;
+      const cls = pct>=0?'up':'dn';
+      return '<div class="sc-item"><div><div class="si-name">'+(d.SHORTNAME||d.SECID)+'</div>'
+        +'<div class="si-ticker">'+d.SECID+' · '+d.LISTDATE+'</div></div>'
+        +'<div><div class="si-price">'+(price?fmt(price)+' ₽':'—')+'</div>'
+        +'<div class="si-ch '+cls+'">'+(pct?(pct>=0?'+':'')+pct.toFixed(1)+'%':'—')+'</div></div></div>';
+    }).join('');
+  }catch(e){
+    if(box) box.innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Открывай без VPN</div>';
+    console.log('IPO error:', e);
+  }
+}
+
+
 // Единая загрузка лога — кэшируется, чтобы не превышать GitHub API rate limit
 // Данные встроены при последнем запуске сборщика (2026-06-19 07:26)
 const _EMBEDDED_LOG = {"screener": {"top_volume": [{"ticker": "T", "name": "Т-Техно ао", "price": 290.7, "prev": 290.7, "change": 0.0, "pct": 0.0, "volume": 1006363113}, {"ticker": "ROSN", "name": "Роснефть", "price": 328, "prev": 328, "change": 0, "pct": 0.0, "volume": 930239960}, {"ticker": "SBER", "name": "Сбербанк", "price": 316.29, "prev": 316.29, "change": 0.0, "pct": 0.0, "volume": 794658209}, {"ticker": "GAZP", "name": "ГАЗПРОМ ао", "price": 107.29, "prev": 107.29, "change": 0.0, "pct": 0.0, "volume": 660710291}, {"ticker": "UGLD", "name": "ЮГК", "price": 0.63, "prev": 0.63, "change": 0.0, "pct": 0.0, "volume": 604745937}, {"ticker": "LKOH", "name": "ЛУКОЙЛ", "price": 4432.5, "prev": 4432.5, "change": 0.0, "pct": 0.0, "volume": 444972865}, {"ticker": "VTBR", "name": "ВТБ ао", "price": 76.8, "prev": 76.8, "change": 0.0, "pct": 0.0, "volume": 386948120}, {"ticker": "AFKS", "name": "Система ао", "price": 13.16, "prev": 13.16, "change": 0.0, "pct": 0.0, "volume": 316614348}, {"ticker": "NVTK", "name": "Новатэк ао", "price": 1007.2, "prev": 1007.2, "change": 0.0, "pct": 0.0, "volume": 303087869}, {"ticker": "SMLT", "name": "Самолет ао", "price": 403.8, "prev": 403.8, "change": 0.0, "pct": 0.0, "volume": 281374937}], "cheap_growth": [], "rising_interest": [{"ticker": "AFKS", "name": "Система ао", "price": 13.16, "pct": 0.0, "volume": 316614348, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}, {"ticker": "AFLT", "name": "Аэрофлот", "price": 42.75, "pct": 0.0, "volume": 114156196, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}, {"ticker": "ASTR", "name": "iАстра ао", "price": 188.45, "pct": 0.0, "volume": 63234653, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}, {"ticker": "CBOM", "name": "МКБ ао", "price": 8.89, "pct": 0.0, "volume": 76897696, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}, {"ticker": "ENPG", "name": "ЭН+ГРУП ао", "price": 390.4, "pct": 0.0, "volume": 67470432, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}, {"ticker": "IRAO", "name": "ИнтерРАОао", "price": 2.7, "pct": 0.0, "volume": 96102286, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}, {"ticker": "MTLR", "name": "Мечел ао", "price": 46, "pct": 0.0, "volume": 68681037, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}, {"ticker": "PIKK", "name": "ПИК ао", "price": 554.6, "pct": 0.0, "volume": 173883305, "prev_volume": 0, "vol_growth": 100, "signals": ["📈 объём x2"], "score": 50}]}, "dividends": {"X5": {"history": [{"registry_close_date": "2025-07-09", "amount_per_share": 648}], "next_payment": null, "announced": {"amount_per_share": 245, "record_date": "2026-07-07", "status": "рекомендовано советом директоров за 2025 год, доходность ~9.9%", "source": "dohod.ru, investmint.ru (15.06.2026)", "days_to_record": 18, "your_total_gross": 10290, "your_total_net": 8952.3, "your_shares": 42}, "pays_dividends": true}, "LENT": {"history": [], "next_payment": null, "pays_dividends": false}, "SBER": {"history": [{"registry_close_date": "2025-07-18", "amount_per_share": 34.84}, {"registry_close_date": "2024-07-11", "amount_per_share": 33.3}, {"registry_close_date": "2023-05-11", "amount_per_share": 25}, {"registry_close_date": "2021-05-12", "amount_per_share": 18.7}], "next_payment": null, "announced": {"amount_per_share": 37.64, "record_date": null, "payment_date": "2026-08-03", "status": "рекомендовано советом директоров за 2025 год, дата отсечки уточняется", "source": "investmint.ru (15.06.2026)", "days_to_record": null, "your_total_gross": 2785.36, "your_total_net": 2423.26, "your_shares": 74}, "pays_dividends": true}, "BELU": {"history": [{"registry_close_date": "2025-06-09", "amount_per_share": 25}, {"registry_close_date": "2024-10-11", "amount_per_share": 12.5}, {"registry_close_date": "2024-05-13", "amount_per_share": 225}, {"registry_close_date": "2023-12-27", "amount_per_share": 135}], "next_payment": null, "announced": {"amount_per_share_min": 27, "amount_per_share_max": 42, "status": "прогноз аналитиков на 2026 год, доходность 7.4-11.5%", "source": "t-bank пульс (30.03.2026)", "days_to_record": null, "your_shares": 12, "your_total_net_min": 281.88, "your_total_net_max": 438.48}, "pays_dividends": true}}, "meta": {"date": "2026-06-19", "time": "07:26", "month": 6, "weekday": 4, "is_friday": true}, "portfolio": {"total_value": 278992.0, "total_change": -572.0, "total_pct": -0.2, "positions": [{"ticker": "X5", "name": "ПАО «Корпоративный центр ИКС 5»", "qty": 42, "price": 2369.5, "change": -0.5, "pct": -0.02, "value": 99519.0, "day_rub": -21.0, "ath": 3764, "prev_price": 2368.5, "pct_from_ath": -37.0, "near_ath": false}, {"ticker": "LENT", "name": "МКПАО «Лента»", "qty": 53, "price": 1839, "change": 3, "pct": 0.16, "value": 97467, "day_rub": 159, "ath": 2300, "prev_price": 1840, "pct_from_ath": -20.0, "near_ath": false}, {"ticker": "SBER", "name": "ПАО Сбербанк", "qty": 74, "price": 316.29, "change": 0.89, "pct": 0.28, "value": 23405.0, "day_rub": 66.0, "ath": 388.11, "prev_price": 316.32, "pct_from_ath": -18.5, "near_ath": false}, {"ticker": "BELU", "name": "ПАО «НоваБев Групп»", "qty": 12, "price": 296.2, "change": 0.8, "pct": 0.27, "value": 3554.0, "day_rub": 10.0, "ath": 6822, "prev_price": 297, "pct_from_ath": -95.7, "near_ath": false}, {"ticker": "TGLD", "name": "БПИФ «Тинькофф Золото»", "qty": 4618, "price": 11.92, "change": -0.17, "pct": -1.41, "value": 55047.0, "day_rub": -785.0, "ath": null, "prev_price": null, "pct_from_ath": null, "near_ath": false}]}, "currency": {"usd": 73.36, "eur": 85.03, "cny": 10.8284, "usd_prev": 73.36, "usd_change": 0.0}, "oil": {"price": null, "change": null, "change_pct": null, "source": "недоступен ❌", "is_cached": false}, "rules_fired": [{"rule_id": "USD_STABLE", "signal": "ok", "message": "Курс доллара стабилен (73.4 руб.)", "portfolio_impact": {}}, {"rule_id": "DIV_SEASON_ACTIVE", "signal": "info", "message": "Дивидендный сезон — следи за датами отсечек по X5, Сберу и Novabev", "portfolio_impact": {}}, {"rule_id": "PEACE_TALKS", "signal": "positive", "message": "Сигналы деэскалации — позитив для российского рынка (РБК): США и Иран отменили мирные переговоры в Швейцарии", "portfolio_impact": {"SBER": {"signal": "positive", "reason": "Снятие санкционного давления — рост банковского сектора"}, "X5": {"signal": "positive", "reason": "Рост потребительского доверия"}, "LENT": {"signal": "positive", "reason": "Аналогично X5"}, "BELU": {"signal": "positive", "reason": "Рост потребительских расходов"}, "TGLD": {"signal": "negative", "reason": "Золото теряет как защитный актив при снижении рисков"}}}, {"rule_id": "GEOPOLITICAL_ESCALATION", "signal": "danger", "message": "Геополитическая эскалация — защитная позиция по портфелю (Ведомости): Лавров заявил, что война России и НАТО приведет к ядерным ударам", "portfolio_impact": {"TGLD": {"signal": "positive", "reason": "Золото растёт в условиях неопределённости"}, "SBER": {"signal": "high_risk", "reason": "Банковский сектор под давлением"}, "X5": {"signal": "neutral", "reason": "Ритейл — защитный сектор"}, "LENT": {"signal": "neutral", "reason": "Аналогично X5"}, "BELU": {"signal": "neutral", "reason": "Защитный потребительский сектор"}}}], "portfolio_signals": {"SBER": [{"signal": "positive", "reason": "Снятие санкционного давления — рост банковского сектора"}, {"signal": "high_risk", "reason": "Банковский сектор под давлением"}], "X5": [{"signal": "positive", "reason": "Рост потребительского доверия"}, {"signal": "neutral", "reason": "Ритейл — защитный сектор"}], "LENT": [{"signal": "positive", "reason": "Аналогично X5"}, {"signal": "neutral", "reason": "Аналогично X5"}], "BELU": [{"signal": "positive", "reason": "Рост потребительских расходов"}, {"signal": "neutral", "reason": "Защитный потребительский сектор"}], "TGLD": [{"signal": "negative", "reason": "Золото теряет как защитный актив при снижении рисков"}, {"signal": "positive", "reason": "Золото растёт в условиях неопределённости"}]}, "assets": [{"name": "Золото", "ticker": "TGLD", "in_portfolio": true, "why_watch": "Защитный актив. Растёт при ослаблении рубля, геополитике, инфляции и снижении ставки ФРС.", "price": 11.92, "change": -0.17, "pct": -1.41, "volume": 196683, "score": 0, "grade": "🔴 D", "reasons": [], "signals": {"buy_zone": "Рубль ослабляется (USD > +2%) + мировое золото растёт", "risk_zone": "Рубль укрепляется + ставка ФРС растёт", "neutral": "Стабильный курс рубля и нейтральная ФРС"}, "note": ""}, {"name": "Нефть (рублёвая)", "ticker": "BR-", "in_portfolio": false, "why_watch": "Влияет на курс рубля и весь российский рынок. Рост нефти → укрепление рубля → позитив для акций.", "price": 0, "change": 0, "pct": 0, "volume": 0, "score": 0, "grade": "🔴 D", "reasons": [], "signals": {"buy_zone": "Нефть Brent растёт + рубль стабилен", "risk_zone": "Нефть падает > 3% + ОПЕК+ снимает ограничения", "neutral": "Нефть в диапазоне $70-85"}, "note": ""}, {"name": "Серебро", "ticker": "SILV", "in_portfolio": false, "why_watch": "Более волатильный аналог золота. Реагирует на промышленный спрос (электроника, солнечные панели) + защитный актив.", "price": 0, "change": 0, "pct": 0, "volume": 0, "score": 0, "grade": "🔴 D", "reasons": [], "signals": {"buy_zone": "Золото растёт + промышленный спрос растёт + рубль слабеет", "risk_zone": "Промышленный спрос падает (рецессия) + рубль укрепляется", "neutral": "Золото стабильно, промышленность без изменений"}, "note": "Серебро исторически растёт быстрее золота в бычьем цикле и падает быстрее в медвежьем"}], "inefficiencies": {"portfolio": [], "market": [], "total": 0, "timestamp": "2026-06-19"}, "biweekly_report": null};
