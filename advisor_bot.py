@@ -465,6 +465,26 @@ def build_alert(alert_id, data):
             f"Лента {'под давлением' if usd_ch > 0 else 'позитив'}"
         )
 
+    if alert_id == "INEFFICIENCY":
+        ineff = data.get("inefficiencies", {})
+        port_sigs   = ineff.get("portfolio", [])
+        market_sigs = ineff.get("market", [])
+        strong = [s for s in port_sigs + market_sigs if s.get("max_strength", 0) >= 70]
+        if not strong:
+            return None
+        item    = strong[0]
+        top_sig = sorted(item["signals"], key=lambda x: x["strength"], reverse=True)[0]
+        pf_mark = " (твой портфель)" if item.get("in_portfolio") else ""
+        return (
+            f"🧠 <b>АНАЛИТИК: Рыночная неэффективность{pf_mark}</b>\n\n"
+            f"<b>{item['ticker']}</b> \u2014 {item.get('name','')[:25]}\n"
+            f"Цена: {fmt_price(item['price'])}  {item['pct']:+.1f}%\n\n"
+            f"{top_sig['emoji']} <b>{top_sig['title']}</b>\n"
+            f"{top_sig['detail']}\n\n"
+            f"<i>{top_sig['signal']}</i>\n\n"
+            f"Сила сигнала: {top_sig['strength']:.0f}/100"
+        )
+
     if alert_id == "PORTFOLIO_DROP":
         tc = portfolio.get("total_change", 0)
         tv = portfolio.get("total_value", 0)
@@ -487,7 +507,7 @@ def check_alerts(data, log):
         print("Лимит алертов исчерпан (5/день)")
         return log
 
-    alert_ids = ["GRADE_A_STOCK", "USD_THRESHOLD", "PORTFOLIO_DROP"]
+    alert_ids = ["GRADE_A_STOCK", "USD_THRESHOLD", "PORTFOLIO_DROP", "INEFFICIENCY"]
     sent_ids  = [a["id"] for a in log.get("alerts", [])]
 
     for alert_id in alert_ids:
