@@ -428,572 +428,75 @@ function showOffline(){
 }
 
 async function loadScreener(){
-  // Подгружаем дивиденды из последнего лога через GitHub API
   window._screenerDividends = {};
+  document.getElementById('vol-list').innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка...</div>';
+  document.getElementById('growth-list').innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка...</div>';
   try{
-    const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
-      {headers:{'Accept':'application/vnd.github.v3+json'}});
-    if(listRes.ok){
-      const files = await listRes.json();
-      const sorted = files.filter(f=>f.name.endsWith('.json')).sort((a,b)=>b.name.localeCompare(a.name));
-      if(sorted.length){
-        const fileRes = await fetch(sorted[0].download_url);
-        if(fileRes.ok){
-          const logData = await fileRes.json();
-          window._screenerDividends = logData.dividends || {};
-        }
-      }
-    }
-  }catch(e){ console.log('Screener dividends error:', e); }
-
-  try{
-    const data = await moexGet('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities');
-    const mc=data.marketdata.columns, sc=data.securities.columns;
-    const names={};
-    for(const r of data.securities.data){const d=Object.fromEntries(sc.map((c,i)=>[c,r[i]]));names[d.SECID]=d.SHORTNAME||d.SECID;}
-    const items=data.marketdata.data
-      .map(r=>{const d=Object.fromEntries(mc.map((c,i)=>[c,r[i]]));return{...d,NAME:names[d.SECID]||d.SECID};})
-      .filter(d=>d.LAST&&d.LAST>0);
-
-    const byVol=[...items].filter(d=>d.VALTODAY>0).sort((a,b)=>b.VALTODAY-a.VALTODAY).slice(0,8);
-    document.getElementById('vol-list').innerHTML=byVol.map(d=>{
-      const pct=d.PREVPRICE?(d.LAST-d.PREVPRICE)/d.PREVPRICE*100:0;
-      const cls=pct>=0?'up':'dn', sign=pct>=0?'+':'';
-      return `<div class="sc-item">
-        <div><div class="si-name">${d.NAME}</div><div class="si-ticker">${d.SECID} · ${fmtVol(d.VALTODAY)} ₽</div></div>
-        <div><div class="si-price">${fmt(d.LAST)} ₽</div><div class="si-ch ${cls}">${sign}${pct.toFixed(1)}%</div></div>
-      </div>`;
-    }).join('')||'<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет данных</div>';
-
-    const byGrowth=[...items].filter(d=>d.LAST<500&&d.LAST>1&&d.CHANGE&&d.CHANGE>0)
-      .sort((a,b)=>(b.CHANGE/b.PREVPRICE)-(a.CHANGE/a.PREVPRICE)).slice(0,8);
-
-    // Save volume history for growth stocks
-    const weekKey = getWeekKey();
-    const volHistory = JSON.parse(localStorage.getItem('volHistory')||'{}');
-    if(!volHistory[weekKey]) volHistory[weekKey]={};
-    byGrowth.forEach(d=>{ volHistory[weekKey][d.SECID]=(volHistory[weekKey][d.SECID]||0)+d.VALTODAY; });
-    // Keep only last 4 weeks
-    const weeks = Object.keys(volHistory).sort().slice(-4);
-    const trimmed = {}; weeks.forEach(w=>trimmed[w]=volHistory[w]);
-    localStorage.setItem('volHistory', JSON.stringify(trimmed));
-
-    document.getElementById('growth-list').innerHTML=byGrowth.map(d=>{
-      const pct=d.PREVPRICE?(d.LAST-d.PREVPRICE)/d.PREVPRICE*100:0;
-      const volTrend = getVolTrend(d.SECID, trimmed, weekKey);
-      const divInfo = (window._screenerDividends || {})[d.SECID];
-      let divMark = '';
-      let divLine = '';
-      if(divInfo && divInfo.next_payment){
-        const np = divInfo.next_payment;
-        divMark = ' 💰';
-        divLine = `<div class="si-ticker" style="color:var(--green);">${np.amount_per_share} ₽/акц. · отсечка ${np.days_to_record} дн. (${np.record_date})</div>`;
-      } else if(divInfo && divInfo.pays_dividends){
-        divMark = ' 💰';
-      }
-      return `<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
-        <div style="display:flex;justify-content:space-between;width:100%;">
-          <div>
-            <div class="si-name">${d.NAME}${divMark}</div>
-            <div class="si-ticker">${d.SECID} · ${fmtVol(d.VALTODAY)} ₽ ${volTrend}</div>
-          </div>
-          <div><div class="si-price">${fmt(d.LAST)} ₽</div><div class="si-ch up">+${pct.toFixed(1)}%</div></div>
-        </div>
-        ${divLine}
-      </div>`;
-    }).join('')||'<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет данных</div>';
-
-    document.getElementById('screener-notice').innerHTML='';
-  } catch(e){
-    document.getElementById('screener-notice').innerHTML=
-      '<div class="notice"><strong>Скринер недоступен.</strong> Открывай без VPN в торговые часы (пн–пт 10:00–18:40 МСК).</div>';
-    document.getElementById('vol-list').innerHTML='';
-    document.getElementById('growth-list').innerHTML='';
-  }
-}
-
-function renderMd(t){
-  return t.replace(/### (.+)/g,'<h3>$1</h3>').replace(/## (.+)/g,'<h3>$1</h3>')
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-    .split(/\n\n+/).map(p=>p.startsWith('<')?p:'<p>'+p+'</p>').join('');
-}
-
-async function callClaude(prompt,maxTokens){
-  const r=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
-  });
-  const d=await r.json();
-  return d.content.map(b=>b.text||'').join('');
-}
-
-async function loadMentor(){
-  const box=document.getElementById('mentor-box'),btn=document.getElementById('btn-mentor');
-  btn.disabled=true; box.innerHTML='<p style="color:var(--muted)">Готовлю урок...</p>';
-  const n=(parseInt(localStorage.getItem('ln')||'5')+1);
-  localStorage.setItem('ln',n);
-  try{
-    const text=await callClaude(`Ментор для новичка-инвестора. Урок №${n}. 1-5:основы акций/биржи. 6-10:котировки/дивиденды/P/E. 11+:стратегии/риски. Урок №${n}: до 200 слов, простой язык, пример, ключевая мысль. Русский.`,600);
-    box.innerHTML=`<div class="lesson-num">УРОК ${n}</div>${renderMd(text)}`;
-  }catch(e){box.innerHTML='<p style="color:var(--red)">Ошибка — попробуй ещё раз.</p>';}
-}
-
-async function loadAnalyst(){
-  const box=document.getElementById('analyst-box'),btn=document.getElementById('btn-analyst');
-  btn.disabled=true; box.innerHTML='<p style="color:var(--muted)">Анализирую рынок...</p>';
-  const today=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
-  try{
-    const text=await callClaude(`Инвестиционный аналитик. Портфель (${today}): X5 42акц.дивид., Лента LENT 53акц., Сбер SBER 74акц.дивид., Novabev BELU 12акц.дивид., TGLD золото 4618паёв. ~280тыс.руб. Долгосрочная дивидендная стратегия. По каждой позиции: ситуация+факторы+вывод. Честно, без выдуманных цен. До 300 слов. Русский.`,700);
-    box.innerHTML=`<div class="lesson-num">СВОДКА · ${today.toUpperCase()}</div>${renderMd(text)}`;
-  }catch(e){box.innerHTML='<p style="color:var(--red)">Ошибка — попробуй ещё раз.</p>';}
-}
-
-async function loadIPO(force=false){
-  // Auto-cache: reload only once per day
-  const cacheKey='ipo-cache', tsKey='ipo-ts';
-  const lastTs = parseInt(localStorage.getItem(tsKey)||'0');
-  const now = Date.now();
-  const ONE_DAY = 24*60*60*1000;
-
-  if(!force && now-lastTs < ONE_DAY){
-    const cached = localStorage.getItem(cacheKey);
-    if(cached){
-      document.getElementById('ipo-list').innerHTML = cached;
-      const d = new Date(lastTs);
-      document.getElementById('ipo-last-update').textContent = 'Обновлено: '+d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-      return;
-    }
-  }
-
-  document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка новых размещений...</div>';
-  document.getElementById('ipo-last-update').textContent='';
-
-  try{
-    // Fetch recently listed securities (last 90 days) from MOEX
-    const today = new Date();
-    const from = new Date(today - 7*24*60*60*1000).toISOString().slice(0,10);
-    const url = `https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=securities,marketdata`;
-    const data = await moexGet(url);
-
-    const sc=data.securities.columns, mc=data.marketdata.columns;
-    const mktMap={};
-    for(const r of data.marketdata.data){
-      const d=Object.fromEntries(mc.map((c,i)=>[c,r[i]]));
-      mktMap[d.SECID]=d;
-    }
-
-    // Get securities with LISTINGDATE in last 90 days
-    const newStocks = data.securities.data
-      .map(r=>Object.fromEntries(sc.map((c,i)=>[c,r[i]])))
-      .filter(d=>{
-        if(!d.LISTDATE) return false;
-        return new Date(d.LISTDATE) >= new Date(from);
-      })
-      .slice(0,10);
-
-    if(newStocks.length===0){
-      document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Новых размещений за последние 90 дней не найдено.</div>';
-      return;
-    }
-
-    // Show basic info first
-    document.getElementById('ipo-list').innerHTML=newStocks.map(d=>{
-      const mkt=mktMap[d.SECID]||{};
-      const price=mkt.LAST||mkt.PREVPRICE||0;
-      const pct=mkt.PREVPRICE&&mkt.LAST?(mkt.LAST-mkt.PREVPRICE)/mkt.PREVPRICE*100:0;
-      const cls=pct>=0?'up':'dn', sign=pct>=0?'+':'';
-      return `<div class="sc-item" id="ipo-${d.SECID}" style="flex-direction:column;align-items:flex-start;gap:6px;">
-        <div style="display:flex;justify-content:space-between;width:100%;">
-          <div><div class="si-name">${d.SHORTNAME||d.SECID}</div>
-          <div class="si-ticker">${d.SECID} · размещение: ${d.LISTDATE}</div></div>
-          <div><div class="si-price">${price?fmt(price)+' ₽':'—'}</div>
-          <div class="si-ch ${cls}">${price?(sign+pct.toFixed(1)+'%'):'—'}</div></div>
-        </div>
-        <div id="ipo-opinion-${d.SECID}" style="font-size:0.75rem;color:var(--muted);padding:6px 8px;background:var(--surface2);border-radius:6px;width:100%;">Загружаю оценку...</div>
-      </div>`;
-    }).join('');
-
-    // Get AI opinion for each new stock
-    const names = newStocks.map(d=>`${d.SHORTNAME||d.SECID} (${d.SECID}), размещение ${d.LISTDATE}`).join('; ');
-    const text = await callClaude(
-      `Ты эксперт по IPO на Московской бирже. Оцени кратко перспективы каждой из этих недавно размещённых компаний: ${names}. По каждой: 1-2 предложения — отрасль, риски, потенциал. Формат: ТИКЕР: оценка. Честно, без лишних слов. Русский язык.`,
-      800
-    );
-
-    // Parse and display opinions
-    const lines = text.split('\n').filter(l=>l.trim());
-    for(const stock of newStocks){
-      const line = lines.find(l=>l.includes(stock.SECID)||l.includes(stock.SHORTNAME||''));
-      const el = document.getElementById(`ipo-opinion-${stock.SECID}`);
-      if(el) el.textContent = line ? line.replace(/^[^:]+:\s*/,'') : 'Данных для оценки недостаточно.';
-    }
-
-    // Save to cache
-    localStorage.setItem(cacheKey, document.getElementById('ipo-list').innerHTML);
-    localStorage.setItem(tsKey, Date.now().toString());
-    const d=new Date();
-    document.getElementById('ipo-last-update').textContent='Обновлено: '+d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-
-  } catch(e){
-    console.log('IPO error:',e);
-    document.getElementById('ipo-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Ошибка загрузки. Открывай без VPN.</div>';
-  }
-}
-
-function getWeekKey(){
-  const d=new Date(), y=d.getFullYear();
-  const start=new Date(y,0,1);
-  const week=Math.ceil(((d-start)/86400000+start.getDay()+1)/7);
-  return y+'-W'+String(week).padStart(2,'0');
-}
-
-function getVolTrend(ticker, history, currentWeek){
-  const weeks=Object.keys(history).sort();
-  if(weeks.length<2) return '';
-  const prevWeek=weeks[weeks.length-2];
-  if(prevWeek===currentWeek||!history[prevWeek]) return '';
-  const prev=history[prevWeek][ticker]||0;
-  const curr=history[currentWeek][ticker]||0;
-  if(!prev||!curr) return '';
-  const diff=(curr-prev)/prev*100;
-  if(diff>10) return '<span style="color:var(--green);font-size:0.68rem;">▲'+diff.toFixed(0)+'%</span>';
-  if(diff<-10) return '<span style="color:var(--red);font-size:0.68rem;">▼'+Math.abs(diff).toFixed(0)+'%</span>';
-  return '<span style="color:var(--muted);font-size:0.68rem;">→</span>';
-}
-
-const PORTFOLIO_NAMES = {X5:"ПАО «Корпоративный центр ИКС 5»", LENT:"МКПАО «Лента»", SBER:"ПАО Сбербанк", BELU:"ПАО «НоваБев Групп»", TGLD:"БПИФ «Тинькофф Золото»"};
-
-async function loadDividends(){
-  const box = document.getElementById('dividend-calendar');
-  try{
-    // Берём последний лог сборщика через GitHub API
-    let logData = null;
-    try{
-      const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
-        {headers:{'Accept':'application/vnd.github.v3+json'}});
-      if(listRes.ok){
-        const files = await listRes.json();
-        const sorted = files.filter(f=>f.name.endsWith('.json')).sort((a,b)=>b.name.localeCompare(a.name));
-        if(sorted.length){
-          const fileRes = await fetch(sorted[0].download_url);
-          if(fileRes.ok) logData = await fileRes.json();
-        }
-      }
-    }catch(e){ console.log('Dividends load error:', e); }
-    if(!logData || !logData.dividends){
-      box.innerHTML = '<div class="notice">Данные по дивидендам пока не собраны. Запусти сборщик через Actions.</div>';
-      return;
-    }
-
-    const dividends = logData.dividends;
-    const now = new Date(); now.setHours(0,0,0,0);
-    const order = ['X5','SBER','BELU','LENT','TGLD'];
-
-    const cards = order.map(ticker => {
-      const info = dividends[ticker];
-      if(!info) return '';
-      const next = info.next_payment;
-      const name = PORTFOLIO_NAMES[ticker] || ticker;
-
-      let amountHtml, totalHtml = '', countdownHtml = '', sourceHtml = '';
-      let isNext = false;
-      const ann = info.announced;
-
-      if(next){
-        amountHtml = `<div class="div-amount">${next.amount_per_share} ₽/акц.</div>`;
-        if(next.your_total_net){
-          totalHtml = `<div class="div-total">Твой доход: <b>${fmt(next.your_total_net)} ₽</b> (после налога 13%)</div>`;
-        }
-        const days = next.days_to_record;
-        if(days != null && days >= 0){
-          isNext = days <= 30;
-          const cls = days <= 7 ? 'soon' : '';
-          countdownHtml = `<div class="div-countdown ${cls}">Отсечка через ${days} дн. (${next.record_date})</div>`;
-        }
-      } else if(ann){
-        if('amount_per_share' in ann){
-          amountHtml = `<div class="div-amount">${ann.amount_per_share} ₽/акц. <span style="font-size:0.7rem;color:var(--muted);">(анонс)</span></div>`;
-          if(ann.your_total_net){
-            totalHtml = `<div class="div-total">Твой доход: <b>${fmt(ann.your_total_net)} ₽</b> (после налога 13%)</div>`;
-          }
-        } else if('amount_per_share_min' in ann){
-          amountHtml = `<div class="div-amount">${ann.amount_per_share_min}–${ann.amount_per_share_max} ₽/акц. <span style="font-size:0.7rem;color:var(--muted);">(прогноз)</span></div>`;
-          if(ann.your_total_net_min){
-            totalHtml = `<div class="div-total">Твой доход: <b>${fmt(ann.your_total_net_min)}–${fmt(ann.your_total_net_max)} ₽</b> (прогноз)</div>`;
-          }
-        }
-        const days = ann.days_to_record;
-        if(days != null && days >= 0){
-          isNext = days <= 30;
-          const cls = days <= 7 ? 'soon' : '';
-          const dateStr = ann.record_date || ann.payment_date || '?';
-          countdownHtml = `<div class="div-countdown ${cls}">Отсечка через ${days} дн. (${dateStr})</div>`;
-        } else if(ann.payment_date){
-          countdownHtml = `<div class="div-countdown">Выплата ориентировочно ${ann.payment_date}</div>`;
-        }
-        if(ann.status){
-          sourceHtml = `<div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">${ann.status}<br>Источник: ${ann.source}</div>`;
-        }
-      } else if(info.pays_dividends){
-        amountHtml = `<div class="div-amount none">Следующая выплата не объявлена</div>`;
-      } else {
-        amountHtml = `<div class="div-amount none">Не платит дивиденды</div>`;
-      }
-
-      let historyHtml = '';
-      if(info.history && info.history.length){
-        const items = info.history.slice(0,3).map(h => {
-          const amt = h.amount_per_share ? h.amount_per_share + ' ₽' : '—';
-          return `<div>${h.registry_close_date}: ${amt}/акц.</div>`;
-        }).join('');
-        historyHtml = `<div class="div-history">${items}</div>`;
-      }
-
-      return `<div class="div-card ${isNext?'next':''}">
-        <div class="div-ticker">${ticker}</div>
-        <div class="div-name">${name}</div>
-        ${amountHtml}
-        ${countdownHtml}
-        ${totalHtml}
-        ${sourceHtml}
-        ${historyHtml}
-      </div>`;
-    }).join('');
-
-    box.innerHTML = cards || '<div style="padding:16px;color:var(--muted);font-size:0.82rem;">Нет данных по дивидендам</div>';
-  } catch(e){
-    console.log('Dividends error:', e.message);
-    box.innerHTML = '<div class="notice">Календарь дивидендов недоступен. Открывай без VPN.</div>';
-  }
-}
-
-async function loadRisingInterest(){
-  const box = document.getElementById('rising-list');
-  try{
-    const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
-      {headers:{'Accept':'application/vnd.github.v3+json'}});
-    if(!listRes.ok){ box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет данных</div>'; return; }
-    const files = await listRes.json();
-    const sorted = files.filter(f=>f.name.endsWith('.json')).sort((a,b)=>b.name.localeCompare(a.name));
-    if(!sorted.length){ box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет логов</div>'; return; }
-    const fileRes = await fetch(sorted[0].download_url);
-    const logData = await fileRes.json();
-    const rising = (logData && logData.screener && logData.screener.rising_interest) ? logData.screener.rising_interest : [];
-
-    if(!rising.length){
-      box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Биржа закрыта или нет сигналов. Данные накапливаются первую неделю.</div>';
-      return;
-    }
-
-    const divData = window._screenerDividends || {};
-    box.innerHTML = rising.map(function(s){
-      const signals = (s.signals||[]).join(' · ');
-      const volGrowth = (s.vol_growth >= 0 ? '+' : '') + s.vol_growth + '%';
-      const cls = s.pct >= 0 ? 'up' : 'dn';
-      const pctStr = (s.pct >= 0 ? '+' : '') + s.pct.toFixed(1) + '%';
-      const di = divData[s.ticker];
-      let divLine = '';
-      if(di && di.next_payment){
-        const np = di.next_payment;
-        divLine = '<div style="font-size:0.7rem;color:var(--green);">💰 ' + np.amount_per_share + ' ₽/акц. · отсечка ' + np.days_to_record + ' дн.</div>';
-      } else if(di && di.announced && di.announced.amount_per_share){
-        divLine = '<div style="font-size:0.7rem;color:var(--green);">💰 ' + di.announced.amount_per_share + ' ₽/акц. (анонс)</div>';
-      }
-      return '<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;">'
-        + '<div style="display:flex;justify-content:space-between;width:100%;">'
-        + '<div><div class="si-name">' + s.name + '</div>'
-        + '<div class="si-ticker">' + s.ticker + ' · ' + fmtVol(s.volume) + ' · <span style="color:var(--green);">' + volGrowth + ' н/н</span></div></div>'
-        + '<div><div class="si-price">' + fmt(s.price) + ' ₽</div>'
-        + '<div class="si-ch ' + cls + '">' + pctStr + '</div></div></div>'
-        + divLine
-        + '<div style="font-size:0.7rem;color:var(--muted);">' + signals + '</div>'
-        + '</div>';
-    }).join('');
-  } catch(e){
-    box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Ошибка. Открывай без VPN.</div>';
-    console.log('Rising error:', e);
-  }
-}
-
-
-
-// ─── ОФЗ ───────────────────────────────────────────────────────────────────
-
-async function loadOFZ(){
-  // Загружаем все ОФЗ с MOEX ISS
-  try{
-    const today = new Date();
-    const todayStr = today.toISOString().slice(0,10);
-
-    // Запрашиваем список ОФЗ с MOEX ISS
-    const url = 'https://iss.moex.com/iss/engines/stock/markets/bonds/boards/TQOB/securities.json'
-      + '?iss.meta=off&iss.only=securities,marketdata&limit=500';
-    const data = await moexGet(url);
-
-    const sc = data.securities.columns;
-    const mc = data.marketdata.columns;
-
-    // Индексы нужных полей
-    const iSecid    = sc.indexOf('SECID');
-    const iMatdate  = sc.indexOf('MATDATE');
-    const iCoupon   = sc.indexOf('COUPONVALUE');
-    const iNominal  = sc.indexOf('FACEVALUE');
-
-    const mSecid    = mc.indexOf('SECID');
-    const mPrice    = mc.indexOf('LAST');
-    const mPrevPrice= mc.indexOf('PREVPRICE');
-    const mYield    = mc.indexOf('YIELDATPREVWAPRICE');
-
-    // Индексируем маркет-данные по тикеру
-    const mktMap = {};
-    for(const row of data.marketdata.data){
-      mktMap[row[mSecid]] = row;
-    }
-
-    const now = today.getTime();
-    const bonds = [];
-
-    for(const row of data.securities.data){
-      const secid   = row[iSecid];
-      const matdate = row[iMatdate];
-      const coupon  = row[iCoupon] || 0;
-      const nominal = row[iNominal] || 1000;
-
-      if(!matdate || !secid) continue;
-      // Только ОФЗ-ПД (фиксированный купон) — исключаем флоатеры и амортизационные
-      if(!secid.startsWith('SU')) continue;
-
-      const mat = new Date(matdate).getTime();
-      if(mat <= now) continue; // уже погашена
-
-      const mkt   = mktMap[secid] || [];
-      const price = mkt[mPrice] || mkt[mPrevPrice] || 0;
-      if(!price || price < 10) continue;
-
-      const yld = mkt[mYield] || 0;
-
-      const yearsLeft = (mat - now) / (365.25 * 24 * 3600 * 1000);
-      const couponPct = price ? (coupon * 2 / (price * nominal / 100) * 100) : 0;
-
-      bonds.push({
-        secid,
-        matdate,
-        yearsLeft,
-        price:     Math.round(price * 10) / 10,
-        coupon,
-        yld:       Math.round(yld * 100) / 100,
-        couponPct: Math.round(couponPct * 100) / 100,
-        nominal,
-      });
-    }
-
-    // Сортируем по доходности (убывание) внутри каждой группы
-    const short  = bonds.filter(b => b.yearsLeft <  3).sort((a,b)=>b.yld-a.yld).slice(0,15);
-    const mid    = bonds.filter(b => b.yearsLeft >= 3 && b.yearsLeft < 10).sort((a,b)=>b.yld-a.yld).slice(0,15);
-    const long_  = bonds.filter(b => b.yearsLeft >= 10).sort((a,b)=>b.yld-a.yld).slice(0,15);
-
-    renderOFZ('ofz-short', short);
-    renderOFZ('ofz-mid',   mid);
-    renderOFZ('ofz-long',  long_);
-
-    document.getElementById('ofz-cbr').innerHTML =
-      'Данные на ' + today.toLocaleDateString('ru-RU') + '<br>'
-      + 'Ключевая ставка ЦБ: уточни на cbr.ru';
-
-  } catch(e){
-    console.log('OFZ error:', e);
-    ['ofz-short','ofz-mid','ofz-long'].forEach(id=>{
-      document.getElementById(id).innerHTML =
-        '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--muted);">'
-        + 'Открывай без VPN — MOEX недоступен</td></tr>';
-    });
-  }
-}
-
-function renderOFZ(tbodyId, bonds){
-  const tbody = document.getElementById(tbodyId);
-  if(!bonds.length){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--muted);">Нет данных</td></tr>';
-    return;
-  }
-  tbody.innerHTML = bonds.map(b => {
-    const yldCls = b.yld >= 14 ? 'style="color:var(--green);font-weight:700;"'
-                 : b.yld >= 12 ? 'style="color:var(--warn);"' : '';
-    const years = b.yearsLeft.toFixed(1);
-    const mat   = b.matdate.slice(0,10);
-    const priceRub = Math.round(b.price * b.nominal / 100);
-    return '<tr>'
-      + '<td class="mono" style="font-size:0.8rem;">' + b.secid + '</td>'
-      + '<td class="mono">' + mat + '</td>'
-      + '<td class="mono">' + years + '</td>'
-      + '<td class="mono">' + b.price + '% <span style="color:var(--muted);font-size:0.72rem;">(' + priceRub + ' ₽)</span></td>'
-      + '<td class="mono">' + b.coupon + ' ₽</td>'
-      + '<td class="mono" ' + yldCls + '>' + (b.yld ? b.yld + '%' : '—') + '</td>'
-      + '<td class="mono">' + (b.couponPct ? b.couponPct.toFixed(1) + '%' : '—') + '</td>'
-      + '</tr>';
-  }).join('');
-}
-
-
-
-async function loadMarket(){
-  const pfBox  = document.getElementById('market-portfolio');
-  const mkBox  = document.getElementById('market-signals');
-  const tsBox  = document.getElementById('market-ts');
-  try{
-    const listRes = await fetch(
-      'https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',
-      {headers:{'Accept':'application/vnd.github.v3+json'}});
+    const listRes = await fetch('https://api.github.com/repos/podlesnykhdn/my_prodject_invest/contents/logs/collector',{headers:{'Accept':'application/vnd.github.v3+json'}});
     if(!listRes.ok) throw new Error('list failed');
     const files = await listRes.json();
     const sorted = files.filter(f=>f.name.endsWith('.json')).sort((a,b)=>b.name.localeCompare(a.name));
     if(!sorted.length) throw new Error('no logs');
     const fileRes = await fetch(sorted[0].download_url);
-    const log = await fileRes.json();
-    const ineff = log.inefficiencies || {};
-    tsBox.textContent = 'Данные от ' + (log.meta && log.meta.date || '?');
+    if(!fileRes.ok) throw new Error('file failed');
+    const logData = await fileRes.json();
+    window._screenerDividends = logData.dividends || {};
+    const screener = logData.screener || {};
+    const topVol = screener.top_volume || [];
+    const cheap  = screener.cheap_growth || [];
+    const weekKey = getWeekKey();
+    const volHistory = JSON.parse(localStorage.getItem('volHistory') || '{}');
 
-    function renderSignals(items, box){
-      if(!items || !items.length){
-        box.innerHTML = '<div class="notice">Сигналов не обнаружено</div>';
-        return;
-      }
-      box.innerHTML = items.map(function(item){
-        const sigs = (item.signals||[]).map(function(s){
-          const bar = Math.round(s.strength / 10);
-          const barHtml = '<span style="color:var(--accent);">' + '█'.repeat(bar) + '</span>'
-            + '<span style="color:var(--border);">' + '█'.repeat(10-bar) + '</span>';
-          return '<div style="margin:6px 0;padding:8px 12px;background:var(--surface2);border-radius:6px;">'
-            + '<div style="display:flex;align-items:center;justify-content:space-between;">'
-            + '<span style="font-size:0.82rem;font-weight:600;">' + s.emoji + ' ' + s.title + '</span>'
-            + '<span style="font-family:monospace;font-size:0.72rem;">' + barHtml + ' ' + Math.round(s.strength) + '</span>'
-            + '</div>'
-            + '<div style="font-size:0.78rem;color:var(--muted);margin-top:3px;">' + s.detail + '</div>'
-            + '<div style="font-size:0.78rem;color:var(--text);margin-top:4px;font-style:italic;">' + s.signal + '</div>'
-            + '</div>';
-        }).join('');
-        const cls = item.pct >= 0 ? 'up' : 'dn';
-        const pf = item.in_portfolio ? ' <span style="background:var(--accent);color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:4px;">портфель</span>' : '';
-        return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;">'
-          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
-          + '<div><span style="font-weight:700;">' + item.ticker + '</span>' + pf
-          + ' <span style="color:var(--muted);font-size:0.78rem;">' + (item.name||'').slice(0,25) + '</span></div>'
-          + '<div style="text-align:right;">'
-          + '<span style="font-family:monospace;">' + fmt(item.price) + ' ₽</span> '
-          + '<span class="' + cls + '" style="font-size:0.78rem;">' + (item.pct>=0?'+':'') + item.pct.toFixed(1) + '%</span>'
-          + '</div></div>'
-          + sigs
+    if(topVol.length){
+      document.getElementById('vol-list').innerHTML = topVol.slice(0,8).map(function(s){
+        const cls = s.pct >= 0 ? 'up' : 'dn';
+        const sign = s.pct >= 0 ? '+' : '';
+        return '<div class="sc-item">'
+          + '<div><div class="si-name">' + s.name + '</div>'
+          + '<div class="si-ticker">' + s.ticker + ' · ' + fmtVol(s.volume) + ' ₽</div></div>'
+          + '<div><div class="si-price">' + fmt(s.price) + ' ₽</div>'
+          + '<div class="si-ch ' + cls + '">' + sign + s.pct.toFixed(1) + '%</div></div>'
           + '</div>';
       }).join('');
+    } else {
+      document.getElementById('vol-list').innerHTML = '<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Биржа закрыта или нет данных</div>';
     }
 
-    renderSignals(ineff.portfolio || [], pfBox);
-    renderSignals(ineff.market    || [], mkBox);
+    if(cheap.length){
+      document.getElementById('growth-list').innerHTML = cheap.slice(0,8).map(function(s){
+        const volTrend = getVolTrend(s.ticker, volHistory, weekKey);
+        const di = window._screenerDividends[s.ticker] || {};
+        let divLine = '';
+        if(di.next_payment){
+          const np = di.next_payment;
+          divLine = '<div style="font-size:0.7rem;color:var(--green);">💰 ' + np.amount_per_share + ' ₽/акц. ' + np.days_to_record + ' дн.</div>';
+        } else if(di.announced && di.announced.amount_per_share){
+          divLine = '<div style="font-size:0.7rem;color:var(--green);">💰 ' + di.announced.amount_per_share + ' ₽/акц. (анонс)</div>';
+        }
+        return '<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;">'
+          + '<div style="display:flex;justify-content:space-between;width:100%;">'
+          + '<div><div class="si-name">' + s.name + '</div>'
+          + '<div class="si-ticker">' + s.ticker + ' · ' + fmtVol(s.volume) + ' ₽ ' + volTrend + '</div></div>'
+          + '<div><div class="si-price">' + fmt(s.price) + ' ₽</div>'
+          + '<div class="si-ch up">+' + s.pct.toFixed(1) + '% ' + (s.grade||'') + '</div></div>'
+          + '</div>' + divLine + '</div>';
+      }).join('');
+    } else {
+      document.getElementById('growth-list').innerHTML = '<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Биржа закрыта или нет роста</div>';
+    }
 
+    if(!volHistory[weekKey]) volHistory[weekKey] = {};
+    topVol.concat(cheap).forEach(function(s){ if(s.volume>0) volHistory[weekKey][s.ticker]=(volHistory[weekKey][s.ticker]||0)+s.volume; });
+    const weeks = Object.keys(volHistory).sort().slice(-4);
+    const trimmed = {};
+    weeks.forEach(function(w){ trimmed[w]=volHistory[w]; });
+    localStorage.setItem('volHistory', JSON.stringify(trimmed));
+    document.getElementById('screener-notice').innerHTML = '';
   } catch(e){
-    pfBox.innerHTML = '<div class="notice">Открывай без VPN или запусти сборщик через Actions.</div>';
-    mkBox.innerHTML = '';
-    console.log('Market error:', e);
+    console.log('Screener error:', e);
+    document.getElementById('screener-notice').innerHTML = '<div class="notice"><strong>Ошибка.</strong> Проверь подключение.</div>';
+    document.getElementById('vol-list').innerHTML = '';
+    document.getElementById('growth-list').innerHTML = '';
   }
 }
 
