@@ -246,7 +246,15 @@ def collect_rising_interest(rules, all_items, vol_history):
 
     # Портфельные тикеры тоже исключаем
     portfolio_tickers = {p["ticker"] for p in rules["portfolio"]["positions"]}
-    exclude = blue_chips | portfolio_tickers
+
+    # ETF денежного рынка — исключаем (не акции, огромные объёмы искажают скринер)
+    money_market_etf = {
+        "AKMM", "CASH", "LQDT", "SBMM", "AMNR", "TMON", "RCMM",
+        "VTBM", "AIMM", "GPMU", "GPBS", "SCMM", "EQMX", "TMOS",
+        "SBSP", "TRUR", "AKSP", "BCSE", "INFL", "GOLD", "SUGB",
+    }
+
+    exclude = blue_chips | portfolio_tickers | money_market_etf
 
     week_key = _get_week_key()
     prev_week_key = _get_prev_week_key()
