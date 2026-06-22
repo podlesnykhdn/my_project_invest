@@ -244,13 +244,17 @@ def build_morning_report(data):
             pe_avg = pos.get("pe_sector_avg")
             pe_str = ""
             if pe:
-                pe_mark = ""
+                pe_avg_str = f" (ср. {pe_avg})" if pe_avg else ""
                 if pe_avg:
                     if pe < pe_avg * 0.9:
-                        pe_mark = " ✅ дёшево"
+                        pe_mark = " ✅"
                     elif pe > pe_avg * 1.1:
-                        pe_mark = " ⚠️ дорого"
-                pe_str = f" | P/E: {pe}{pe_mark}"
+                        pe_mark = " ⚠️"
+                    else:
+                        pe_mark = ""
+                else:
+                    pe_mark = ""
+                pe_str = f" | P/E: {pe}{pe_avg_str}{pe_mark}"
 
             lines.append(
                 f"  {sig} <b>{pos['ticker']}</b>: {price_str}  "
