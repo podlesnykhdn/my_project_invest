@@ -294,7 +294,8 @@ async function loadPortfolio(){
     ]);
     res.forEach(r=>{if(r.status==='fulfilled')parse(r.value);});
     const log=await getLog();
-    const lpos=((log.portfolio||{}).positions||[]);
+    // Для lmap используем _E (embedded) — там TGLD всегда есть
+    const lpos=((_E.portfolio||{}).positions||[]);
     const lmap={};lpos.forEach(p=>{lmap[p.ticker]=p;});
     let tv=0,tc=0,hd=false;
     const rows=PORTFOLIO.map(pos=>{
