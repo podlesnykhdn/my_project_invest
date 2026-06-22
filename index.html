@@ -500,7 +500,8 @@ async function loadPortfolio(){
     let tv=0,tc=0,hd=false;
     const rows=PORTFOLIO.map(pos=>{
       const qi=q[pos.ticker]||{};
-      const price=qi.price||0,ch=qi.change||0,pct=qi.pct||0,vol=qi.vol||0;
+      const lp=lmap[pos.ticker]||{};
+      const price=qi.price||lp.price||0,ch=qi.change||lp.change||0,pct=qi.pct||lp.pct||0,vol=qi.vol||lp.volume||0;
       const pv=price*pos.qty;if(price>0)hd=true;tv+=pv;tc+=ch*pos.qty;
       const cls=ch>0?'up':ch<0?'dn':'neu',sign=ch>=0?'+':'';
       const badge=pos.etf?'<span class="badge etf">ETF</span>':pos.div?'<span class="badge yes">Да</span>':'<span class="badge no">Нет</span>';
