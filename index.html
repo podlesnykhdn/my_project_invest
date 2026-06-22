@@ -136,6 +136,23 @@ tr:hover td{background:var(--surface2);}
     <div class="sc-head"><h3>Объём растёт неделя к неделе</h3><p>Малоизвестные акции (до 1000 руб.) где кто-то системно набирает позицию</p></div>
     <div id="rising-list"><div style="padding:18px;text-align:center;color:var(--muted);font-size:0.8rem;">Загрузка...</div></div>
   </div>
+  <div class="sg" style="margin-top:14px;">
+    <div class="sc">
+      <div class="sc-head">
+        <h3>🆕 Новые в списке</h3>
+        <p>Появились впервые — не было на прошлой неделе</p>
+      </div>
+      <div id="rising-new"><div style="padding:14px;color:var(--muted);font-size:0.8rem;text-align:center;">Загрузка...</div></div>
+    </div>
+    <div class="sc">
+      <div class="sc-head">
+        <h3>📤 Вылетели из списка</h3>
+        <p>Были на прошлой неделе, не прошли фильтр сегодня</p>
+      </div>
+      <div id="rising-dropped"><div style="padding:14px;color:var(--muted);font-size:0.8rem;text-align:center;">Загрузка...</div></div>
+    </div>
+  </div>
+
   <div class="st" style="margin-top:20px">Новые размещения на MOEX (IPO / SPO)</div>
   <div class="sc" style="margin-bottom:8px;">
     <div class="sc-head" style="display:flex;align-items:center;justify-content:space-between;">
@@ -356,14 +373,62 @@ async function loadScreener(){
   }catch(e){console.log('Screener:',e);}
 }
 
+function renderRisingItem(s, badge){
+  const cls=s.pct>=0?'up':'dn';
+  const vg=s.vol_growth!=null?(s.vol_growth>=0?'+':'')+s.vol_growth+'%':'—';
+  const sigs=(s.signals||[]).join(' · ');
+  const badgeHtml=badge?'<span style="background:'+badge.bg+';color:'+badge.color+';font-size:0.65rem;padding:1px 6px;border-radius:4px;margin-left:6px;">'+badge.text+'</span>':'';
+  return '<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;">'
+    +'<div style="display:flex;justify-content:space-between;width:100%;">'
+    +'<div><div class="si-name">'+s.name+badgeHtml+'</div>'
+    +'<div class="si-ticker">'+s.ticker+' · '+fmtVol(s.volume)+(s.vol_growth!=null?' · <span style="color:var(--green);">'+vg+' н/н</span>':'')+'</div></div>'
+    +'<div><div class="si-price">'+fmt(s.price)+' ₽</div>'
+    +'<div class="si-ch '+cls+'">'+(s.pct>=0?'+':'')+s.pct.toFixed(1)+'%</div></div></div>'
+    +(sigs?'<div style="font-size:0.7rem;color:var(--muted);">'+sigs+'</div>':'')
+    +'</div>';
+}
+
 async function loadRisingInterest(){
   const box=document.getElementById('rising-list');
+  const boxNew=document.getElementById('rising-new');
+  const boxDrop=document.getElementById('rising-dropped');
+  const empty='<div style="padding:14px;color:var(--muted);font-size:0.8rem;text-align:center;">Нет данных</div>';
   try{
     const log=await getLog();
-    const rising=(log.screener||{}).rising_interest||[];
-    if(!rising.length){box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Данные накапливаются первую неделю</div>';return;}
-    box.innerHTML=rising.map(function(s){const cls=s.pct>=0?'up':'dn';const vg=(s.vol_growth>=0?'+':'')+s.vol_growth+'%';const sigs=(s.signals||[]).join(' · ');return '<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;"><div style="display:flex;justify-content:space-between;width:100%;"><div><div class="si-name">'+s.name+'</div><div class="si-ticker">'+s.ticker+' · '+fmtVol(s.volume)+' · <span style="color:var(--green);">'+vg+' н/н</span></div></div><div><div class="si-price">'+fmt(s.price)+' ₽</div><div class="si-ch '+cls+'">'+(s.pct>=0?'+':'')+s.pct.toFixed(1)+'%</div></div></div><div style="font-size:0.7rem;color:var(--muted);">'+sigs+'</div></div>';}).join('');
-  }catch(e){box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Ошибка</div>';}
+    const screener=log.screener||{};
+    const rising=screener.rising_interest||[];
+    const risingNew=screener.rising_new||[];
+    const risingDrop=screener.rising_dropped||[];
+
+    // Основной список
+    if(!rising.length){
+      box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Данные накапливаются первую неделю</div>';
+    } else {
+      box.innerHTML=rising.map(function(s){
+        const isNew=risingNew.some(function(n){return n.ticker===s.ticker;});
+        const badge=isNew?{bg:'var(--green)',color:'#000',text:'NEW'}:null;
+        return renderRisingItem(s, badge);
+      }).join('');
+    }
+
+    // Новые в списке
+    if(boxNew){
+      boxNew.innerHTML=risingNew.length
+        ? risingNew.map(function(s){return renderRisingItem(s,{bg:'var(--green)',color:'#000',text:'NEW'});}).join('')
+        : '<div style="padding:14px;color:var(--muted);font-size:0.8rem;text-align:center;">Новых нет — состав не изменился</div>';
+    }
+
+    // Вылетели из списка
+    if(boxDrop){
+      boxDrop.innerHTML=risingDrop.length
+        ? risingDrop.map(function(s){return renderRisingItem(s,{bg:'#7f1d1d',color:'#fca5a5',text:'ВЫШЕЛ'});}).join('')
+        : '<div style="padding:14px;color:var(--muted);font-size:0.8rem;text-align:center;">Никто не вышел из списка</div>';
+    }
+
+  }catch(e){
+    box.innerHTML='<div style="padding:16px;color:var(--muted);font-size:0.8rem;text-align:center;">Ошибка</div>';
+    console.log('Rising error:',e);
+  }
 }
 
 async function loadIPO(){
