@@ -29,18 +29,23 @@ jobs:
           if [ -n "$INPUT" ]; then echo "mode=$INPUT" >> $GITHUB_OUTPUT
           else echo "mode=auto" >> $GITHUB_OUTPUT; fi
       - name: Ментор
+        if: always()
         env:
           MENTOR_BOT_TOKEN: ${{ secrets.MENTOR_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BOT_MODE: ${{ steps.mode.outputs.mode }}
-        run: python mentor_bot.py
+        run: python mentor_bot.py || true
+
       - name: Советник
+        if: always()
         env:
           ADVISOR_BOT_TOKEN: ${{ secrets.ADVISOR_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BOT_MODE: ${{ steps.mode.outputs.mode }}
-        run: python advisor_bot.py
+        run: python advisor_bot.py || true
+
       - name: Сохранить логи
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
