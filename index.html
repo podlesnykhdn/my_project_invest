@@ -378,6 +378,23 @@ function renderRisingItem(s, badge){
   const vg=s.vol_growth!=null?(s.vol_growth>=0?'+':'')+s.vol_growth+'%':'—';
   const sigs=(s.signals||[]).join(' · ');
   const badgeHtml=badge?'<span style="background:'+badge.bg+';color:'+badge.color+';font-size:0.65rem;padding:1px 6px;border-radius:4px;margin-left:6px;">'+badge.text+'</span>':'';
+
+  // Паттерн объём/цена
+  const patternColors={
+    accumulation: '#1e3a5f',
+    manipulation: '#450a0a',
+    breakout:     '#052e16',
+    distribution: '#431407',
+    neutral:      'var(--surface2)'
+  };
+  const patternBg = patternColors[s.pattern] || 'var(--surface2)';
+  const patternHtml = s.pattern_label
+    ? '<div style="margin-top:6px;padding:6px 10px;background:'+patternBg+';border-radius:6px;">'
+      +'<div style="font-size:0.78rem;font-weight:600;">'+s.pattern_label+'</div>'
+      +(s.pattern_hint?'<div style="font-size:0.7rem;color:var(--muted);margin-top:2px;">'+s.pattern_hint+'</div>':'')
+      +'</div>'
+    : '';
+
   return '<div class="sc-item" style="flex-direction:column;align-items:flex-start;gap:3px;">'
     +'<div style="display:flex;justify-content:space-between;width:100%;">'
     +'<div><div class="si-name">'+s.name+badgeHtml+'</div>'
@@ -385,6 +402,7 @@ function renderRisingItem(s, badge){
     +'<div><div class="si-price">'+fmt(s.price)+' ₽</div>'
     +'<div class="si-ch '+cls+'">'+(s.pct>=0?'+':'')+s.pct.toFixed(1)+'%</div></div></div>'
     +(sigs?'<div style="font-size:0.7rem;color:var(--muted);">'+sigs+'</div>':'')
+    +patternHtml
     +'</div>';
 }
 
