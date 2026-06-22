@@ -908,15 +908,29 @@ def calc_portfolio(rules, quotes):
         day_rub = change * pos["qty"]
         total_value  += value
         total_change += day_rub
+        # P/E расчёт по данным из rules["fundamentals"]
+        fund = rules.get("fundamentals", {}).get(pos["ticker"], {})
+        eps  = fund.get("eps_ttm")
+        pe   = round(price / eps, 1) if eps and price else None
+        pe_avg = fund.get("pe_sector_avg")
+        if pe and pe_avg:
+            pe_vs = "ниже среднего" if pe < pe_avg * 0.9 else ("выше среднего" if pe > pe_avg * 1.1 else "на уровне среднего")
+        else:
+            pe_vs = None
+
         positions.append({
-            "ticker":    pos["ticker"],
-            "name":      pos["name"],
-            "qty":       pos["qty"],
-            "price":     price,
-            "change":    change,
-            "pct":       pct,
-            "value":     round(value, 0),
-            "day_rub":   round(day_rub, 0),
+            "ticker":        pos["ticker"],
+            "name":          pos["name"],
+            "qty":           pos["qty"],
+            "price":         price,
+            "change":        change,
+            "pct":           pct,
+            "value":         round(value, 0),
+            "day_rub":       round(day_rub, 0),
+            "pe":            pe,
+            "eps_ttm":       eps,
+            "pe_sector_avg": pe_avg,
+            "pe_vs_sector":  pe_vs,
         })
     total_pct = (total_change / (total_value - total_change) * 100
                  if total_value - total_change else 0)
