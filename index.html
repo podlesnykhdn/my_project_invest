@@ -528,7 +528,7 @@ async function loadPortfolio(){
             peHtml = '<span class="mono" style="'+peColor+'">'+pe+peAvgStr+'</span>';
           }
         }
-        return '<tr><td title="'+pos.name+'">'+(pos.short||pos.name)+'</td><td class="mono">'+pos.ticker+'</td><td class="mono">'+fmt(pos.qty)+'</td><td class="mono">'+(price?fmt(price)+' ₽':'—')+'</td><td class="mono">'+prevC+'</td><td class="mono '+cls+'">'+(price?(sign+ch.toFixed(2)+' ('+sign+pct.toFixed(1)+'%)'):'—')+'</td><td class="mono">'+fmtVol(vol)+'</td><td class="mono">'+(price?fmt(pv)+' ₽':'—')+'</td><td>'+athC+'</td><td>'+badge+'</td></tr>';
+        return '<tr><td title="'+pos.name+'">'+(pos.short||pos.name)+'</td><td class="mono">'+pos.ticker+'</td><td class="mono">'+fmt(pos.qty)+'</td><td class="mono">'+(price?fmt(price)+' ₽':'—')+'</td><td class="mono">'+prevC+'</td><td class="mono '+cls+'">'+(price?(sign+ch.toFixed(2)+' ('+sign+pct.toFixed(1)+'%)'):'—')+'</td><td class="mono">'+fmtVol(vol)+'</td><td class="mono">'+(price?fmt(pv)+' ₽':'—')+'</td><td>'+athC+'</td><td>'+peHtml+'</td><td>'+badge+'</td></tr>';
     });
     document.getElementById('ptbody').innerHTML=rows.join('');
     if(hd){const cls=tc>=0?'up':'dn',sign=tc>=0?'+':'';document.getElementById('c-total').textContent=fmt(tv)+' ₽';document.getElementById('c-change').className='val '+cls;document.getElementById('c-change').textContent=sign+fmt(tc)+' ₽';document.getElementById('c-status').textContent='MOEX Live';document.getElementById('c-status').style.color='var(--green)';document.getElementById('portfolio-notice').innerHTML='';}
