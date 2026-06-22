@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "2.8",
-    "updated": "2026-06-17",
+    "version": "2.9",
+    "updated": "2026-06-22",
     "description": "Движок правил для анализа портфеля. Используется сборщиком, письмами и Telegram ботами.",
     "thresholds": {
       "usd_change_alert": 2.0,
@@ -1716,6 +1716,48 @@
       "short": "БПИФ Тинькофф Золото",
       "full": "БПИФ «Тинькофф Золото»",
       "brands": "управляющий: ТБанк"
+    }
+  },
+  "fundamentals": {
+    "_description": "Фундаментальные данные для расчёта P/E. Источники: МСФО отчёты, financemarker.ru, smart-lab.ru. Обновлено 22.06.2026.",
+    "_note": "EPS (прибыль на акцию) берётся за последние 12 месяцев (LTM). P/E = цена / EPS. Обновляется вручную после выхода новых отчётов.",
+    "X5": {
+      "eps_ttm": 306.0,
+      "shares_total": 271800000,
+      "net_profit_ttm_bln": 83.1,
+      "pe_sector_avg": 6.5,
+      "source": "МСФО 2025, smart-lab.ru, апрель 2026",
+      "updated": "2026-06-22"
+    },
+    "LENT": {
+      "eps_ttm": 290.0,
+      "shares_total": 336000000,
+      "net_profit_ttm_bln": 97.4,
+      "pe_sector_avg": 6.5,
+      "source": "МСФО 2025, financemarker.ru",
+      "updated": "2026-06-22"
+    },
+    "SBER": {
+      "eps_ttm": 78.4,
+      "shares_total": 22586948000,
+      "net_profit_ttm_bln": 1770.0,
+      "pe_sector_avg": 5.0,
+      "source": "МСФО 2025, financemarker.ru — P/E 4.03",
+      "updated": "2026-06-22"
+    },
+    "BELU": {
+      "eps_ttm": 63.0,
+      "shares_total": 21339000,
+      "net_profit_ttm_bln": 1.35,
+      "pe_sector_avg": 8.0,
+      "source": "МСФО 2025, smart-lab.ru",
+      "updated": "2026-06-22"
+    },
+    "TGLD": {
+      "eps_ttm": null,
+      "pe_sector_avg": null,
+      "source": "ETF — P/E неприменим",
+      "updated": "2026-06-22"
     }
   }
 }
