@@ -318,8 +318,57 @@ def collect_rising_interest(rules, all_items, vol_history):
 
     # Сортируем по score
     result.sort(key=lambda x: x["score"], reverse=True)
-    print(f"  [Rising interest] Найдено: {len(result[:8])} акций")
-    return result[:8]
+    current_list = result[:8]
+
+    # Загружаем прошлый список для сравнения
+    history_file = LOGS_DIR / "rising_history.json"
+    prev_tickers = set()
+    if history_file.exists():
+        try:
+            with open(history_file, encoding="utf-8") as f:
+                prev_data = json.load(f)
+            prev_tickers = set(prev_data.get("tickers", []))
+            prev_week    = prev_data.get("week_key", "")
+        except Exception:
+            prev_tickers = set()
+            prev_week    = ""
+    else:
+        prev_week = ""
+
+    curr_tickers = {s["ticker"] for s in current_list}
+
+    # Новые — появились впервые
+    new_entries = [s for s in current_list if s["ticker"] not in prev_tickers]
+
+    # Вылетели — были раньше, сейчас не в списке, но объём всё ещё есть
+    dropped_tickers = prev_tickers - curr_tickers
+    dropped_entries = []
+    for item in all_items:
+        if item["ticker"] in dropped_tickers and item["volume"] > 1_000_000:
+            dropped_entries.append({
+                "ticker":  item["ticker"],
+                "name":    item["name"],
+                "price":   item["price"],
+                "pct":     item["pct"],
+                "volume":  item["volume"],
+                "reason":  "объём снизился или цена вышла за фильтр",
+            })
+
+    # Сохраняем текущий список для следующего раза
+    with open(history_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "week_key": week_key,
+            "date":     date.today().isoformat(),
+            "tickers":  list(curr_tickers),
+        }, f, ensure_ascii=False)
+
+    print(f"  [Rising interest] Найдено: {len(current_list)} акций, новых: {len(new_entries)}, вылетело: {len(dropped_entries)}")
+
+    return {
+        "current":  current_list,
+        "new":      new_entries,
+        "dropped":  dropped_entries,
+    }
 
 def _get_week_key():
     d = date.today()
@@ -429,7 +478,9 @@ def collect_screener(rules):
         return {
             "top_volume":      top_vol,
             "cheap_growth":    cheap_sorted,
-            "rising_interest": rising,
+            "rising_interest": rising.get("current", rising) if isinstance(rising, dict) else rising,
+        "rising_new":      rising.get("new", []) if isinstance(rising, dict) else [],
+        "rising_dropped":  rising.get("dropped", []) if isinstance(rising, dict) else [],
             "_all_items":      items,  # для аналитика неэффективностей
         }
 
