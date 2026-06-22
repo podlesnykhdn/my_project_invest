@@ -1329,6 +1329,101 @@ def _fmt_vol(v):
     return f"{v/1e3:.0f}K₽"
 
 
+
+# ─── ИСТОРИЯ ЦЕН (OHLCV) ────────────────────────────────────────────────────
+
+PRICES_DIR = BASE_DIR / "logs" / "prices"
+
+def collect_price_history(rules, quotes):
+    """
+    Собирает дневные свечи (open/high/low/close/volume) для каждой акции портфеля.
+    Данные MOEX ISS: дневные свечи за последние 90 дней.
+    Хранит в logs/prices/{ticker}.json — пополняет каждый день.
+    """
+    print("[История цен] Сбор OHLCV данных...")
+    PRICES_DIR.mkdir(parents=True, exist_ok=True)
+    today = date.today().isoformat()
+    result = {}
+
+    for pos in rules["portfolio"]["positions"]:
+        ticker = pos["ticker"]
+        board  = pos.get("board", "TQBR")
+
+        # Загружаем существующую историю
+        price_file = PRICES_DIR / f"{ticker}.json"
+        if price_file.exists():
+            try:
+                with open(price_file, encoding="utf-8") as f:
+                    history = json.load(f)
+            except Exception:
+                history = {"ticker": ticker, "board": board, "days": []}
+        else:
+            history = {"ticker": ticker, "board": board, "days": []}
+
+        existing_dates = {d["date"] for d in history.get("days", [])}
+
+        # Запрашиваем свечи с MOEX ISS (дневные, interval=24)
+        try:
+            url = (
+                f"https://iss.moex.com/iss/engines/stock/markets/shares/"
+                f"boards/{board}/securities/{ticker}/candles.json"
+                f"?interval=24&start=0&iss.meta=off&iss.only=candles"
+            )
+            data = safe_fetch(url, timeout=10)
+            if not data:
+                print(f"  {ticker}: нет данных с MOEX ISS")
+                result[ticker] = history
+                continue
+
+            d = json.loads(data)
+            cols = d["candles"]["columns"]
+            rows = d["candles"]["data"]
+
+            new_days = 0
+            for row in rows:
+                r = dict(zip(cols, row))
+                # MOEX возвращает: open, close, high, low, value, volume, begin, end
+                candle_date = (r.get("begin") or r.get("end") or "")[:10]
+                if not candle_date or candle_date in existing_dates:
+                    continue
+
+                history["days"].append({
+                    "date":   candle_date,
+                    "open":   round(r.get("open")  or 0, 2),
+                    "high":   round(r.get("high")  or 0, 2),
+                    "low":    round(r.get("low")   or 0, 2),
+                    "close":  round(r.get("close") or 0, 2),
+                    "volume": int(r.get("volume")  or 0),
+                    "value":  int(r.get("value")   or 0),
+                })
+                existing_dates.add(candle_date)
+                new_days += 1
+
+            # Сортируем по дате
+            history["days"].sort(key=lambda x: x["date"])
+            # Оставляем последние 365 дней
+            history["days"] = history["days"][-365:]
+            history["updated"] = today
+
+            # Сохраняем
+            with open(price_file, "w", encoding="utf-8") as f:
+                json.dump(history, f, ensure_ascii=False, indent=2)
+
+            print(f"  {ticker}: {len(history['days'])} дней (+{new_days} новых)")
+
+        except Exception as e:
+            print(f"  {ticker}: ошибка — {e}")
+
+        result[ticker] = {
+            "ticker": ticker,
+            "days_count": len(history.get("days", [])),
+            "last_date": history["days"][-1]["date"] if history.get("days") else None,
+            "last_close": history["days"][-1]["close"] if history.get("days") else None,
+        }
+
+    return result
+
+
 # ─── ГЛАВНАЯ ФУНКЦИЯ ──────────────────────────────────────────────────────────
 
 def collect():
@@ -1370,6 +1465,7 @@ def collect():
     dividends = build_dividend_calendar(rules, screener_tickers)
     vol_history_data = _load_vol_history()
     inefficiencies = analyze_inefficiencies(rules, quotes, screener, vol_history_data)
+    price_history = collect_price_history(rules, quotes)
 
     # Применяем дивидендные данные к карточкам скринера
     for stock in screener.get("cheap_growth", []):
@@ -1406,6 +1502,7 @@ def collect():
         "dividends": dividends,
         "biweekly_report":  biweekly_report,
         "inefficiencies":   inefficiencies,
+        "price_history":    price_history,
         "news":      news,
         "rules_fired":        fired_rules,
         "portfolio_signals":  portfolio_signals,
