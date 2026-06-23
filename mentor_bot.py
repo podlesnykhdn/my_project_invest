@@ -215,7 +215,7 @@ def run_morning():
         "lesson_num":   num,
         "lesson_title": lesson["title"],
         "morning_sent": True,
-        "sent_at":      datetime.now().strftime("%H:%M"),
+        "sent_at":      (datetime.utcnow() + __import__("datetime").timedelta(hours=3)).strftime("%H:%M МСК"),
         "message_id":   result.get("result", {}).get("message_id"),
     })
 
