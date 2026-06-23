@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "3.0",
+    "version": "3.1",
     "updated": "2026-06-23",
     "description": "Движок правил для анализа портфеля. Используется сборщиком, письмами и Telegram ботами.",
     "thresholds": {
@@ -32,7 +32,7 @@
       {
         "ticker": "X5",
         "name": "ПАО «Корпоративный центр ИКС 5»",
-        "qty": 42,
+        "qty": 45,
         "sector": "retail",
         "div": true,
         "board": "TQBR",
@@ -52,7 +52,7 @@
       {
         "ticker": "SBER",
         "name": "ПАО Сбербанк",
-        "qty": 74,
+        "qty": 84,
         "sector": "banking",
         "div": true,
         "board": "TQBR",
@@ -77,6 +77,16 @@
         "board": "TQTF",
         "short_name": "БПИФ Тинькофф Золото",
         "brands": "управляющий: ТБанк"
+      },
+      {
+        "ticker": "AKMB",
+        "name": "БПИФ «Альфа-Капитал Управляемые облигации»",
+        "short_name": "Альфа Управл. облигации",
+        "qty": 10,
+        "board": "TQTF",
+        "div": false,
+        "etf": true,
+        "brands": "УК Альфа-Капитал, корп. облигации 1-2 эшелона + ОФЗ"
       }
     ]
   },
