@@ -406,9 +406,11 @@ def build_morning_report(data):
     if top_vol:
         lines.append(f"\n─ ─ ─\n🔥 <b>Топ по объёму</b>")
         for i, s in enumerate(top_vol[:3], 1):
+            pat = s.get("vol_label", "")
             lines.append(
-                f"  {i}. <b>{s['ticker']}</b>  {fmt_vol(s['volume'])}  "
-                f"({s['pct']:+.1f}%)"
+                f"  {i}. <b>{s['ticker']}</b> {s.get('name','')[:18]}\n"
+                f"     {fmt_price(s['price'])}  {s['pct']:+.1f}%  {fmt_vol(s['volume'])}\n"
+                + (f"     {pat}" if pat else "")
             )
 
     # 8. ИТОГ НЕДЕЛИ (только пятница)
