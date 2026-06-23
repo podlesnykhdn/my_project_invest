@@ -233,13 +233,14 @@ const FUNDAMENTALS={
   TGLD: {eps_ttm:null, pe_sector_avg:null},
 };
 const PORTFOLIO=[
-  {name:"ПАО «Корпоративный центр ИКС 5»",short:"ИКС 5",ticker:"X5",board:"TQBR",qty:42,div:true},
+  {name:"ПАО «Корпоративный центр ИКС 5»",short:"ИКС 5",ticker:"X5",board:"TQBR",qty:45,div:true},
   {name:"МКПАО «Лента»",short:"Лента",ticker:"LENT",board:"TQBR",qty:53,div:false},
-  {name:"ПАО Сбербанк",short:"Сбербанк",ticker:"SBER",board:"TQBR",qty:74,div:true},
+  {name:"ПАО Сбербанк",short:"Сбербанк",ticker:"SBER",board:"TQBR",qty:84,div:true},
   {name:"ПАО «НоваБев Групп»",short:"НоваБев Групп",ticker:"BELU",board:"TQBR",qty:12,div:true},
   {name:"БПИФ «Тинькофф Золото»",short:"ТБанк Золото",ticker:"TGLD",board:"TQTF",qty:4618,div:false,etf:true},
+  {name:"БПИФ «Альфа-Капитал Управляемые облигации»",short:"Альфа Облигации",ticker:"AKMB",board:"TQTF",qty:10,div:false,etf:true},
 ];
-const PNAMES={X5:"ПАО «Корпоративный центр ИКС 5»",LENT:"МКПАО «Лента»",SBER:"ПАО Сбербанк",BELU:"ПАО «НоваБев Групп»",TGLD:"БПИФ «Тинькофф Золото»"};
+const PNAMES={X5:"ПАО «Корпоративный центр ИКС 5»",LENT:"МКПАО «Лента»",SBER:"ПАО Сбербанк",BELU:"ПАО «НоваБев Групп»",TGLD:"БПИФ «Тинькофф Золото»",AKMB:"БПИФ «Альфа-Капитал Управляемые облигации»"};
 
 function switchTab(name){
   ['portfolio','screener','mentor','analyst','market','ofz'].forEach((n,i)=>{
