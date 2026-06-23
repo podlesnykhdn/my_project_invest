@@ -20,7 +20,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Сборщик данных
+     - name: Сборщик данных
+        env:
+          TINKOFF_TOKEN: ${{ secrets.TINKOFF_TOKEN }}
         run: python collector.py
       - name: Определить режим
         id: mode
