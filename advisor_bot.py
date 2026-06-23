@@ -543,7 +543,7 @@ def check_alerts(data, log):
                 print(f"Алерт {alert_id} отправлен")
                 log.setdefault("alerts", []).append({
                     "id":      alert_id,
-                    "sent_at": (datetime.utcnow() + __import__("datetime").timedelta(hours=3)).strftime("%H:%M МСК"),
+                    "sent_at": (lambda u, m: f"{m.strftime('%H:%M')} МСК ({u.strftime('%H:%M')} UTC)")(datetime.utcnow(), datetime.utcnow() + __import__("datetime").timedelta(hours=3)),
                 })
                 log["alerts_sent"] = log.get("alerts_sent", 0) + 1
     return log
@@ -566,7 +566,7 @@ def run_morning():
     print(f"Утренняя сводка отправлена: {result.get('ok')}")
 
     log["morning_sent"] = True
-    log["sent_at"] = (datetime.utcnow() + __import__("datetime").timedelta(hours=3)).strftime("%H:%M МСК")
+    log["sent_at"] = (lambda u, m: f"{m.strftime('%H:%M')} МСК ({u.strftime('%H:%M')} UTC)")(datetime.utcnow(), datetime.utcnow() + __import__("datetime").timedelta(hours=3))
     log["date"] = TODAY
 
     # Проверяем алерты
