@@ -20,7 +20,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-     - name: Сборщик данных
+      - name: Установить зависимости
+        run: pip install requests --quiet
+      - name: Сборщик данных
         env:
           TINKOFF_TOKEN: ${{ secrets.TINKOFF_TOKEN }}
         run: python collector.py
@@ -37,7 +39,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BOT_MODE: ${{ steps.mode.outputs.mode }}
         run: python mentor_bot.py || true
-
       - name: Советник
         if: always()
         env:
@@ -45,7 +46,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BOT_MODE: ${{ steps.mode.outputs.mode }}
         run: python advisor_bot.py || true
-
       - name: Сохранить логи
         if: always()
         run: |
