@@ -1603,6 +1603,17 @@ def fetch_tinkoff_portfolio():
         with urllib.request.urlopen(req2, timeout=10) as r:
             portfolio_data = json.loads(r.read())
 
+        # Справочник FIGI → тикер (обновляется автоматически)
+        FIGI_TICKER_MAP = {
+            "TCS03A108X38": "X5",
+            "BBG0063FKTD9": "LENT",
+            "RU000A101PN3":  "AKMB",
+            "BBG000TY1CD1": "BELU",
+            "TCS80A101X50": "TGLD",
+            "BBG004730N88": "SBER",
+            "RUB000UTSTOM": "RUB",
+        }
+
         # Парсим данные
         def parse_money(m):
             if not m: return 0.0
@@ -1631,9 +1642,14 @@ def fetch_tinkoff_portfolio():
             pnl          = exp_yield
             pnl_pct      = (pnl / invested * 100) if invested else 0
 
+            figi_val  = pos.get("figi", "")
+            ticker_val = FIGI_TICKER_MAP.get(figi_val, pos.get("instrumentType", ""))
+            if ticker_val == "RUB":
+                continue  # пропускаем остаток рублей
+
             positions.append({
-                "figi":        pos.get("figi"),
-                "ticker":      pos.get("instrumentType", ""),
+                "figi":        figi_val,
+                "ticker":      ticker_val,
                 "itype":       pos.get("instrumentType", ""),
                 "qty":         round(qty, 4),
                 "avg_price":   round(avg_price, 4),
