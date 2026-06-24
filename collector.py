@@ -1711,6 +1711,88 @@ def fetch_tinkoff_portfolio():
         return None
 
 
+
+# ─── СИНХРОНИЗАЦИЯ ПОРТФЕЛЯ ИЗ Т-ИНВЕСТИЦИЙ ─────────────────────────────────
+
+# Справочник FIGI → тикер (обновляй при добавлении новых позиций)
+FIGI_TO_TICKER = {
+    "TCS03A108X38": "X5",
+    "BBG0063FKTD9": "LENT",
+    "RU000A101PN3": "AKMB",
+    "BBG000TY1CD1": "BELU",
+    "TCS80A101X50": "TGLD",
+    "BBG004730N88": "SBER",
+    "RUB000UTSTOM": "RUB",
+}
+
+def sync_portfolio_from_tinkoff(rules, tinkoff_portfolio):
+    """
+    Обновляет qty в rules["portfolio"]["positions"] из реальных данных Т-Инвестиций.
+    Добавляет новые позиции, убирает проданные.
+    """
+    if not tinkoff_portfolio:
+        return rules
+
+    tp_positions = tinkoff_portfolio.get("positions", [])
+    if not tp_positions:
+        return rules
+
+    print("  [Sync] Синхронизация портфеля из Т-Инвестиций...")
+
+    # Строим актуальный список из Tinkoff
+    tinkoff_map = {}
+    for p in tp_positions:
+        ticker = p.get("ticker", "")
+        if ticker in ("RUB", ""):
+            continue
+        qty = p.get("qty", 0)
+        if qty > 0:
+            tinkoff_map[ticker] = {
+                "qty":       int(qty) if qty == int(qty) else qty,
+                "avg_price": p.get("avg_price", 0),
+            }
+
+    if not tinkoff_map:
+        return rules
+
+    # Текущий список позиций в rules
+    current_positions = rules.get("portfolio", {}).get("positions", [])
+    current_map = {p["ticker"]: p for p in current_positions}
+
+    # Обновляем qty для существующих позиций
+    updated = []
+    for pos in current_positions:
+        t = pos["ticker"]
+        if t in tinkoff_map:
+            old_qty = pos.get("qty", 0)
+            new_qty = tinkoff_map[t]["qty"]
+            if old_qty != new_qty:
+                print(f"    {t}: qty {old_qty} → {new_qty}")
+                pos["qty"] = new_qty
+            updated.append(pos)
+        else:
+            # Позиция закрыта — убираем
+            print(f"    {t}: позиция закрыта, убираем")
+
+    # Добавляем новые позиции которых нет в rules
+    existing_tickers = {p["ticker"] for p in updated}
+    for ticker, info in tinkoff_map.items():
+        if ticker not in existing_tickers and ticker not in current_map:
+            print(f"    {ticker}: новая позиция, qty={info['qty']}")
+            updated.append({
+                "ticker":     ticker,
+                "name":       ticker,
+                "short_name": ticker,
+                "qty":        info["qty"],
+                "board":      "TQBR",
+                "div":        False,
+            })
+
+    rules["portfolio"]["positions"] = updated
+    print(f"  [Sync] Позиций в портфеле: {len(updated)}")
+    return rules
+
+
 # ─── ГЛАВНАЯ ФУНКЦИЯ ──────────────────────────────────────────────────────────
 
 def collect():
@@ -1728,6 +1810,9 @@ def collect():
     news     = collect_news(rules)
 
     tinkoff_portfolio = fetch_tinkoff_portfolio()
+    # Синхронизируем портфель из Т-Инвестиций
+    if tinkoff_portfolio:
+        rules = sync_portfolio_from_tinkoff(rules, tinkoff_portfolio)
     fired_rules, portfolio_signals = run_rules(rules, currency, oil, quotes, news)
     portfolio = calc_portfolio(rules, quotes)
     all_time_highs = collect_all_time_highs(rules)
