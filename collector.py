@@ -1810,9 +1810,16 @@ def collect():
     news     = collect_news(rules)
 
     tinkoff_portfolio = fetch_tinkoff_portfolio()
-    # Синхронизируем портфель из Т-Инвестиций
+    # Синхронизируем портфель из Т-Инвестиций и сохраняем rules.json
     if tinkoff_portfolio:
         rules = sync_portfolio_from_tinkoff(rules, tinkoff_portfolio)
+        try:
+            rules_path = BASE_DIR / "rules.json"
+            with open(rules_path, "w", encoding="utf-8") as f:
+                json.dump(rules, f, ensure_ascii=False, indent=2)
+            print("  [Sync] rules.json обновлён")
+        except Exception as e:
+            print(f"  [Sync] Ошибка сохранения rules.json: {e}")
     fired_rules, portfolio_signals = run_rules(rules, currency, oil, quotes, news)
     portfolio = calc_portfolio(rules, quotes)
     all_time_highs = collect_all_time_highs(rules)
