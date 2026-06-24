@@ -487,6 +487,12 @@ def collect_screener(rules):
         top_vol = sorted([i for i in items if i["volume"] > 0],
                          key=lambda x: x["volume"], reverse=True)[:10]
 
+        # Помечаем акции только для квалов
+        for s in top_vol:
+            if s.get("ticker") in QUAL_ONLY_TICKERS:
+                s["qual_only"] = True
+                s["signals"] = s.get("signals", []) + ["⚠️ только для квалифицированных инвесторов"]
+
         # Интерпретация паттерна объём/цена для топа
         for s in top_vol:
             pct = s.get("pct", 0)
