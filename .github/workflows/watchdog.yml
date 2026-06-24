@@ -1,0 +1,40 @@
+name: Watchdog — резервный запуск
+
+on:
+  schedule:
+    - cron: '15 4,5,6,7,8,9,10,11,12,13 * * 1-5'
+  workflow_dispatch: {}
+
+jobs:
+  check-and-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Проверить — запускался ли основной workflow сегодня
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          RUNS=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/workflows/bots.yml/runs?per_page=5")
+          SUCCESS_TODAY=$(echo "$RUNS" | python3 -c "
+          import sys, json
+          from datetime import datetime, timezone
+          data = json.load(sys.stdin)
+          today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+          runs = data.get('workflow_runs', [])
+          found = any(r.get('created_at','').startswith(today) and r.get('status') != 'queued' for r in runs)
+          print('yes' if found else 'no')
+          ")
+          echo "Запуск сегодня: $SUCCESS_TODAY"
+          if [ "$SUCCESS_TODAY" = "no" ]; then
+            echo "Запускаем bots.yml..."
+            curl -s -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/$REPO/actions/workflows/bots.yml/dispatches" \
+              -d '{"ref":"main","inputs":{"mode":"auto"}}'
+            echo "Запущен!"
+          else
+            echo "Уже запускался — пропускаем"
+          fi
