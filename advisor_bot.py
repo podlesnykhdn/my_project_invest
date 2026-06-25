@@ -601,83 +601,147 @@ def run_alerts_only():
 
 def build_full_analysis(data):
     """
-    Полный анализ портфеля: Сборщик + Аналитик.
-    Формирует детальный промт и отправляет в Claude API.
-    Разбивает ответ на части если длинный.
+    Полный анализ портфеля.
+    СБОРЩИК: собирает все данные из лога коллектора (дашборд).
+    АНАЛИТИК: передаёт в Claude для разбора и советов.
     """
-    groq_key = os.environ.get("GROQ_API_KEY", "")
+    if not data:
+        return "⚠️ Данные коллектора недоступны. Запусти сборщик через Actions."
 
-    # Собираем контекст портфеля
-    tp = data.get("tinkoff_portfolio", {}) if data else {}
-    portfolio = data.get("portfolio", {}) if data else {}
-    divs = data.get("dividends", {}) if data else {}
-    macro = data.get("currency", {}) if data else {}
-    oil = data.get("oil", {}) if data else {}
+    # ── СБОРЩИК: собираем всё из лога ────────────────────────────────────────
 
-    # Формируем данные по позициям
-    positions_text = ""
-    for p in tp.get("positions", []):
-        t = p.get("ticker", "")
-        if not t or t == "RUB":
-            continue
-        pnl_pct = p.get("pnl_pct", 0)
-        positions_text += (
-            f"  {t}: {p.get('qty')} шт, "
-            f"avg={p.get('avg_price')}₽, "
-            f"curr={p.get('curr_price')}₽, "
-            f"pnl={p.get('pnl')}₽ ({pnl_pct:+.1f}%)\n"
-        )
+    # 1. Макро
+    cur  = data.get("currency", {})
+    oil  = data.get("oil", {})
+    meta = data.get("meta", {})
+    usd  = cur.get("usd", "?")
+    brent = oil.get("price") or "недоступен"
 
-    # Дивиденды
-    divs_text = ""
-    for t, info in divs.items():
-        np = info.get("next_payment") or info.get("announced") or {}
-        if np.get("amount_per_share"):
-            divs_text += (
-                f"  {t}: {np.get('amount_per_share')}₽/акц, "
-                f"отсечка {np.get('record_date')}, "
-                f"чистыми {np.get('your_total_net', '?')}₽\n"
-            )
-
+    # 2. Портфель из Tinkoff (реальные данные)
+    tp = data.get("tinkoff_portfolio", {})
     invested = tp.get("total_invested", 0)
     current  = tp.get("total_current", 0)
     pnl      = tp.get("total_pnl", 0)
     pnl_pct  = tp.get("total_pnl_pct", 0)
 
-    prompt = f"""Ты опытный портфельный управляющий с 20+ лет на российском рынке.
-Инвестор: начинающий, неквалифицированный статус, долгосрочная дивидендная стратегия, горизонт 5+ лет.
+    pos_lines = []
+    for p in tp.get("positions", []):
+        t = p.get("ticker", "")
+        if not t or t == "RUB":
+            continue
+        pos_lines.append(
+            f"  {t}: {p.get('qty')} шт | "
+            f"вход {p.get('avg_price')}₽ → сейчас {p.get('curr_price')}₽ | "
+            f"PnL {p.get('pnl'):+,.0f}₽ ({p.get('pnl_pct', 0):+.1f}%)"
+        )
 
-ТЕКУЩИЙ ПОРТФЕЛЬ (данные из Т-Инвестиций):
-Вложено: {invested:,.0f}₽ | Сейчас: {current:,.0f}₽ | PnL: {pnl:+,.0f}₽ ({pnl_pct:+.1f}%)
+    # 3. P/E и Долг/EBITDA по позициям
+    fund_lines = []
+    for p in data.get("portfolio", {}).get("positions", []):
+        t = p.get("ticker", "")
+        pe  = p.get("pe")
+        de  = p.get("pe_sector_avg")  # используем как ориентир
+        if pe:
+            fund_lines.append(f"  {t}: P/E={pe}")
 
-ПОЗИЦИИ:
-{positions_text}
+    # 4. Дивиденды
+    divs = data.get("dividends", {})
+    div_lines = []
+    for t, info in divs.items():
+        np_info = info.get("next_payment") or info.get("announced") or {}
+        amt = np_info.get("amount_per_share")
+        if amt:
+            net = np_info.get("your_total_net", "?")
+            rec = np_info.get("record_date", "?")
+            div_lines.append(f"  {t}: {amt}₽/акц, отсечка {rec}, чистыми ≈{net}₽")
 
-БЛИЖАЙШИЕ ДИВИДЕНДЫ:
-{divs_text if divs_text else "  Нет объявленных дивидендов"}
+    # 5. Скринер — топ объёма с паттерном
+    sc = data.get("screener", {})
+    top_vol = sc.get("top_volume", [])
+    vol_lines = []
+    for s in top_vol[:5]:
+        pat = s.get("vol_label", "")
+        vol_lines.append(
+            f"  {s.get('ticker')} {s.get('name','')[:15]}: "
+            f"{s.get('price')}₽ ({s.get('pct',0):+.1f}%) | {pat}"
+        )
 
-МАКРО (на сегодня):
-- Ставка ЦБ: 14.25% (снижена 19.06, следующее заседание 24.07.2026)
-- IMOEX: ~2260 пунктов (-12% за год, 16 недель падения подряд)
-- USD/RUB: ~74₽ (крепкий рубль давит на TGLD)
-- Нефть Brent: падение -4% накануне
+    # 6. Растущий интерес
+    rising = sc.get("rising_interest", [])
+    rising_lines = []
+    for s in rising[:3]:
+        pat = s.get("pattern_label", "")
+        rising_lines.append(
+            f"  {s.get('ticker')} {s.get('name','')[:15]}: "
+            f"+{s.get('vol_growth',0):.0f}% объём н/н | {pat}"
+        )
 
-ЗАДАЧА — выдай полный анализ в формате:
+    # 7. Рыночные неэффективности (аномалии)
+    ineff = data.get("inefficiencies", {})
+    ineff_lines = []
+    for item in ineff.get("market", [])[:3]:
+        sigs = [s.get("title","") for s in item.get("signals", [])[:2]]
+        ineff_lines.append(
+            f"  {item.get('ticker')}: {', '.join(sigs)} "
+            f"(сила {item.get('max_strength',0):.0f}/100)"
+        )
 
-📊 СБОРЩИК — ключевые факты по каждой позиции (2-3 строки на каждую)
+    # 8. Сработавшие правила
+    rules_fired = data.get("rules_fired", [])
+    rules_lines = [f"  • {r.get('name','?')}: {r.get('message','')[:60]}"
+                   for r in rules_fired[:3]]
 
-🧠 АНАЛИТИК — вердикт:
-Для каждой позиции: тезис + главный риск + вердикт (🟢 Держать / 🔵 Докупить / 🟡 Наблюдать / 🔴 Продать)
+    # ── Формируем промт для АНАЛИТИКА ────────────────────────────────────────
 
-🎯 ТОП-3 ДЕЙСТВИЯ прямо сейчас с датами
+    prompt = f"""Ты опытный портфельный управляющий. Инвестор — начинающий, неквалифицированный статус, долгосрочная дивидендная стратегия, горизонт 5+ лет, брокер Т-Инвестиции.
 
-⚠️ ГЛАВНЫЙ РИСК для портфеля
+═══ СБОРЩИК: ДАННЫЕ ДАШБОРДА НА {meta.get('date','?')} {meta.get('time','?')} МСК ═══
 
-Говори прямо, без воды. Максимум 800 слов. На русском."""
+📍 МАКРО
+• USD/RUB: {usd}₽ | EUR: {cur.get('eur','?')}₽ | CNY: {cur.get('cny','?')}₽
+• Brent: {brent}$ | Ставка ЦБ: 14.25% (заседание 24.07.2026)
+• IMOEX: ~2260 пунктов, -12% за год, 16 недель падения подряд
 
-    # Отправляем в Claude через Anthropic API
+💼 ПОРТФЕЛЬ (реальные данные Т-Инвестиций)
+• Вложено: {invested:,.0f}₽ | Сейчас: {current:,.0f}₽ | PnL: {pnl:+,.0f}₽ ({pnl_pct:+.1f}%)
+{chr(10).join(pos_lines) if pos_lines else "  нет данных"}
+
+📊 P/E по позициям
+{chr(10).join(fund_lines) if fund_lines else "  нет данных"}
+
+💰 ДИВИДЕНДЫ (ближайшие)
+{chr(10).join(div_lines) if div_lines else "  нет объявленных дивидендов"}
+
+🔥 ТОП ОБЪЁМА ТОРГОВ (с интерпретацией)
+{chr(10).join(vol_lines) if vol_lines else "  нет данных"}
+
+📈 РАСТУЩИЙ ИНТЕРЕС
+{chr(10).join(rising_lines) if rising_lines else "  нет сигналов"}
+
+⚡ РЫНОЧНЫЕ АНОМАЛИИ
+{chr(10).join(ineff_lines) if ineff_lines else "  нет аномалий"}
+
+🚨 СРАБОТАВШИЕ ПРАВИЛА
+{chr(10).join(rules_lines) if rules_lines else "  нет правил"}
+
+═══ АНАЛИТИК: ЗАДАЧА ═══
+
+На основе всех данных выше дай честный анализ:
+
+🔬 ПОЗИЦИИ (кратко по каждой — 2 строки)
+Для каждой: факт + вывод + вердикт 🟢/🔵/🟡/🔴
+
+🎯 ТОП-3 ДЕЙСТВИЯ прямо сейчас (с конкретными датами)
+
+⚠️ ГЛАВНЫЙ РИСК (одним абзацем)
+
+🔭 ГОРИЗОНТ (что ждать в 1-3 мес)
+
+Говори прямо, без воды. Максимум 600 слов. Русский язык."""
+
+    # ── Отправляем в Claude ───────────────────────────────────────────────────
     try:
-        anthropic_req = urllib.request.Request(
+        req = urllib.request.Request(
             "https://api.anthropic.com/v1/messages",
             data=json.dumps({
                 "model": "claude-haiku-4-5-20251001",
@@ -690,10 +754,21 @@ def build_full_analysis(data):
             },
             method="POST"
         )
-        with urllib.request.urlopen(anthropic_req, timeout=30) as r:
+        with urllib.request.urlopen(req, timeout=30) as r:
             resp = json.loads(r.read())
         analysis = resp["content"][0]["text"]
-        return f"🔬 <b>ПОЛНЫЙ АНАЛИЗ ПОРТФЕЛЯ</b> — {TODAY}\n\n" + analysis
+        header = (
+            f"🔬 <b>ПОЛНЫЙ АНАЛИЗ ПОРТФЕЛЯ</b> — {meta.get('date','?')}\n"
+            f"Данные: {meta.get('time','?')} МСК | USD {usd}₽ | Brent {brent}$\n"
+            f"Портфель: <b>{current:,.0f}₽</b> | PnL: <b>{pnl:+,.0f}₽ ({pnl_pct:+.1f}%)</b>\n"
+            f"{'─'*32}\n\n"
+        )
+        return header + analysis
+
+    except Exception as e:
+        print(f"  [Analysis] Ошибка: {e}")
+        return f"⚠️ Ошибка анализа: {e}"
+
     except Exception as e:
         print(f"  [Analysis] Claude API ошибка: {e}")
         return f"⚠️ Ошибка получения анализа: {e}"
