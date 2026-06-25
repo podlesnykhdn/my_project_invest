@@ -52,10 +52,12 @@ jobs:
         run: python advisor_bot.py || true
       - name: Сохранить логи
         if: always()
-        run: |
+       run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main || true
+          git stash || true
+          git pull --rebase origin main || git pull --ff-only origin main || true
+          git stash pop || true
           git add logs/** rules.json
           git diff --staged --quiet || git commit -m "logs $(date +%Y-%m-%d_%H%M)"
-          git push origin main
+          git push origin main || git push --force-with-lease origin main || true
