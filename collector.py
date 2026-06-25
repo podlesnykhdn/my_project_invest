@@ -1032,16 +1032,42 @@ def build_dividend_calendar(rules, screener_tickers=None):
 
 # ─── РАСЧЁТ СТОИМОСТИ ПОРТФЕЛЯ ────────────────────────────────────────────────
 
-def calc_portfolio(rules, quotes):
+def calc_portfolio(rules, quotes, tinkoff_portfolio=None):
+    """
+    Расчёт портфеля.
+    ETF (TQTF) — цена из Tinkoff API как основной источник.
+    Акции (TQBR) — цена из MOEX, fallback из Tinkoff.
+    """
+    # Строим карту цен из Tinkoff
+    tk_prices = {}
+    if tinkoff_portfolio:
+        for p in tinkoff_portfolio.get("positions", []):
+            t = p.get("ticker", "")
+            if t and p.get("curr_price", 0) > 0:
+                tk_prices[t] = p["curr_price"]
+
     total_value  = 0
     total_change = 0
     positions = []
     for pos in rules["portfolio"]["positions"]:
-        q = quotes.get(pos["ticker"], {})
-        price  = q.get("price", 0)
-        change = q.get("change", 0)
-        pct    = q.get("pct", 0)
-        value  = price * pos["qty"]
+        ticker = pos["ticker"]
+        board  = pos.get("board", "TQBR")
+        q = quotes.get(ticker, {})
+
+        # ETF: сначала Tinkoff, потом MOEX
+        if board == "TQTF" and ticker in tk_prices:
+            price  = tk_prices[ticker]
+            change = 0
+            pct    = 0
+        else:
+            price  = q.get("price", 0)
+            change = q.get("change", 0)
+            pct    = q.get("pct", 0)
+            # Fallback из Tinkoff если MOEX вернул 0
+            if price == 0 and ticker in tk_prices:
+                price = tk_prices[ticker]
+
+        value   = price * pos["qty"]
         day_rub = change * pos["qty"]
         total_value  += value
         total_change += day_rub
