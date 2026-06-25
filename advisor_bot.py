@@ -680,6 +680,58 @@ def run_command():
                 )
             send("\n".join(lines))
 
+
+def self_check_and_retrigger():
+    """
+    Проверяет был ли утренний запуск сегодня.
+    Если нет — триггерит workflow через GitHub API.
+    Вызывается при старте каждого бота.
+    """
+    gh_token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_PAT")
+    if not gh_token:
+        return  # нет токена — пропускаем
+
+    import urllib.request as ur
+    repo = "podlesnykhdn/my_prodject_invest"
+    today = date.today().isoformat()
+    headers = {
+        "Authorization": f"Bearer {gh_token}",
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        # Проверяем был ли успешный запуск сегодня
+        req = ur.Request(
+            f"https://api.github.com/repos/{repo}/actions/workflows/bots.yml/runs?per_page=5",
+            headers=headers
+        )
+        with ur.urlopen(req, timeout=8) as r:
+            runs = json.loads(r.read())
+
+        today_runs = [
+            run for run in runs.get("workflow_runs", [])
+            if run.get("created_at", "").startswith(today)
+            and run.get("status") in ("completed", "in_progress")
+        ]
+
+        if len(today_runs) <= 1:
+            # Только текущий запуск — значит утреннего не было, запускаем ещё раз
+            print(f"  [Watchdog] Обнаружен пропуск — запускаем повторный run...")
+            body = json.dumps({"ref": "main", "inputs": {"mode": "auto"}}).encode()
+            req2 = ur.Request(
+                f"https://api.github.com/repos/{repo}/actions/workflows/bots.yml/dispatches",
+                data=body, headers=headers, method="POST"
+            )
+            with ur.urlopen(req2, timeout=8) as r2:
+                print(f"  [Watchdog] Повторный запуск инициирован: {r2.status}")
+        else:
+            print(f"  [Watchdog] Сегодня уже было {len(today_runs)} запуска — OK")
+
+    except Exception as e:
+        print(f"  [Watchdog] Ошибка: {e}")
+
+
 if __name__ == "__main__":
     print(f"Советник-бот запущен, режим: {MODE}")
     if MODE == "morning":
