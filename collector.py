@@ -20,9 +20,33 @@ TODAY = date.today().isoformat()
 
 # Акции только для квалифицированных инвесторов (недоступны в Т-Инвестициях)
 QUAL_ONLY_TICKERS = {
+    # Подтверждённые квал-only (недоступны в Т-Инвестициях для неквалов)
     "DIOD", "KUZB", "UKUZ", "SVAV", "UWGN", "KCHEP", "KCHPP",
     "GRNT", "RNFT", "MRKP", "MRKC", "MRKZ", "MRKV", "MRKU",
     "MRSB", "MRSK", "TORS", "TNSE", "KLSB", "PMSBP",
+    # Дополнительные квал-only третьего эшелона
+    "CHKZ",   # Челябинский КПЗ
+    "KOGK",   # Коршуновский ГОК
+    "KROT",   # Красноярский завод
+    "KZOS",   # Казанский завод
+    "LNZL",   # Лензолото
+    "MGKL",   # МКБ Лизинг
+    "NNSB",   # ННС Банк
+    "OGKB",   # ОГК-2 привилегированные
+    "PRFN",   # ЧТПЗ прив
+    "RDRB",   # РДР Банк
+    "RUGP",   # Русгрэйн
+    "SAGO",   # Самараэнерго
+    "SAGOP",  # Самараэнерго п
+    "SJSC",   # ЮТэйр
+    "TGKB",   # ТГК-2
+    "TGKBP",  # ТГК-2 п
+    "TGKD",   # ТГК-14
+    "TGKDP",  # ТГК-14 п
+    "VLHZ",   # Волжский хим завод
+    "WTCM",   # ЦМТ
+    "WTCMP",  # ЦМТ п
+    "YAKG",   # Якутская топл компания
 }
 NOW = datetime.now().strftime("%H:%M")
 MONTH = datetime.now().month
