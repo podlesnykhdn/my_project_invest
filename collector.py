@@ -496,6 +496,159 @@ def _score_rising(vol_growth, price_pct, volume):
 # ─── 4. СКРИНЕР MOEX ─────────────────────────────────────────────────────────
 
 
+
+# ─── ПРОВЕРКА КВАЛ-ONLY ТИКЕРОВ ──────────────────────────────────────────────
+
+QUAL_CACHE_FILE = BASE_DIR / "logs" / "qual_only_cache.json"
+
+def load_qual_cache():
+    """Загружает кэш квал-only тикеров из файла."""
+    if QUAL_CACHE_FILE.exists():
+        try:
+            with open(QUAL_CACHE_FILE, encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"tickers": list(QUAL_ONLY_TICKERS), "updated": None, "checked_count": 0}
+
+def save_qual_cache(cache):
+    QUAL_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(QUAL_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(cache, f, ensure_ascii=False, indent=2)
+
+def check_ticker_qual_status(ticker, tinkoff_token):
+    """
+    Проверяет через Tinkoff API является ли тикер квал-only.
+    Возвращает True если только для квалов, False если доступен всем.
+    """
+    if not tinkoff_token:
+        return None  # не можем проверить
+    try:
+        base_url = "https://invest-public-api.tinkoff.ru/rest"
+        t_headers = {
+            "Authorization": f"Bearer {tinkoff_token}",
+            "Content-Type": "application/json",
+        }
+        req = urllib.request.Request(
+            f"{base_url}/tinkoff.public.invest.api.contract.v1.InstrumentsService/ShareBy",
+            data=json.dumps({"idType": "ID_TYPE_TICKER", "classCode": "TQBR", "id": ticker}).encode(),
+            headers=t_headers, method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = json.loads(r.read())
+        instrument = data.get("instrument", {})
+        is_qual = instrument.get("forQualInvestorFlag", True)
+        return is_qual
+    except Exception:
+        # Если ошибка — пробуем TQTF
+        try:
+            req2 = urllib.request.Request(
+                f"{base_url}/tinkoff.public.invest.api.contract.v1.InstrumentsService/ShareBy",
+                data=json.dumps({"idType": "ID_TYPE_TICKER", "classCode": "TQTF", "id": ticker}).encode(),
+                headers=t_headers, method="POST"
+            )
+            with urllib.request.urlopen(req2, timeout=8) as r2:
+                data2 = json.loads(r2.read())
+            return data2.get("instrument", {}).get("forQualInvestorFlag", True)
+        except Exception:
+            return True  # по умолчанию считаем квал-only если не можем проверить
+
+def update_qual_only_tickers(tinkoff_token):
+    """
+    1. Проверяет новые тикеры из аномалий — квал ли они.
+    2. Раз в месяц перепроверяет весь накопленный список —
+       вдруг какие-то тикеры стали доступны всем.
+    Обновляет QUAL_ONLY_TICKERS и кэш-файл.
+    """
+    global QUAL_ONLY_TICKERS
+
+    cache = load_qual_cache()
+    cached_set = set(cache.get("tickers", []))
+    today = date.today()
+    last_updated = cache.get("updated")
+
+    # Проверяем нужна ли ежемесячная ревизия
+    need_monthly_check = True
+    if last_updated:
+        try:
+            last_date = date.fromisoformat(last_updated)
+            days_since = (today - last_date).days
+            need_monthly_check = days_since >= 30
+        except Exception:
+            pass
+
+    if need_monthly_check and tinkoff_token:
+        print(f"  [QualCheck] Ежемесячная ревизия {len(cached_set)} тикеров...")
+        became_open = []
+        still_qual  = []
+        for t in list(cached_set):
+            status = check_ticker_qual_status(t, tinkoff_token)
+            if status is False:  # стал доступен всем!
+                became_open.append(t)
+                print(f"    ✅ {t} — теперь доступен всем (убираем из фильтра)")
+            else:
+                still_qual.append(t)
+
+        if became_open:
+            cached_set -= set(became_open)
+            print(f"  [QualCheck] Стали открытыми: {became_open}")
+
+        cache["tickers"] = list(cached_set)
+        cache["updated"] = today.isoformat()
+        cache["checked_count"] = len(cached_set)
+        save_qual_cache(cache)
+        QUAL_ONLY_TICKERS = cached_set
+        print(f"  [QualCheck] Ревизия завершена. Квал-only: {len(cached_set)}")
+
+    return cached_set
+
+def check_and_filter_anomalies(anomalies, tinkoff_token):
+    """
+    Фильтрует список аномалий:
+    - Если тикер в QUAL_ONLY_TICKERS — отфильтровываем.
+    - Если тикер новый и неизвестный — проверяем через Tinkoff API.
+    - Если квал-only — добавляем в кэш и фильтруем.
+    """
+    global QUAL_ONLY_TICKERS
+
+    cache  = load_qual_cache()
+    cached = set(cache.get("tickers", []))
+    result = []
+    newly_added = []
+
+    for item in anomalies:
+        ticker = item.get("ticker", "")
+        if not ticker:
+            continue
+
+        # Уже знаем что квал-only
+        if ticker in QUAL_ONLY_TICKERS or ticker in cached:
+            print(f"  [QualFilter] {ticker} — квал-only, пропускаем")
+            continue
+
+        # Новый тикер — проверяем через Tinkoff
+        if tinkoff_token and ticker not in cached:
+            is_qual = check_ticker_qual_status(ticker, tinkoff_token)
+            if is_qual:
+                print(f"  [QualFilter] {ticker} — НОВЫЙ квал-only, добавляем в фильтр")
+                QUAL_ONLY_TICKERS.add(ticker)
+                cached.add(ticker)
+                newly_added.append(ticker)
+                continue
+            elif is_qual is False:
+                print(f"  [QualFilter] {ticker} — доступен всем ✅")
+
+        result.append(item)
+
+    # Сохраняем обновлённый кэш
+    if newly_added:
+        cache["tickers"] = list(cached)
+        save_qual_cache(cache)
+        print(f"  [QualFilter] Добавлено в фильтр: {newly_added}")
+
+    return result
+
+
 # ─── СКРИНЕР ЧЕРЕЗ TINKOFF API ───────────────────────────────────────────────
 
 def collect_screener_tinkoff(tinkoff_token, portfolio_tickers=None):
