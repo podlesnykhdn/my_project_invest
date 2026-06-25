@@ -641,8 +641,18 @@ def collect_screener(rules):
             })
 
         # Топ по объёму
-        top_vol = sorted([i for i in items if i["volume"] > 0],
-                         key=lambda x: x["volume"], reverse=True)[:10]
+        # top_vol: если объём есть — по объёму, иначе по изменению цены
+        items_with_vol = [i for i in items if i["volume"] > 0]
+        if items_with_vol:
+            top_vol = sorted(items_with_vol, key=lambda x: x["volume"], reverse=True)[:10]
+            print(f"  [Screener] top_vol по объёму: {len(top_vol)} акций")
+        else:
+            # Объёмы ещё не накоплены — берём по абсолютному изменению цены
+            top_vol = sorted(
+                [i for i in items if i.get("price", 0) > 0],
+                key=lambda x: abs(x.get("pct", 0)), reverse=True
+            )[:10]
+            print(f"  [Screener] top_vol по изменению (объёмы=0): {len(top_vol)} акций")
 
         # Помечаем акции только для квалов
         for s in top_vol:
