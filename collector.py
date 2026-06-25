@@ -719,13 +719,27 @@ def collect_screener(rules):
         # Малоизвестные с растущим объёмом
         rising = collect_rising_interest(rules, items, vol_history)
 
+        # Диагностика для лога
+        items_with_price = [i for i in items if i.get("price", 0) > 0]
+        items_with_vol   = [i for i in items if i.get("volume", 0) > 0]
+        print(f"  [Screener] items: {len(items)} всего, {len(items_with_price)} с ценой, {len(items_with_vol)} с объёмом")
+        print(f"  [Screener] top_vol: {len(top_vol)}, cheap: {len(cheap_sorted)}")
+
         return {
             "top_volume":      top_vol,
             "cheap_growth":    cheap_sorted,
             "rising_interest": rising.get("current", rising) if isinstance(rising, dict) else rising,
-        "rising_new":      rising.get("new", []) if isinstance(rising, dict) else [],
-        "rising_dropped":  rising.get("dropped", []) if isinstance(rising, dict) else [],
-            "_all_items":      items,  # для аналитика неэффективностей
+            "rising_new":      rising.get("new", []) if isinstance(rising, dict) else [],
+            "rising_dropped":  rising.get("dropped", []) if isinstance(rising, dict) else [],
+            "_all_items":      items,
+            "_debug": {
+                "items_total":      len(items),
+                "items_with_price": len(items_with_price),
+                "items_with_vol":   len(items_with_vol),
+                "top_vol_count":    len(top_vol),
+                "cheap_count":      len(cheap_sorted),
+                "sample":           items[:3] if items else [],
+            }
         }
 
     except Exception as e:
