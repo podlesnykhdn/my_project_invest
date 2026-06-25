@@ -472,11 +472,46 @@ def collect_screener(rules):
     min_vol   = screener_rules["filters"]["liquidity"]["min_daily_turnover_rub"]
 
     try:
-        url = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-               "boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities")
-        data = safe_fetch(url)
+        # Пробуем несколько эндпоинтов MOEX
+        data = None
+        for url_try in [
+            ("https://iss.moex.com/iss/engines/stock/markets/shares/"
+             "boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities"),
+            ("https://iss.moex.com/iss/engines/stock/markets/shares/"
+             "boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities&limit=100"),
+            ("https://iss.moex.com/iss/engines/stock/markets/shares/"
+             "securities.json?iss.meta=off&iss.only=marketdata,securities&limit=50"),
+        ]:
+            data = safe_fetch(url_try, timeout=15)
+            if data:
+                print(f"  MOEX доступен через: {url_try[:60]}...")
+                break
+            print(f"  [WARN] недоступен: {url_try[:60]}")
+
         if not data:
-            print("  [WARN] MOEX ISS недоступен — скринер пустой")
+            print("  [WARN] Все MOEX эндпоинты недоступны — пробуем альтернативу...")
+            # Fallback: используем данные из предыдущего лога
+            try:
+                import glob
+                logs_dir = LOGS_DIR / "collector"
+                prev_logs = sorted(glob.glob(str(logs_dir / "*.json")))
+                if prev_logs:
+                    with open(prev_logs[-1], encoding="utf-8") as f:
+                        prev_data = json.load(f)
+                    prev_sc = prev_data.get("screener", {})
+                    if prev_sc.get("top_volume"):
+                        print(f"  Используем данные из предыдущего лога: {prev_logs[-1]}")
+                        return {
+                            "top_volume":     prev_sc.get("top_volume", []),
+                            "cheap_growth":   prev_sc.get("cheap_growth", []),
+                            "rising_interest":prev_sc.get("rising_interest", []),
+                            "rising_new":     [],
+                            "rising_dropped": [],
+                            "ipo":            prev_sc.get("ipo", []),
+                            "_from_cache":    True,
+                        }
+            except Exception as e:
+                print(f"  Fallback error: {e}")
             return {"top_volume": [], "cheap_growth": [], "ipo": [],
                     "rising_interest": [], "rising_new": [], "rising_dropped": []}
 
