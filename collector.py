@@ -2356,10 +2356,17 @@ def collect():
     return result
 
 if __name__ == "__main__":
+    import traceback as _tb
+    _err_file = BASE_DIR / "logs" / "collector_error.txt"
     try:
         collect()
+        # Успешно — удаляем файл ошибки если есть
+        if _err_file.exists(): _err_file.unlink()
     except Exception as e:
-        import traceback
-        print(f"\n[FATAL ERROR] {e}")
-        traceback.print_exc()
+        err_text = f"[FATAL ERROR] {e}\n\n" + _tb.format_exc()
+        print(err_text)
+        # Сохраняем ошибку в файл чтобы прочитать через API
+        _err_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(_err_file, "w") as f:
+            f.write(err_text)
         raise
