@@ -2356,4 +2356,10 @@ def collect():
     return result
 
 if __name__ == "__main__":
-    collect()
+    try:
+        collect()
+    except Exception as e:
+        import traceback
+        print(f"\n[FATAL ERROR] {e}")
+        traceback.print_exc()
+        raise
