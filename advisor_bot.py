@@ -577,6 +577,47 @@ def check_alerts(data, log):
 
 # ─── ОСНОВНАЯ ЛОГИКА ──────────────────────────────────────────────────────────
 
+
+def is_moex_open():
+    """
+    Проверяет через MOEX ISS открылась ли биржа сегодня.
+    Возвращает True если есть торги (LAST цена не None у хотя бы одной бумаги).
+    """
+    try:
+        url = ("https://iss.moex.com/iss/engines/stock/markets/shares/"
+               "boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata"
+               "&securities=SBER,GAZP,LKOH&limit=3")
+        h = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
+            )
+        }
+        req = urllib.request.Request(url, headers=h)
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = json.loads(r.read())
+        cols = data["marketdata"]["columns"]
+        rows = data["marketdata"]["data"]
+        last_idx = cols.index("LAST")
+        # Если хотя бы одна бумага имеет LAST != None — биржа торгует
+        for row in rows:
+            if row[last_idx] is not None and row[last_idx] > 0:
+                print(f"  [MOEX] Биржа открыта, {cols[cols.index('SECID')]} = {row[last_idx]}")
+                return True
+        print("  [MOEX] Биржа закрыта или нет торгов")
+        return False
+    except Exception as e:
+        print(f"  [MOEX] Ошибка проверки: {e}")
+        # Если не можем проверить — используем время МСК
+        from datetime import datetime, timezone, timedelta
+        now_msk = datetime.now(timezone(timedelta(hours=3)))
+        # Биржа открыта пн-пт 10:00-18:40
+        if now_msk.weekday() < 5 and 10 <= now_msk.hour < 19:
+            print(f"  [MOEX] Fallback по времени: {now_msk.strftime('%H:%M МСК')}")
+            return True
+        return False
+
+
 def run_morning():
     log  = load_log()
     data = load_collector_data()
