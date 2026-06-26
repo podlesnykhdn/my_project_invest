@@ -1,9 +1,0 @@
-[FATAL ERROR] name 'rising' is not defined
-
-Traceback (most recent call last):
-  File "/home/runner/work/my_prodject_invest/my_prodject_invest/collector.py", line 2362, in <module>
-    collect()
-  File "/home/runner/work/my_prodject_invest/my_prodject_invest/collector.py", line 2302, in collect
-    if isinstance(rising, dict):
-                  ^^^^^^
-NameError: name 'rising' is not defined
