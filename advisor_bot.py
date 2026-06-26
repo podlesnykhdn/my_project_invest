@@ -622,6 +622,11 @@ def run_morning():
     log  = load_log()
     data = load_collector_data()
 
+    # Проверяем открылась ли MOEX — если нет, ждём следующего запуска
+    if not is_moex_open():
+        print("  Биржа ещё не открылась — откладываем отправку")
+        return
+
     if log.get("morning_sent"):
         print(f"Утренняя сводка уже отправлена в {log.get('sent_at')}")
         # Всё равно проверяем алерты
