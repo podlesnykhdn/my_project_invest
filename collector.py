@@ -711,201 +711,140 @@ def collect_screener_tinkoff(tinkoff_token, portfolio_tickers=None):
 
 
 def collect_screener(rules):
-    print("[4/6] Скринер MOEX...")
-    screener_rules = rules["rules"]["screener"]["cheap_growth"]
-    max_price = screener_rules["filters"]["price"]["max"]
-    min_price = screener_rules["filters"]["price"]["min"]
-    min_vol   = screener_rules["filters"]["liquidity"]["min_daily_turnover_rub"]
+    """
+    Скринер через Tinkoff Invest API.
+    MOEX ISS блокирует GitHub Actions — используем Tinkoff который работает.
+    """
+    print("[SCREENER] Загружаем данные через Tinkoff API...")
+
+    tinkoff_token = os.environ.get("TINKOFF_TOKEN")
+    if not tinkoff_token:
+        print("  [SCREENER] TINKOFF_TOKEN не найден")
+        return {"top_volume": [], "cheap_growth": [], "rising_interest": [],
+                "rising_new": [], "rising_dropped": [], "ipo": []}
+
+    base_url = "https://invest-public-api.tinkoff.ru/rest"
+    t_headers = {
+        "Authorization": f"Bearer {tinkoff_token}",
+        "Content-Type": "application/json",
+    }
 
     try:
-        # Пробуем несколько эндпоинтов MOEX
-        data = None
-        for url_try in [
-            ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-             "boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities"),
-            ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-             "boards/TQBR/securities.json?iss.meta=off&iss.only=marketdata,securities&limit=100"),
-            ("https://iss.moex.com/iss/engines/stock/markets/shares/"
-             "securities.json?iss.meta=off&iss.only=marketdata,securities&limit=50"),
-        ]:
-            data = safe_fetch(url_try, timeout=15)
-            if data:
-                print(f"  MOEX доступен через: {url_try[:60]}...")
-                break
-            print(f"  [WARN] недоступен: {url_try[:60]}")
+        # Получаем последние цены по всем акциям через GetLastPrices
+        # Сначала получаем список инструментов
+        req = urllib.request.Request(
+            f"{base_url}/tinkoff.public.invest.api.contract.v1.InstrumentsService/Shares",
+            data=json.dumps({"instrumentStatus": "INSTRUMENT_STATUS_BASE"}).encode(),
+            headers=t_headers, method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            instruments_data = json.loads(r.read())
 
-        if not data:
-            print("  [WARN] MOEX ISS недоступен — используем Tinkoff API для скринера")
-            tinkoff_token = os.environ.get("TINKOFF_TOKEN")
-            tinkoff_items = collect_screener_tinkoff(tinkoff_token)
-            if tinkoff_items:
-                # Формируем top_volume из Tinkoff данных (по цене)
-                # Сортируем по цене убыванию как прокси объёма
-                top_vol = sorted(
-                    [i for i in tinkoff_items if i["price"] > 0],
-                    key=lambda x: x["price"], reverse=True
-                )[:10]
-                cheap = [
-                    i for i in tinkoff_items
-                    if 0 < i["price"] <= 500
-                ][:10]
-                return {
-                    "top_volume":     top_vol,
-                    "cheap_growth":   cheap,
-                    "rising_interest":[],
-                    "rising_new":     [],
-                    "rising_dropped": [],
-                    "ipo":            [],
-                    "_source":        "tinkoff",
-                }
-            return {"top_volume": [], "cheap_growth": [], "ipo": [],
-                    "rising_interest": [], "rising_new": [], "rising_dropped": []}
+        instruments = instruments_data.get("instruments", [])
 
-        d = json.loads(data)
-        mc = d["marketdata"]["columns"]
-        sc = d["securities"]["columns"]
-        md_rows = d["marketdata"]["data"]
-        sc_rows = d["securities"]["data"]
-        print(f"  [Screener] MOEX: {len(md_rows)} marketdata, {len(sc_rows)} securities")
-        # Первые 5 строк для диагностики
-        for row in md_rows[:5]:
-            r = dict(zip(mc, row))
-            print(f"    {r.get('SECID')}: LAST={r.get('LAST')} PREV={r.get('PREVPRICE')} VAL={r.get('VALTODAY')}")
+        # Фильтр: российские акции, не квал-only, на MOEX
+        ru_shares = [
+            i for i in instruments
+            if i.get("countryOfRisk") == "RU"
+            and i.get("exchange") in ("MOEX", "MOEX_MORNING", "MOEX_EVENING")
+            and not i.get("forQualInvestorFlag", False)
+            and i.get("ticker", "") not in QUAL_ONLY_TICKERS
+        ]
+        print(f"  [SCREENER] Акций для анализа: {len(ru_shares)}")
 
-        names = {}
-        for row in d["securities"]["data"]:
-            r = dict(zip(sc, row))
-            names[r["SECID"]] = r.get("SHORTNAME", r["SECID"])
+        # Получаем последние цены
+        figis = [i["figi"] for i in ru_shares[:200]]
+        req2 = urllib.request.Request(
+            f"{base_url}/tinkoff.public.invest.api.contract.v1.MarketDataService/GetLastPrices",
+            data=json.dumps({"figi": figis}).encode(),
+            headers=t_headers, method="POST"
+        )
+        with urllib.request.urlopen(req2, timeout=15) as r:
+            prices_data = json.loads(r.read())
 
+        def parse_q(q):
+            if not q: return 0.0
+            return int(q.get("units", 0)) + int(q.get("nano", 0)) / 1e9
+
+        price_map = {lp["figi"]: parse_q(lp.get("price")) for lp in prices_data.get("lastPrices", [])}
+
+        # Строим список с ценами
         items = []
-        for row in d["marketdata"]["data"]:
-            r = dict(zip(mc, row))
-            price = r.get("LAST") or r.get("PREVPRICE") or 0
-            prev  = r.get("PREVPRICE") or price
-            vol   = r.get("VALTODAY") or 0
-            if not price:
+        figi_to_inst = {i["figi"]: i for i in ru_shares}
+        for figi, price in price_map.items():
+            if price <= 0 or figi not in figi_to_inst:
                 continue
-            pct = (price - prev) / prev * 100 if prev else 0
+            inst = figi_to_inst[figi]
+            ticker = inst.get("ticker", "")
+            name   = inst.get("name", ticker)
+            lot    = inst.get("lot", 1)
             items.append({
-                "ticker":  r["SECID"],
-                "name":    names.get(r["SECID"], r["SECID"]),
+                "ticker":  ticker,
+                "name":    name,
+                "figi":    figi,
                 "price":   round(price, 2),
-                "prev":    round(prev, 2),
-                "change":  round(price - prev, 2),
-                "pct":     round(pct, 2),
-                "volume":  vol,
+                "pct":     0.0,   # изменение за день — нет в lastPrices
+                "volume":  0,
+                "change":  0,
+                "lot":     lot,
             })
 
-        # Топ по объёму
-        # top_vol: если объём есть — по объёму, иначе по изменению цены
-        items_with_vol = [i for i in items if i["volume"] > 0]
-        if items_with_vol:
-            top_vol = sorted(items_with_vol, key=lambda x: x["volume"], reverse=True)[:10]
-            print(f"  [Screener] top_vol по объёму: {len(top_vol)} акций")
-        else:
-            # Объёмы ещё не накоплены — берём по абсолютному изменению цены
-            top_vol = sorted(
-                [i for i in items if i.get("price", 0) > 0],
-                key=lambda x: abs(x.get("pct", 0)), reverse=True
-            )[:10]
-            print(f"  [Screener] top_vol по изменению (объёмы=0): {len(top_vol)} акций")
+        # Топ объёма — берём по цене (прокси ликвидности) из известных голубых фишек
+        BLUE_CHIPS = {"SBER","LKOH","GAZP","ROSN","NVTK","GMKN","TATN","MGNT",
+                      "YDEX","MTSS","MOEX","PLZL","CHMF","NLMK","MAGN","ALRS",
+                      "SNGS","VTBR","T","SMLT","UGLD","AFKS","AFLT","PHOR",
+                      "OZON","HEAD","POSI","FLOT","RUAL","BSPB","SVCB"}
 
-        # Помечаем акции только для квалов
-        for s in top_vol:
-            if s.get("ticker") in QUAL_ONLY_TICKERS:
-                s["qual_only"] = True
-                s["signals"] = s.get("signals", []) + ["⚠️ только для квалифицированных инвесторов"]
+        blue = [i for i in items if i["ticker"] in BLUE_CHIPS]
+        blue.sort(key=lambda x: x["price"], reverse=True)
+        top_vol = blue[:10]
 
-        # Интерпретация паттерна объём/цена для топа
+        # Паттерн объём/цена для топа
         for s in top_vol:
-            pct = s.get("pct", 0)
-            if abs(pct) < 0.3:
-                s["vol_pattern"] = "neutral"
-                s["vol_label"]   = "⚪ Борьба — цена стоит"
-                s["vol_hint"]    = "Высокий объём без движения цены. Крупные игроки компенсируют друг друга. Жди пробоя."
-            elif pct >= 2:
-                s["vol_pattern"] = "buyers"
-                s["vol_label"]   = "🟢 Покупатели доминируют"
-                s["vol_hint"]    = f"Цена +{pct:.1f}% на высоком объёме — спрос превышает предложение."
-            elif pct > 0.3:
-                s["vol_pattern"] = "buyers_weak"
-                s["vol_label"]   = "🟡 Слабый перевес покупателей"
-                s["vol_hint"]    = f"Цена +{pct:.1f}% — покупатели чуть активнее."
-            elif pct <= -2:
-                s["vol_pattern"] = "sellers"
-                s["vol_label"]   = "🔴 Продавцы доминируют"
-                s["vol_hint"]    = f"Цена {pct:.1f}% на высоком объёме — давление продавцов."
+            p = s["price"]
+            if p > 5000:
+                s["vol_label"] = "💎 Высокая цена"
+            elif p > 1000:
+                s["vol_label"] = "🔵 Средняя цена"
             else:
-                s["vol_pattern"] = "sellers_weak"
-                s["vol_label"]   = "🟠 Слабый перевес продавцов"
-                s["vol_hint"]    = f"Цена {pct:.1f}% — продавцы чуть активнее."
+                s["vol_label"] = "🟡 Доступная цена"
 
-        # Дешёвые перспективные — базовая фильтрация
-        cheap = [
-            i for i in items
-            if min_price <= i["price"] <= max_price
-            and i["volume"] >= min_vol
-            and 0.3 <= i["pct"] <= 15.0
-        ]
+        # Дешёвые акции (до 500₽)
+        cheap = [i for i in items if 0 < i["price"] <= 500 and i["ticker"] not in BLUE_CHIPS]
+        cheap.sort(key=lambda x: x["price"])
+        cheap_growth = cheap[:10]
 
-        # Оценка по баллам
-        for stock in cheap:
-            stock["score"] = _score_stock(stock, rules)
-            stock["grade"] = _grade(stock["score"])
+        # Растущий интерес — берём из истории если есть
+        rising_history = _load_rising_history()
+        rising_tickers = set()
+        if rising_history:
+            prev_tickers = set(rising_history.get("tickers", []))
+            curr_tickers = {i["ticker"] for i in items if i["price"] > 0}
+            rising_tickers = curr_tickers & prev_tickers
 
-        cheap_sorted = sorted(cheap, key=lambda x: x["score"], reverse=True)[:8]
+        rising_interest = [i for i in items if i["ticker"] in rising_tickers][:10]
 
-        print(f"  Топ по объёму: {len(top_vol)} акций")
-        print(f"  Дешёвые перспективные: {len(cheap_sorted)} акций")
+        print(f"  [SCREENER] top_volume={len(top_vol)} cheap={len(cheap_growth)} rising={len(rising_interest)}")
 
-        # Сохраняем объёмы для недельной статистики
-        vol_history = _load_vol_history()
-        week_key = _get_week_key()
-        if week_key not in vol_history:
-            vol_history[week_key] = {}
-        for item in items:
-            if item["volume"] > 0:
-                # Накапливаем объём за неделю (суммируем дни)
-                prev = vol_history[week_key].get(item["ticker"], 0)
-                vol_history[week_key][item["ticker"]] = prev + item["volume"]
-        _save_vol_history(vol_history)
-
-        # Малоизвестные с растущим объёмом
-        rising = collect_rising_interest(rules, items, vol_history)
-
-        # Диагностика для лога
-        items_with_price = [i for i in items if i.get("price", 0) > 0]
-        items_with_vol   = [i for i in items if i.get("volume", 0) > 0]
-        print(f"  [Screener] items: {len(items)} всего, {len(items_with_price)} с ценой, {len(items_with_vol)} с объёмом")
-        print(f"  [Screener] top_vol: {len(top_vol)}, cheap: {len(cheap_sorted)}")
+        # Обновляем историю
+        _save_rising_history({"tickers": [i["ticker"] for i in items if i["price"] > 0], "date": TODAY})
 
         return {
-            "top_volume":      top_vol,
-            "cheap_growth":    cheap_sorted,
-            "rising_interest": rising.get("current", rising) if isinstance(rising, dict) else rising,
-            "rising_new":      rising.get("new", []) if isinstance(rising, dict) else [],
-            "rising_dropped":  rising.get("dropped", []) if isinstance(rising, dict) else [],
-            "_all_items":      items,
-            "_debug": {
-                "items_total":      len(items),
-                "items_with_price": len(items_with_price),
-                "items_with_vol":   len(items_with_vol),
-                "top_vol_count":    len(top_vol),
-                "cheap_count":      len(cheap_sorted),
-                "sample":           items[:3] if items else [],
-            }
+            "top_volume":     top_vol,
+            "cheap_growth":   cheap_growth,
+            "rising_interest": rising_interest,
+            "rising_new":     [],
+            "rising_dropped": [],
+            "ipo":            [],
+            "_source":        "tinkoff",
         }
 
     except Exception as e:
-        import traceback
-        tb = traceback.format_exc()
-        print(f"  [ERROR] screener: {e}")
-        print(f"  [TRACEBACK] {tb}")
-        return {
-            "top_volume": [], "cheap_growth": [], "ipo": [],
-            "rising_interest": [], "rising_new": [], "rising_dropped": [],
-            "_error": str(e), "_traceback": tb[:500]
-        }
+        print(f"  [SCREENER] Ошибка Tinkoff: {e}")
+        import traceback; traceback.print_exc()
+        return {"top_volume": [], "cheap_growth": [], "rising_interest": [],
+                "rising_new": [], "rising_dropped": [], "ipo": []}
+
 
 def _score_stock(stock, rules):
     """Простая оценка по доступным данным (без истории)."""
