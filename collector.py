@@ -1497,11 +1497,20 @@ def _load_last_log(role):
     log_dir = LOGS_DIR / role
     if not log_dir.exists():
         return None
-    files = sorted(log_dir.glob("*.json"))
+    files = sorted(log_dir.glob("*.json"), reverse=True)
     if not files:
         return None
-    with open(files[-1], encoding="utf-8") as f:
-        return json.load(f)
+    for log_file in files:
+        try:
+            with open(log_file, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"  [WARN] Битый лог {log_file.name}: {e} — пропуск")
+            try:
+                log_file.rename(log_file.with_suffix(".broken"))
+            except Exception:
+                pass
+    return None
 
 
 # ─── ДВУХНЕДЕЛЬНЫЙ СНИМОК ПОРТФЕЛЯ ───────────────────────────────────────────
