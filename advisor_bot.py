@@ -565,6 +565,83 @@ def check_alerts(data, log):
 
 # ─── ОСНОВНАЯ ЛОГИКА ──────────────────────────────────────────────────────────
 
+
+def build_analyst_report(data):
+    """
+    Аналитик — второе утреннее сообщение.
+    Вердикт по каждой позиции + действия + горизонт.
+    Без внешних API — работает всегда.
+    """
+    if not data:
+        return None
+
+    tp   = data.get("tinkoff_portfolio", {})
+    divs = data.get("dividends", {})
+    sc   = data.get("screener", {})
+    cbr  = 14.25
+
+    lines = []
+    lines.append("\U0001f9e0 <b>\u0410\u041d\u0410\u041b\u0418\u0422\u0418\u041a \u2014 \u0420\u0410\u0417\u0411\u041e\u0420</b>")
+    lines.append("")
+
+    # Вердикт по позициям
+    VERDICTS = {
+        "X5":   ("\U0001f535 \u0414\u043e\u043a\u0443\u043f\u0438\u0442\u044c",
+                 "P/E 7.1x \u2705 \u0414\u043e\u043b\u0433 0.5x \u2705 \u0414\u0438\u0432\u0438\u0434\u0435\u043d\u0434 245\u20bd 7 \u0438\u044e\u043b\u044f"),
+        "LENT": ("\U0001f7e2 \u0414\u0435\u0440\u0436\u0430\u0442\u044c",
+                 "\u0412\u044b\u0440\u0443\u0447\u043a\u0430 +24% \u0414\u043e\u043b\u0433 2.38x \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e (O\'Key)"),
+        "SBER": ("\U0001f535 \u0414\u043e\u043a\u0443\u043f\u0438\u0442\u044c",
+                 "P/E 4.0x \u2705 \u041f\u0440\u0438\u0431\u044b\u043b\u044c 1.7\u0442\u0440\u043b\u043d \u0414\u0438\u0432\u0438\u0434\u0435\u043d\u0434 37.64\u20bd 20 \u0438\u044e\u043b\u044f"),
+        "BELU": ("\U0001f7e1 \u041d\u0430\u0431\u043b\u044e\u0434\u0430\u0442\u044c",
+                 "\u041f\u0430\u0434\u0435\u043d\u0438\u0435 -42% \u0411\u0438\u0437\u043d\u0435\u0441 \u0440\u0430\u0441\u0442\u0451\u0442 \u043d\u043e \u043a\u0430\u0442\u0430\u043b\u0438\u0437\u0430\u0442\u043e\u0440\u043e\u0432 \u043d\u0435\u0442"),
+        "TGLD": ("\U0001f7e2 \u0414\u0435\u0440\u0436\u0430\u0442\u044c",
+                 "ETF \u0437\u043e\u043b\u043e\u0442\u043e \u2014 \u0441\u0442\u0440\u0430\u0445\u043e\u0432\u043a\u0430 \u043e\u0442 \u0434\u0435\u0432\u0430\u043b\u044c\u0432\u0430\u0446\u0438\u0438"),
+    }
+
+    for p in tp.get("positions", []):
+        t = p.get("ticker", "")
+        if not t or t == "RUB":
+            continue
+        v = VERDICTS.get(t, ("\u26aa \u041d\u0430\u0431\u043b\u044e\u0434\u0430\u0442\u044c", ""))
+        pnl_v = p.get("pnl", 0) or 0
+        pct_v = p.get("pnl_pct", 0) or 0
+        lines.append(
+            f"{v[0]} <b>{t}</b> {p.get('curr_price','?')}\u20bd | "
+            f"PnL {pnl_v:+,.0f}\u20bd ({pct_v:+.1f}%)"
+            f"\n  \u2192 {v[1]}"
+        )
+
+    # Ближайшие дивиденды
+    div_lines = []
+    for tk, info in divs.items():
+        np_i = info.get("next_payment") or info.get("announced") or {}
+        if np_i.get("amount_per_share"):
+            net = np_i.get("your_total_net", "?")
+            rec = np_i.get("record_date", "?")
+            div_lines.append(f"  {tk}: {np_i['amount_per_share']}\u20bd/\u0430\u043a\u0446 \u2022 {rec} \u2022 \u043d\u0430 \u0440\u0443\u043a\u0438 \u2248{fmt(net) if isinstance(net, (int,float)) else net}\u20bd")
+
+    if div_lines:
+        lines.append("")
+        lines.append("\U0001f4b0 <b>\u0414\u0418\u0412\u0418\u0414\u0415\u041d\u0414\u042b</b>")
+        lines.extend(div_lines)
+
+    # Действия
+    lines.append("")
+    lines.append("\U0001f3af <b>\u0422\u041e\u041f-3 \u0414\u0415\u0419\u0421\u0422\u0412\u0418\u042f</b>")
+    lines.append("1\ufe0f\u20e3 \u0414\u043e 4 \u0438\u044e\u043b\u044f \u2014 \u0434\u043e\u043a\u0443\u043f\u0438\u0442\u044c X5 (245\u20bd/\u0430\u043a\u0446, \u043e\u0442\u0441\u0435\u0447\u043a\u0430 7 \u0438\u044e\u043b\u044f)")
+    lines.append("2\ufe0f\u20e3 \u0414\u043e 17 \u0438\u044e\u043b\u044f \u2014 \u0434\u043e\u043a\u0443\u043f\u0438\u0442\u044c \u0421\u0431\u0435\u0440 (37.64\u20bd/\u0430\u043a\u0446, \u043e\u0442\u0441\u0435\u0447\u043a\u0430 20 \u0438\u044e\u043b\u044f)")
+    lines.append("3\ufe0f\u20e3 \u0414\u0438\u0432\u0438\u0434\u0435\u043d\u0434\u044b X5 \u043f\u0440\u0438\u0434\u0443\u0442 \u2248 22 \u0438\u044e\u043b\u044f \u2014 \u0440\u0435\u0438\u043d\u0432\u0435\u0441\u0442\u0438\u0440\u0443\u0439 \u0432 \u0421\u0431\u0435\u0440")
+
+    # Горизонт
+    lines.append("")
+    lines.append("\U0001f52d <b>\u0413\u041e\u0420\u0418\u0417\u041e\u041d\u0422</b>")
+    lines.append(f"\u0421\u0442\u0430\u0432\u043a\u0430 \u0426\u0411 {cbr}% \u2014 \u0437\u0430\u0441\u0435\u0434\u0430\u043d\u0438\u0435 24 \u0438\u044e\u043b\u044f. \u041f\u0440\u0438 -50 \u0431.\u043f. \u0440\u044b\u043d\u043e\u043a +5-10%.")
+    lines.append("2-3 \u0433\u043e\u0434\u0430: X5 \u0438 \u0421\u0431\u0435\u0440 \u2014 \u0432\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0438\u0439 \u0441\u043f\u0440\u043e\u0441, \u043f\u043e\u0442\u0435\u043d\u0446\u0438\u0430\u043b +30-50% \u043f\u0440\u0438 \u0441\u0442\u0430\u0432\u043a\u0435 10%.")
+    lines.append("TGLD \u2014 \u0434\u0435\u0440\u0436\u0438 \u043a\u0430\u043a \u0441\u0442\u0440\u0430\u0445\u043e\u0432\u043a\u0443.")
+
+    return "\n".join(lines)
+
+
 def run_morning():
     log  = load_log()
     data = load_collector_data()
