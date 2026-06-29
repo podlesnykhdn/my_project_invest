@@ -666,6 +666,15 @@ def run_morning():
     result = send(msg)
     print(f"Утренняя сводка отправлена: {result.get('ok')}")
 
+    # Второе сообщение — аналитик отдельно
+    try:
+        analysis = build_analyst_report(data)
+        if analysis:
+            send(analysis[:4000])
+            print("Аналитик отправлен")
+    except Exception as e:
+        print(f"Аналитик пропущен: {e}")
+
     log["morning_sent"] = True
     log["sent_at"] = (lambda u, m: f"{m.strftime('%H:%M')} МСК ({u.strftime('%H:%M')} UTC)")(datetime.utcnow(), datetime.utcnow() + __import__("datetime").timedelta(hours=3))
     log["date"] = TODAY
