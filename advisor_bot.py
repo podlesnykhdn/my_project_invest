@@ -615,35 +615,28 @@ def run_morning():
     data = load_collector_data()
 
     if log.get("morning_sent"):
-        print(f"Утренняя сводка уже отправлена в {log.get('sent_at')}")
-        # Всё равно проверяем алерты
+        print(f"Сводка уже отправлена в {log.get('sent_at')}")
         log = check_alerts(data, log)
         save_log(log)
         return
 
-    print("[DEBUG] Начинаем формирование сводки...")
-    print(f"[DEBUG] data is None: {data is None}")
+    print("[DEBUG] Формируем сводку...")
     try:
         msg = build_morning_report(data)
-        print(f"[DEBUG] msg length: {len(msg) if msg else 0}")
-        result = send(msg)
-        print(f"Утренняя сводка отправлена: {result.get('ok')}")
-    except Exception as _e:
-        import traceback
-        print(f"[ERROR] build_morning_report: {_e}")
-        traceback.print_exc()
-        msg_err = f"\U000026a0\ufe0f \u0421\u043e\u0432\u0435\u0442\u043d\u0438\u043a \u2014 \u043e\u0448\u0438\u0431\u043a\u0430: {_e}"
-        send(msg_err)
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        msg = f"⚠️ Ошибка сводки: {e}"
+
+    print(f"[DEBUG] msg len={len(msg)}")
+    result = send(msg)
+    print(f"[DEBUG] send ok={result.get('ok')}")
 
     log["morning_sent"] = True
-    log["sent_at"] = (lambda u, m: f"{m.strftime('%H:%M')} МСК ({u.strftime('%H:%M')} UTC)")(datetime.utcnow(), datetime.utcnow() + __import__("datetime").timedelta(hours=3))
+    log["sent_at"] = datetime.now(timezone(timedelta(hours=3))).strftime("%H:%M МСК")
     log["date"] = TODAY
-
-    # Проверяем алерты
-    if data:
-        log = check_alerts(data, log)
-
+    log = check_alerts(data, log)
     save_log(log)
+
 
 def run_alerts_only():
     """Проверка алертов без утренней сводки — запускается чаще."""
