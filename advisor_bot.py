@@ -469,17 +469,22 @@ def build_morning_report(data):
     psigs  = data.get("portfolio_signals", {})
     lines.append(build_conclusion(data, fired, psigs))
 
-    # ── АНАЛИЗ ЧЕРЕЗ CLAUDE ──────────────────────────────────────────────────
+    # ── АНАЛИТИК
     try:
+        import signal
+        def _timeout_handler(signum, frame): raise TimeoutError('analyst timeout')
+        signal.signal(signal.SIGALRM, _timeout_handler)
+        signal.alarm(30)  # 30 секунд максимум
         analysis = build_full_analysis(data)
-        # Берём тело без первого заголовка
-        sep = '\n\n'
-        analysis_body = analysis.split(sep, 1)[1] if sep in analysis else analysis
-        lines.append(f"\n{'─' * 28}")
-        lines.append("🧠 <b>АНАЛИТИК — РАЗБОР И СОВЕТЫ</b>")
-        lines.append(analysis_body)
+        signal.alarm(0)
+        if analysis:
+            lines.append('\n' + '─'*28)
+            lines.append('🧠 <b>АНАЛИТИК — РАЗБОР И СОВЕТЫ</b>')
+            sep = '\n\n'
+            body_text = analysis.split(sep, 1)[1] if sep in analysis else analysis
+            lines.append(body_text)
     except Exception as e:
-        lines.append(f"\n⚠️ Аналитик: {e}")
+        lines.append(f'\n⚠️ Аналитик: {e}')
 
     # Ссылка на дашборд
     lines.append(
