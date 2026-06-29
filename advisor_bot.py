@@ -596,46 +596,63 @@ def is_moex_open():
         print(f"  [MOEX] {now_msk.strftime('%H:%M МСК')} — биржа закрыта")
     return time_ok
 def run_morning():
-    log  = load_log()
-    data = load_collector_data()
-
-    # Уже отправляли сегодня
+    log = load_log()
     if log.get("morning_sent"):
-        print(f"Сводка уже отправлена в {log.get('sent_at')}")
-        log = check_alerts(data, log)
-        save_log(log)
+        print(f"Уже отправлено в {log.get('sent_at')}")
         return
 
-    # Проверка рабочего времени МСК пн-пт 09:50-19:00
     now_msk = datetime.now(timezone(timedelta(hours=3)))
     if now_msk.weekday() >= 5:
-        print("Выходной — не отправляем")
-        return
-    h_now, m_now = now_msk.hour, now_msk.minute
-    if not (h_now > 9 or (h_now == 9 and m_now >= 50)):
-        print(f"  {now_msk.strftime('%H:%M')} МСК — биржа ещё не открылась")
+        print("Выходной")
         return
 
-    # Формируем и отправляем
-    print("[RUN_MORNING] Формируем сводку...")
+    print(f"[MORNING] Отправляем простое сообщение...")
+    msg = f"\U0001f4ca <b>\u0421\u043e\u0432\u0435\u0442\u043d\u0438\u043a</b> \u2014 {TODAY}\n\n"
+    msg += "\u041f\u043e\u0440\u0442\u0444\u0435\u043b\u044c: \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430..."
+
     try:
-        msg = build_morning_report(data)
-        print(f"[RUN_MORNING] Длина сообщения: {len(msg)}")
+        data = load_collector_data()
+        if data:
+            tp = data.get("tinkoff_portfolio", {})
+            cur = data.get("currency", {})
+            inv = tp.get("total_invested", 0)
+            cur_val = tp.get("total_current", 0)
+            pnl = tp.get("total_pnl", 0)
+            pct = tp.get("total_pnl_pct", 0)
+            usd = cur.get("usd", "?")
+            msg = (
+                f"\U0001f4ca <b>\u0421\u043e\u0432\u0435\u0442\u043d\u0438\u043a</b> \u2014 {TODAY} {now_msk.strftime('%H:%M')} \u041c\u0421\u041a\n\n"
+                f"\U0001f4b1 USD: {usd}\u20bd\n\n"
+                f"\U0001f4bc <b>\u041f\u043e\u0440\u0442\u0444\u0435\u043b\u044c</b>\n"
+                f"\u0412\u043b\u043e\u0436\u0435\u043d\u043e: {inv:,.0f}\u20bd\n"
+                f"\u0421\u0435\u0439\u0447\u0430\u0441: {cur_val:,.0f}\u20bd\n"
+                f"PnL: {pnl:+,.0f}\u20bd ({pct:+.1f}%)\n\n"
+            )
+            for p in tp.get("positions", []):
+                t = p.get("ticker", "")
+                if t == "RUB": continue
+                msg += f"{t}: {p.get('curr_price','?')}\u20bd | PnL {p.get('pnl',0):+,.0f}\u20bd\n"
+            divs = data.get("dividends", {})
+            near_divs = [(tk, (i.get("next_payment") or i.get("announced") or {})) for tk, i in divs.items()]
+            near_divs = [(tk, d) for tk, d in near_divs if d.get("amount_per_share")]
+            if near_divs:
+                msg += "\n\U0001f4b0 <b>\u0414\u0438\u0432\u0438\u0434\u0435\u043d\u0434\u044b</b>\n"
+                for tk, d in near_divs:
+                    msg += f"{tk}: {d.get('amount_per_share')}\u20bd/\u0430\u043a\u0446, \u043e\u0442\u0441\u0435\u0447\u043a\u0430 {d.get('record_date','?')}\n"
+            msg += f"\n\U0001f4f1 /analysis \u2014 \u043f\u043e\u043b\u043d\u044b\u0439 \u0430\u043d\u0430\u043b\u0438\u0437"
     except Exception as e:
-        import traceback; traceback.print_exc()
-        msg = f"Советник запущен {now_msk.strftime('%H:%M МСК')}\n⚠️ Ошибка сводки: {e}"
+        print(f"[MORNING] data error: {e}")
+        msg += f"\n\u26a0\ufe0f \u0414\u0430\u043d\u043d\u044b\u0435 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b: {e}"
 
-    print("[RUN_MORNING] Отправляем в Telegram...")
+    print(f"[MORNING] msg len={len(msg)}")
     result = send(msg)
-    ok = result.get("ok", False)
-    print(f"[RUN_MORNING] Telegram ok={ok}")
+    print(f"[MORNING] Telegram ok={result.get('ok')}")
 
     log["morning_sent"] = True
-    log["sent_at"] = now_msk.strftime("%H:%M МСК (%H:%M UTC)")
+    log["sent_at"] = now_msk.strftime("%H:%M \u041c\u0421\u041a")
     log["date"] = TODAY
-    log = check_alerts(data, log)
     save_log(log)
-    print(f"[RUN_MORNING] Лог сохранён, morning_sent=True")
+    print("[MORNING] \u0413\u043e\u0442\u043e\u0432\u043e")
 
 
 def run_alerts_only():
