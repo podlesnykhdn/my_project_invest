@@ -1497,24 +1497,26 @@ def _load_last_log(role):
     log_dir = LOGS_DIR / role
     if not log_dir.exists():
         return None
-    files = sorted(log_dir.glob("*.json"), reverse=True)
+    files = sorted(log_dir.glob('*.json'), reverse=True)
     if not files:
         return None
-    for log_file in files:
+    for log_file in files[:5]:
         try:
-            with open(log_file, encoding="utf-8") as f:
-                return json.load(f)
+            with open(log_file, encoding='utf-8') as f:
+                data = f.read().strip()
+                if not data or data[0] != '{':
+                    print(f'  [Log] Пропускаем некорректный файл: {log_file.name}')
+                    continue
+                return json.loads(data)
         except (json.JSONDecodeError, Exception) as e:
-            print(f"  [WARN] Битый лог {log_file.name}: {e} — пропуск")
+            print(f'  [Log] Битый файл {log_file.name}: {e} — пропускаем')
+            broken = log_file.with_suffix('.broken')
             try:
-                log_file.rename(log_file.with_suffix(".broken"))
+                log_file.rename(broken)
             except Exception:
                 pass
+            continue
     return None
-
-
-# ─── ДВУХНЕДЕЛЬНЫЙ СНИМОК ПОРТФЕЛЯ ───────────────────────────────────────────
-
 def save_biweekly_snapshot(portfolio):
     """
     Сохраняет снимок портфеля раз в две недели.
