@@ -616,28 +616,43 @@ def run_morning():
     log  = load_log()
     data = load_collector_data()
 
+    # Уже отправляли сегодня
     if log.get("morning_sent"):
         print(f"Сводка уже отправлена в {log.get('sent_at')}")
         log = check_alerts(data, log)
         save_log(log)
         return
 
-    print("[DEBUG] Формируем сводку...")
+    # Проверка рабочего времени МСК пн-пт 09:50-19:00
+    now_msk = datetime.now(timezone(timedelta(hours=3)))
+    if now_msk.weekday() >= 5:
+        print("Выходной — не отправляем")
+        return
+    h_now, m_now = now_msk.hour, now_msk.minute
+    if not (h_now > 9 or (h_now == 9 and m_now >= 50)):
+        print(f"  {now_msk.strftime('%H:%M')} МСК — биржа ещё не открылась")
+        return
+
+    # Формируем и отправляем
+    print("[RUN_MORNING] Формируем сводку...")
     try:
         msg = build_morning_report(data)
+        print(f"[RUN_MORNING] Длина сообщения: {len(msg)}")
     except Exception as e:
         import traceback; traceback.print_exc()
-        msg = f"⚠️ Ошибка сводки: {e}"
+        msg = f"Советник запущен {now_msk.strftime('%H:%M МСК')}\n⚠️ Ошибка сводки: {e}"
 
-    print(f"[DEBUG] msg len={len(msg)}")
+    print("[RUN_MORNING] Отправляем в Telegram...")
     result = send(msg)
-    print(f"[DEBUG] send ok={result.get('ok')}")
+    ok = result.get("ok", False)
+    print(f"[RUN_MORNING] Telegram ok={ok}")
 
     log["morning_sent"] = True
-    log["sent_at"] = datetime.now(timezone(timedelta(hours=3))).strftime("%H:%M МСК")
+    log["sent_at"] = now_msk.strftime("%H:%M МСК (%H:%M UTC)")
     log["date"] = TODAY
     log = check_alerts(data, log)
     save_log(log)
+    print(f"[RUN_MORNING] Лог сохранён, morning_sent=True")
 
 
 def run_alerts_only():
