@@ -795,9 +795,16 @@ def collect_screener(rules):
                       "SNGS","VTBR","T","SMLT","UGLD","AFKS","AFLT","PHOR",
                       "OZON","HEAD","POSI","FLOT","RUAL","BSPB","SVCB"}
 
+        print(f"  [SCREENER DEBUG] items={len(items)}, sample tickers: {[i['ticker'] for i in items[:10]]}")
         blue = [i for i in items if i["ticker"] in BLUE_CHIPS]
+        print(f"  [SCREENER DEBUG] blue_chips found={len(blue)}")
         blue.sort(key=lambda x: x["price"], reverse=True)
         top_vol = blue[:10]
+        if not top_vol:
+            # Fallback: просто топ по цене из всех items
+            all_sorted = sorted(items, key=lambda x: x["price"], reverse=True)
+            top_vol = all_sorted[:10]
+            print(f"  [SCREENER DEBUG] fallback to all items top_vol={len(top_vol)}")
 
         # Паттерн объём/цена для топа
         for s in top_vol:
