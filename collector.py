@@ -783,6 +783,9 @@ def collect_screener(rules):
         # Дешёвые акции
         cheap = sorted([i for i in items if 0 < i["price"] <= 500], key=lambda x: x["price"])
         cheap_growth = cheap[:10]
+        for c in cheap_growth:
+            c["score"] = 50
+            c["grade"] = "B"
 
         return {
             "top_volume":      top_vol,
