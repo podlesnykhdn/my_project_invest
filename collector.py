@@ -841,9 +841,16 @@ def collect_screener(rules):
 
     except Exception as e:
         print(f"  [SCREENER] Ошибка Tinkoff: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        tb = traceback.format_exc()
+        traceback.print_exc()
+        try:
+            with open(BASE_DIR / "logs" / "screener_error.txt", "w") as f:
+                f.write(f"[SCREENER ERROR] {e}\n\n{tb}")
+        except Exception:
+            pass
         return {"top_volume": [], "cheap_growth": [], "rising_interest": [],
-                "rising_new": [], "rising_dropped": [], "ipo": []}
+                "rising_new": [], "rising_dropped": [], "ipo": [], "_source": "moex_fallback_error"}
 
 
 def _score_stock(stock, rules):
