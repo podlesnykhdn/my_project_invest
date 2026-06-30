@@ -752,6 +752,16 @@ def collect_screener(rules):
         ]
         print(f"  [SCREENER] Акций для анализа: {len(ru_shares)}")
 
+        # Приоритет: сначала голубые фишки, потом остальные
+        BLUE_CHIPS_PRIORITY = {"SBER","LKOH","GAZP","ROSN","NVTK","GMKN","TATN","MGNT",
+                      "YDEX","MTSS","MOEX","PLZL","CHMF","NLMK","MAGN","ALRS",
+                      "SNGS","VTBR","T","SMLT","UGLD","AFKS","AFLT","PHOR",
+                      "OZON","HEAD","POSI","FLOT","RUAL","BSPB","SVCB"}
+        priority_shares = [i for i in ru_shares if i.get("ticker","") in BLUE_CHIPS_PRIORITY]
+        other_shares = [i for i in ru_shares if i.get("ticker","") not in BLUE_CHIPS_PRIORITY]
+        ru_shares = priority_shares + other_shares
+        print(f"  [SCREENER] Приоритетных (blue chips) найдено: {len(priority_shares)}")
+
         # Получаем последние цены
         figis = [i["figi"] for i in ru_shares[:200]]
         req2 = urllib.request.Request(
