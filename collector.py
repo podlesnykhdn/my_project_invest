@@ -1859,6 +1859,46 @@ def collect_price_history(rules, quotes):
 
 # ─── Т-ИНВЕСТИЦИИ API ────────────────────────────────────────────────────────
 
+def check_tinkoff_token(tinkoff_token):
+    """
+    Проверяет валидность токена Tinkoff.
+    Возвращает True если токен рабочий, False если истёк (ошибка 40003).
+    При истечении отправляет уведомление в Telegram.
+    """
+    base_url = "https://invest-public-api.tinkoff.ru/rest"
+    t_headers = {
+        "Authorization": f"Bearer {tinkoff_token}",
+        "Content-Type": "application/json",
+    }
+    try:
+        req = urllib.request.Request(
+            f"{base_url}/tinkoff.public.invest.api.contract.v1.UsersService/GetInfo",
+            data=json.dumps({}).encode(),
+            headers=t_headers, method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = json.loads(r.read())
+        print(f"  [Tinkoff] Токен валиден: prem_status={data.get('premStatus','?')}")
+        return True
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")
+        if "40003" in body or e.code == 401:
+            print(f"  [Tinkoff] ТОКЕН ИСТЁК (ошибка 40003) — нужно обновить TINKOFF_TOKEN в GitHub Secrets!")
+            # Пишем в файл для уведомления советника
+            try:
+                token_error_path = BASE_DIR / "logs" / "tinkoff_token_error.txt"
+                with open(token_error_path, "w") as f:
+                    f.write(f"ТОКЕН ИСТЁК {TODAY}. Ошибка 40003. Обнови TINKOFF_TOKEN в GitHub Secrets: https://github.com/podlesnykhdn/my_prodject_invest/settings/secrets/actions")
+            except Exception:
+                pass
+            return False
+        print(f"  [Tinkoff] Ошибка проверки токена {e.code}: {body[:100]}")
+        return True  # Другая ошибка — не значит что токен истёк
+    except Exception as e:
+        print(f"  [Tinkoff] Ошибка проверки: {e}")
+        return True  # При сетевых ошибках считаем токен валидным
+
+
 def fetch_tinkoff_portfolio():
     """
     Получает реальные данные портфеля из Т-Инвестиций через Open API.
@@ -1868,6 +1908,10 @@ def fetch_tinkoff_portfolio():
     if not tinkoff_token:
         print("  [Tinkoff] TINKOFF_TOKEN не найден — пропускаем")
         return None
+
+    # Проверяем валидность токена
+    if not check_tinkoff_token(tinkoff_token):
+        return None  # токен истёк, работаем без Tinkoff данных
 
     print("  [Tinkoff] Получаем данные портфеля...")
 
