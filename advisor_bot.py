@@ -646,6 +646,22 @@ def run_morning():
     log  = load_log()
     data = load_collector_data()
 
+    # Проверяем не истёк ли токен Tinkoff — если да, шлём алерт
+    token_err_path = Path(__file__).parent / 'logs' / 'tinkoff_token_error.txt'
+    if token_err_path.exists():
+        try:
+            err_text = token_err_path.read_text(encoding='utf-8')
+            send(
+                '\U000026a0\ufe0f <b>КРИТИЧНО: Токен Tinkoff API истёк!</b>\n\n'
+                + err_text + '\n\n'
+                '1\ufe0f\u20e3 Открой: https://www.tbank.ru/invest/settings/\n'
+                '2\ufe0f\u20e3 Выпусти новый токен (Read-only достаточно)\n'
+                '3\ufe0f\u20e3 Обнови TINKOFF_TOKEN в Secrets: '
+                'https://github.com/podlesnykhdn/my_prodject_invest/settings/secrets/actions'
+            )
+        except Exception as e:
+            print(f'token error notify: {e}')
+
     # Отправляем только в рабочее время пн-пт 09:50-19:00 МСК
     now_msk = datetime.now(timezone(timedelta(hours=3)))
     if now_msk.weekday() >= 5:
