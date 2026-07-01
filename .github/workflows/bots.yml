@@ -2,7 +2,7 @@ name: Telegram боты
 
 on:
   schedule:
-    - cron: '*/10 6-15 * * 1-5'
+    - cron: '0 6 * * 1-5'
   workflow_dispatch:
     inputs:
       mode:
@@ -11,6 +11,10 @@ on:
         default: 'auto'
         type: choice
         options: [auto, morning, alerts, command]
+      chain:
+        description: 'Самозапуск цепочки (не трогать)'
+        required: false
+        default: 'true'
 
 jobs:
   run-bots:
@@ -58,3 +62,35 @@ jobs:
           git add logs/** rules.json
           git diff --staged --quiet || git commit -m "logs $(date +%Y-%m-%d_%H%M)"
           git push origin main || git push --force-with-lease origin main || true
+
+      - name: Само-цепочка — запланировать следующий запуск
+        if: always()
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          CHAIN="${{ github.event.inputs.chain }}"
+          if [ "$CHAIN" = "false" ]; then
+            echo "Цепочка отключена для этого запуска — выход"
+            exit 0
+          fi
+          HOUR_UTC=$(date -u +%H)
+          HOUR_MSK=$(( (HOUR_UTC + 3) % 24 ))
+          WEEKDAY=$(date -u +%u)
+          echo "Текущее время: ${HOUR_MSK}:00 МСК, день недели: $WEEKDAY"
+          if [ "$WEEKDAY" -ge 6 ]; then
+            echo "Выходной — цепочка приостановлена."
+            exit 0
+          fi
+          if [ "$HOUR_MSK" -lt 9 ] || [ "$HOUR_MSK" -ge 19 ]; then
+            echo "Нерабочее время — цепочка приостановлена."
+            exit 0
+          fi
+          echo "Рабочее время — ждём 10 минут перед следующим запуском..."
+          sleep 600
+          echo "Запускаем следующее звено цепочки..."
+          curl -s -X POST \
+            -H "Authorization: Bearer $GH_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/bots.yml/dispatches" \
+            -d '{"ref":"main","inputs":{"mode":"auto","chain":"true"}}'
+          echo "Следующее звено запущено."
