@@ -11,6 +11,36 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, date
 from pathlib import Path
 
+# ─── SSL: сертификат Минцифры для tbank.ru ───────────────────────────────────
+import ssl as _ssl
+
+def _make_tbank_ssl_context():
+    """
+    Создаёт SSL контекст с сертификатом Минцифры РФ.
+    Нужен для запросов к invest-public-api.tbank.ru после 2 июля 2026.
+    Скачивает сертификат если нет локально.
+    """
+    ctx = _ssl.create_default_context()
+    try:
+        # Пробуем скачать сертификат Минцифры и добавить в контекст
+        cert_url = "https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt"
+        cert_req = urllib.request.Request(cert_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(cert_req, timeout=5) as r:
+            cert_data = r.read()
+        ctx.load_verify_locations(cadata=cert_data.decode("utf-8", errors="replace"))
+        print("  [SSL] Сертификат Минцифры загружен")
+    except Exception as e:
+        print(f"  [SSL] Не удалось загрузить сертификат Минцифры: {e} — используем стандартный контекст")
+    return ctx
+
+_TBANK_SSL_CTX = None
+
+def _get_tbank_ctx():
+    global _TBANK_SSL_CTX
+    if _TBANK_SSL_CTX is None:
+        _TBANK_SSL_CTX = _make_tbank_ssl_context()
+    return _TBANK_SSL_CTX
+
 # ─── КОНФИГ ───────────────────────────────────────────────────────────────────
 
 BASE_DIR = Path(__file__).parent
@@ -1889,7 +1919,7 @@ def check_tinkoff_token(tinkoff_token):
             data=json.dumps({}).encode(),
             headers=t_headers, method="POST"
         )
-        with urllib.request.urlopen(req, timeout=8) as r:
+        with urllib.request.urlopen(req, timeout=8, context=_get_tbank_ctx()) as r:
             data = json.loads(r.read())
         print(f"  [Tinkoff] Токен валиден: prem_status={data.get('premStatus','?')}")
         return True
@@ -1939,7 +1969,7 @@ def fetch_tinkoff_portfolio():
             headers=t_headers,
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with urllib.request.urlopen(req, timeout=10, context=_get_tbank_ctx()) as r:
             accounts_data = json.loads(r.read())
 
         accounts = accounts_data.get("accounts", [])
