@@ -598,7 +598,25 @@ def build_analyst_report(data):
                  "ETF \u0437\u043e\u043b\u043e\u0442\u043e \u2014 \u0441\u0442\u0440\u0430\u0445\u043e\u0432\u043a\u0430 \u043e\u0442 \u0434\u0435\u0432\u0430\u043b\u044c\u0432\u0430\u0446\u0438\u0438"),
     }
 
-    for p in tp.get("positions", []):
+    # Если tinkoff_portfolio пустой — строим позиции из rules.json
+    positions_list = tp.get("positions", []) if tp else []
+    if not positions_list and data:
+        portfolio = data.get("portfolio", {})
+        quotes = data.get("quotes", {})
+        for pos in portfolio.get("positions", []):
+            tk = pos.get("ticker", "")
+            q = quotes.get(tk, {})
+            price = q.get("price", 0) or pos.get("curr_price", 0)
+            avg = pos.get("avg_price", 0)
+            qty = pos.get("qty", 0)
+            pnl = round((price - avg) * qty, 2) if price and avg and qty else 0
+            pct = round(pnl / (avg * qty) * 100, 2) if avg and qty else 0
+            positions_list.append({
+                "ticker": tk, "curr_price": price, "avg_price": avg,
+                "qty": qty, "pnl": pnl, "pnl_pct": pct
+            })
+
+    for p in positions_list:
         t = p.get("ticker", "")
         if not t or t == "RUB":
             continue
