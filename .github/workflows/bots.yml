@@ -25,7 +25,17 @@ jobs:
         with:
           python-version: '3.11'
       - name: Установить зависимости
-        run: pip install requests --quiet
+        run: |
+          pip install requests --quiet
+          # Устанавливаем сертификат Минцифры РФ для tbank.ru (T-Invest API)
+          cd /usr/local/share/ca-certificates
+          curl -sk "https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt" -o russian_root_ca.crt || true
+          curl -sk "https://gu-st.ru/content/lending/russian_trusted_sub_ca_pem.crt" -o russian_sub_ca.crt || true
+          update-ca-certificates --verbose 2>/dev/null || true
+          # Добавляем в certifi (используется Python urllib и requests)
+          curl -sk "https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt" >> $(python -c "import certifi; print(certifi.where())") || true
+          curl -sk "https://gu-st.ru/content/lending/russian_trusted_sub_ca_pem.crt" >> $(python -c "import certifi; print(certifi.where())") || true
+          echo "Сертификаты Минцифры установлены"
       - name: Сборщик данных
         env:
           TINKOFF_TOKEN: ${{ secrets.TINKOFF_TOKEN }}
