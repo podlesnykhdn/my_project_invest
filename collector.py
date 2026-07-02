@@ -2086,9 +2086,14 @@ def fetch_tinkoff_portfolio():
         except Exception: pass
         return None
     except Exception as e:
-        print(f"  [Tinkoff] Ошибка: {e}")
         import traceback
-        traceback.print_exc()
+        tb = traceback.format_exc()
+        print(f"  [Tinkoff] Ошибка: {e}")
+        print(tb)
+        try:
+            with open(BASE_DIR / 'logs' / 'tinkoff_error.txt', 'w') as _f:
+                _f.write(f'Exception: {e}\n\n{tb}')
+        except Exception: pass
         return None
 
 
