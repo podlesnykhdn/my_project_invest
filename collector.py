@@ -1909,10 +1909,6 @@ def fetch_tinkoff_portfolio():
         print("  [Tinkoff] TINKOFF_TOKEN не найден — пропускаем")
         return None
 
-    # Проверяем валидность токена
-    if not check_tinkoff_token(tinkoff_token):
-        return None  # токен истёк, работаем без Tinkoff данных
-
     print("  [Tinkoff] Получаем данные портфеля...")
 
     base_url = "https://invest-public-api.tbank.ru/rest"
