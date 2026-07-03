@@ -2,8 +2,7 @@ name: Watchdog — резервный запуск
 
 on:
   schedule:
-    - cron: '0,10,20,30,40,50 6 * * 1-5'
-    - cron: '0 7,8,9,10,11,12,13,14,15 * * 1-5'
+    - cron: '0,10,20,30,40,50 6,7,8,9,10,11,12,13,14,15 * * 1-5'
   workflow_dispatch: {}
 
 jobs:
@@ -15,25 +14,27 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           REPO: ${{ github.repository }}
         run: |
-          SINCE=$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-20M +%Y-%m-%dT%H:%M:%SZ)
-          RUNS=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+          ACTIVE=$(curl -s \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$REPO/actions/workflows/bots.yml/runs?per_page=5" \
             | python3 -c "
 import sys,json
 from datetime import datetime,timezone,timedelta
-runs=json.load(sys.stdin).get('workflow_runs',[])
-since=datetime.fromisoformat('$SINCE'.replace('Z','+00:00'))
-active=[r for r in runs if datetime.fromisoformat(r['created_at'].replace('Z','+00:00'))>since]
+data=json.load(sys.stdin)
+runs=data.get('workflow_runs',[])
+since=datetime.now(timezone.utc)-timedelta(minutes=15)
+active=[r for r in runs if datetime.fromisoformat(r['created_at'].replace('Z','+00:00'))>since and r.get('status') in ('completed','in_progress','queued')]
 print(len(active))")
-          echo "Активных запусков за 20 мин: $RUNS"
-          if [ "$RUNS" -eq "0" ]; then
+          echo "Активных запусков за 15 мин: $ACTIVE"
+          if [ "$ACTIVE" = "0" ]; then
             echo "Цепочка не работает — запускаем!"
             curl -s -X POST \
               -H "Authorization: Bearer $GH_TOKEN" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/$REPO/actions/workflows/bots.yml/dispatches" \
               -d '{"ref":"main","inputs":{"mode":"auto","chain":"true"}}'
-            echo "Запущено"
+            echo "Цепочка запущена"
           else
             echo "Цепочка активна — OK"
           fi
