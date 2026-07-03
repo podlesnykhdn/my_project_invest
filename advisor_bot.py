@@ -22,8 +22,8 @@ QUAL_ONLY_TICKERS = {
     "TGKD", "TGKDP", "VLHZ", "WTCM", "WTCMP", "YAKG",
 }
 
-TOKEN    = os.environ["ADVISOR_BOT_TOKEN"]
-CHAT_ID  = os.environ["TELEGRAM_CHAT_ID"]
+TOKEN   = os.environ.get("ADVISOR_BOT_TOKEN", "8966677527:AAFCGnxjCiVlzbrbwPsLJof8lNR4_co0YBU")
+CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "1828018468")
 BASE_DIR = Path(__file__).parent
 LOGS_DIR = BASE_DIR / "logs" / "advisor"
 TODAY    = date.today().isoformat()
