@@ -2252,7 +2252,11 @@ def collect():
 
     tinkoff_portfolio = fetch_tinkoff_portfolio()
     # Проверяем изменения в портфеле — триггер для обновления истории
-    portfolio_changed = check_portfolio_changed(tinkoff_portfolio, rules)
+    try:
+        portfolio_changed = check_portfolio_changed(tinkoff_portfolio, rules)
+    except Exception as _e:
+        print(f"  [Триггер] Ошибка проверки: {_e}")
+        portfolio_changed = True  # при ошибке обновляем на всякий случай
     # Синхронизируем портфель из Т-Инвестиций и сохраняем rules.json
     if tinkoff_portfolio:
         rules = sync_portfolio_from_tinkoff(rules, tinkoff_portfolio)
