@@ -2382,32 +2382,7 @@ if __name__ == "__main__":
             f.write(err_text)
         raise
 
-    # Обновляем историю операций если:
-    # 1. Изменился портфель (покупка/продажа)
-    # 2. Файл истории не существует
-    _ops_file = BASE_DIR / "logs" / "operations_history.json"
-    _need_update = portfolio_changed or not _ops_file.exists()
-    if _need_update:
-        reason = "изменился портфель" if portfolio_changed else "файл не найден"
-        print(f"\n[OPERATIONS] Обновляем историю операций ({reason})...")
-        try:
-            import subprocess as _sp
-            _r = _sp.run(
-                ["python3", str(BASE_DIR / "fetch_operations.py")],
-                timeout=90, capture_output=True, text=True
-            )
-            print(_r.stdout[-800:] if _r.stdout else "")
-            if _r.returncode != 0:
-                err_msg = _r.stderr[-600:]
-                print(f"  [OPERATIONS] Ошибка:\n{err_msg}")
-                # Сохраняем ошибку в файл
-                try:
-                    with open(BASE_DIR / "logs" / "operations_error.txt", "w") as _ef:
-                        _ef.write(f"STDOUT:\n{_r.stdout}\n\nSTDERR:\n{_r.stderr}")
-                except Exception: pass
-            else:
-                print("  [OPERATIONS] История обновлена успешно")
-        except Exception as _e:
-            print(f"  [OPERATIONS] Ошибка: {_e}")
-    else:
-        print("  [OPERATIONS] Портфель не изменился — история актуальна")
+    # История операций — запускается отдельно через fetch_operations.py
+    # Триггер: изменение portfolio_changed (покупка/продажа)
+    # TODO: активировать когда fetch_operations стабилен
+    pass  # placeholder
