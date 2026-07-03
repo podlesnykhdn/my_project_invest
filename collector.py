@@ -2334,8 +2334,20 @@ if __name__ == "__main__":
     except Exception as e:
         err_text = f"[FATAL ERROR] {e}\n\n" + _tb.format_exc()
         print(err_text)
-        # Сохраняем ошибку в файл чтобы прочитать через API
         _err_file.parent.mkdir(parents=True, exist_ok=True)
         with open(_err_file, "w") as f:
             f.write(err_text)
         raise
+
+    # Разовый сбор истории операций если файла ещё нет
+    _ops_file = BASE_DIR / "logs" / "operations_history.json"
+    if not _ops_file.exists():
+        print("\n[OPERATIONS] Запускаем получение истории операций...")
+        try:
+            import subprocess
+            subprocess.run(
+                ["python", str(BASE_DIR / "fetch_operations.py")],
+                timeout=60
+            )
+        except Exception as _e:
+            print(f"  [OPERATIONS] Ошибка: {_e}")
