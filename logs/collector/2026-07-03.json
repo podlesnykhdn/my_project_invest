@@ -1,7 +1,7 @@
 {
   "meta": {
     "date": "2026-07-03",
-    "time": "14:25",
+    "time": "14:33",
     "month": 7,
     "weekday": 4,
     "is_friday": true
@@ -14,68 +14,68 @@
     "usd_change": -0.9
   },
   "oil": {
-    "price": 72.06,
+    "price": 71.92,
     "change": 0.0,
     "change_pct": 0.0,
     "source": "Yahoo Finance ✅",
     "is_cached": false
   },
   "portfolio": {
-    "total_value": 283700.0,
-    "total_change": -323.0,
-    "total_pct": -0.11,
+    "total_value": 283385.0,
+    "total_change": -588.0,
+    "total_pct": -0.21,
     "positions": [
       {
         "ticker": "X5",
         "name": "ПАО «Корпоративный центр ИКС 5»",
         "qty": 45,
-        "price": 2231.5,
-        "change": -12.5,
-        "pct": -0.56,
-        "value": 100418.0,
-        "day_rub": -562.0,
+        "price": 2227.5,
+        "change": -16.5,
+        "pct": -0.74,
+        "value": 100238.0,
+        "day_rub": -742.0,
         "pe": 7.3,
         "eps_ttm": 306.0,
         "pe_sector_avg": 6.5,
         "pe_vs_sector": "выше среднего",
         "ath": 3764,
-        "prev_price": 2230.5,
-        "pct_from_ath": -40.7,
+        "prev_price": 2231.5,
+        "pct_from_ath": -40.8,
         "near_ath": false
       },
       {
         "ticker": "LENT",
         "name": "МКПАО «Лента»",
         "qty": 53,
-        "price": 1755,
-        "change": 3.5,
-        "pct": 0.2,
-        "value": 93015,
-        "day_rub": 186.0,
-        "pe": 6.1,
+        "price": 1753,
+        "change": 1.5,
+        "pct": 0.09,
+        "value": 92909,
+        "day_rub": 80.0,
+        "pe": 6.0,
         "eps_ttm": 290.0,
         "pe_sector_avg": 6.5,
         "pe_vs_sector": "на уровне среднего",
         "ath": 2300,
-        "prev_price": 1753.5,
-        "pct_from_ath": -23.7,
+        "prev_price": 1755,
+        "pct_from_ath": -23.8,
         "near_ath": false
       },
       {
         "ticker": "SBER",
         "name": "ПАО Сбербанк",
         "qty": 80,
-        "price": 301.46,
-        "change": 0.41,
-        "pct": 0.14,
-        "value": 24117.0,
-        "day_rub": 33.0,
+        "price": 301.72,
+        "change": 0.67,
+        "pct": 0.22,
+        "value": 24138.0,
+        "day_rub": 54.0,
         "pe": 3.8,
         "eps_ttm": 78.4,
         "pe_sector_avg": 5.0,
         "pe_vs_sector": "ниже среднего",
         "ath": 388.11,
-        "prev_price": 301.33,
+        "prev_price": 301.46,
         "pct_from_ath": -22.3,
         "near_ath": false
       },
@@ -101,10 +101,10 @@
         "ticker": "TGLD",
         "name": "БПИФ «Тинькофф Золото»",
         "qty": 5001,
-        "price": 12.63,
+        "price": 12.62,
         "change": 0,
         "pct": 0,
-        "value": 63163.0,
+        "value": 63113.0,
         "day_rub": 0,
         "pe": null,
         "eps_ttm": null,
@@ -123,28 +123,28 @@
       "prev": 249,
       "change": 1.8,
       "pct": 0.73,
-      "volume": 36631418
+      "volume": 36677467
     },
     "LENT": {
-      "price": 1755,
-      "prev": 1755,
-      "change": 3.5,
-      "pct": 0.2,
-      "volume": 71119790
+      "price": 1753,
+      "prev": 1753,
+      "change": 1.5,
+      "pct": 0.09,
+      "volume": 71177666
     },
     "SBER": {
-      "price": 301.46,
-      "prev": 301.46,
-      "change": 0.41,
-      "pct": 0.14,
-      "volume": 8759104794
+      "price": 301.72,
+      "prev": 301.72,
+      "change": 0.67,
+      "pct": 0.22,
+      "volume": 8791708007
     },
     "X5": {
-      "price": 2231.5,
-      "prev": 2231.5,
-      "change": -12.5,
-      "pct": -0.56,
-      "volume": 1702943693
+      "price": 2227.5,
+      "prev": 2227.5,
+      "change": -16.5,
+      "pct": -0.74,
+      "volume": 1718391981
     }
   },
   "screener": {
@@ -152,91 +152,91 @@
       {
         "ticker": "SBER",
         "name": "Сбербанк",
-        "price": 301.46,
+        "price": 301.72,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 8759104794,
+        "volume": 8791770463,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "LKOH",
         "name": "ЛУКОЙЛ",
-        "price": 4289,
+        "price": 4290.5,
         "pct": 0.0,
-        "change": 0,
-        "volume": 7636638150,
+        "change": 0.0,
+        "volume": 7663014521,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "T",
         "name": "Т-Техно ао",
-        "price": 253.34,
+        "price": 253.16,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 6301860051,
+        "volume": 6372521180,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "GAZP",
         "name": "ГАЗПРОМ ао",
-        "price": 97.22,
+        "price": 97.27,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 4238373906,
+        "volume": 4256306693,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "VTBR",
         "name": "ВТБ ао",
-        "price": 70.39,
+        "price": 70.38,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 3613570632,
+        "volume": 3632471618,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "YDEX",
         "name": "ЯНДЕКС",
-        "price": 3480,
+        "price": 3481,
         "pct": 0.0,
         "change": 0,
-        "volume": 2611974378,
+        "volume": 2631522859,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "ROSN",
         "name": "Роснефть",
-        "price": 307.25,
+        "price": 307,
         "pct": 0.0,
-        "change": 0.0,
-        "volume": 2548182613,
+        "change": 0,
+        "volume": 2556407204,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "NVTK",
         "name": "Новатэк ао",
-        "price": 926.1,
+        "price": 926.7,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 2391441118,
+        "volume": 2405783280,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "GMKN",
         "name": "ГМКНорНик",
-        "price": 123.16,
+        "price": 123.08,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 2035957251,
+        "volume": 2054884870,
         "vol_label": "⚪ Нейтрально"
       },
       {
         "ticker": "TATN",
         "name": "Татнфт 3ао",
-        "price": 458.4,
+        "price": 456.6,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 1739179642,
+        "volume": 1786362540,
         "vol_label": "⚪ Нейтрально"
       }
     ],
@@ -247,7 +247,7 @@
         "price": 0.05,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 73288705,
+        "volume": 73998161,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -259,7 +259,7 @@
         "price": 0.3,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 85494076,
+        "volume": 85729424,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -271,7 +271,7 @@
         "price": 0.57,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 130336560,
+        "volume": 130441521,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -283,7 +283,7 @@
         "price": 2.47,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 715907694,
+        "volume": 717069521,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -292,10 +292,10 @@
       {
         "ticker": "AFKS",
         "name": "Система ао",
-        "price": 10.77,
+        "price": 10.76,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 1318051562,
+        "volume": 1320049343,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -307,7 +307,7 @@
         "price": 10.83,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 694454018,
+        "volume": 699650855,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -319,7 +319,7 @@
         "price": 15.7,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 499683832,
+        "volume": 503077477,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -328,10 +328,10 @@
       {
         "ticker": "MAGN",
         "name": "ММК",
-        "price": 17.45,
+        "price": 17.43,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 948492007,
+        "volume": 954459727,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -340,10 +340,10 @@
       {
         "ticker": "ALRS",
         "name": "АЛРОСА ао",
-        "price": 20.37,
+        "price": 20.41,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 731167748,
+        "volume": 738455359,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -355,7 +355,7 @@
         "price": 26.72,
         "pct": 0.0,
         "change": 0.0,
-        "volume": 1206025437,
+        "volume": 1210680247,
         "score": 60,
         "grade": "🟡 B",
         "pays_dividends": true,
@@ -393,7 +393,7 @@
       "ticker": "Brent",
       "in_portfolio": false,
       "why_watch": "Влияет на курс рубля и весь российский рынок. Рост нефти → укрепление рубля → позитив для акций.",
-      "price": 72.06,
+      "price": 71.92,
       "change": 0,
       "pct": 0,
       "volume": 0,
@@ -736,30 +736,30 @@
     "prev_date": "2026-06-18",
     "curr_date": "2026-07-03",
     "prev_value": 277559.0,
-    "curr_value": 283700.0,
-    "diff_rub": 6141.0,
-    "diff_pct": 2.21,
+    "curr_value": 283385.0,
+    "diff_rub": 5826.0,
+    "diff_pct": 2.1,
     "positions": [
       {
         "ticker": "X5",
         "prev_price": 2360.5,
-        "curr_price": 2231.5,
-        "diff": -129.0,
-        "pct": -5.46
+        "curr_price": 2227.5,
+        "diff": -133.0,
+        "pct": -5.63
       },
       {
         "ticker": "LENT",
         "prev_price": 1804,
-        "curr_price": 1755,
-        "diff": -49,
-        "pct": -2.72
+        "curr_price": 1753,
+        "diff": -51,
+        "pct": -2.83
       },
       {
         "ticker": "SBER",
         "prev_price": 314.32,
-        "curr_price": 301.46,
-        "diff": -12.86,
-        "pct": -4.09
+        "curr_price": 301.72,
+        "diff": -12.6,
+        "pct": -4.01
       },
       {
         "ticker": "BELU",
@@ -771,17 +771,17 @@
       {
         "ticker": "TGLD",
         "prev_price": 12.13,
-        "curr_price": 12.63,
-        "diff": 0.5,
-        "pct": 4.12
+        "curr_price": 12.62,
+        "diff": 0.49,
+        "pct": 4.04
       }
     ],
     "best": {
       "ticker": "TGLD",
       "prev_price": 12.13,
-      "curr_price": 12.63,
-      "diff": 0.5,
-      "pct": 4.12
+      "curr_price": 12.62,
+      "diff": 0.49,
+      "pct": 4.04
     },
     "worst": {
       "ticker": "BELU",
@@ -833,11 +833,11 @@
     "account_id": "2231486341",
     "account_name": "Брокерский счет",
     "total_invested": 318915.54,
-    "total_current": 283064.35,
-    "total_pnl": -35851.19,
-    "total_pnl_pct": -11.24,
-    "total_shares": 219893.2,
-    "total_etf": 63162.63,
+    "total_current": 282995.74,
+    "total_pnl": -35919.8,
+    "total_pnl_pct": -11.26,
+    "total_shares": 219874.6,
+    "total_etf": 63112.62,
     "total_bonds": 0.0,
     "positions": [
       {
@@ -846,11 +846,11 @@
         "itype": "share",
         "qty": 45.0,
         "avg_price": 2907.0,
-        "curr_price": 2221.0,
+        "curr_price": 2217.0,
         "invested": 130815.0,
-        "current_val": 99945.0,
-        "pnl": -31010.0,
-        "pnl_pct": -23.71
+        "current_val": 99765.0,
+        "pnl": -31190.0,
+        "pnl_pct": -23.84
       },
       {
         "figi": "BBG0063FKTD9",
@@ -858,11 +858,11 @@
         "itype": "share",
         "qty": 53.0,
         "avg_price": 1742.1,
-        "curr_price": 1753.0,
+        "curr_price": 1756.0,
         "invested": 92331.3,
-        "current_val": 92909.0,
-        "pnl": 580.0,
-        "pnl_pct": 0.63
+        "current_val": 93068.0,
+        "pnl": 739.0,
+        "pnl_pct": 0.8
       },
       {
         "figi": "BBG000TY1CD1",
@@ -870,11 +870,11 @@
         "itype": "share",
         "qty": 12.0,
         "avg_price": 453.6,
-        "curr_price": 248.0,
+        "curr_price": 248.8,
         "invested": 5443.2,
-        "current_val": 2976.0,
-        "pnl": -2467.2,
-        "pnl_pct": -45.33
+        "current_val": 2985.6,
+        "pnl": -2457.6,
+        "pnl_pct": -45.15
       },
       {
         "figi": "TCS80A101X50",
@@ -882,11 +882,11 @@
         "itype": "etf",
         "qty": 5001.0,
         "avg_price": 13.24,
-        "curr_price": 12.63,
+        "curr_price": 12.62,
         "invested": 66213.24,
-        "current_val": 63162.63,
-        "pnl": -3075.25,
-        "pnl_pct": -4.64
+        "current_val": 63112.62,
+        "pnl": -3125.26,
+        "pnl_pct": -4.72
       },
       {
         "figi": "BBG004730N88",
@@ -894,11 +894,11 @@
         "itype": "share",
         "qty": 80.0,
         "avg_price": 301.41,
-        "curr_price": 300.79,
+        "curr_price": 300.7,
         "invested": 24112.8,
-        "current_val": 24063.2,
-        "pnl": -49.36,
-        "pnl_pct": -0.2
+        "current_val": 24056.0,
+        "pnl": -56.56,
+        "pnl_pct": -0.23
       }
     ],
     "as_of": "2026-07-03"
