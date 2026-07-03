@@ -2175,6 +2175,43 @@ def sync_portfolio_from_tinkoff(rules, tinkoff_portfolio):
 
 # ─── ГЛАВНАЯ ФУНКЦИЯ ──────────────────────────────────────────────────────────
 
+
+def check_portfolio_changed(tinkoff_portfolio, rules):
+    """
+    Триггер: сравниваем qty из Tinkoff API с qty в rules.json.
+    Если изменилось (покупка или продажа) — возвращаем True.
+    """
+    if not tinkoff_portfolio:
+        return False
+
+    rules_qty = {
+        p["ticker"]: p["qty"]
+        for p in rules.get("portfolio", {}).get("positions", [])
+    }
+    tinkoff_qty = {
+        p["ticker"]: int(p.get("qty", 0))
+        for p in tinkoff_portfolio.get("positions", [])
+        if p.get("ticker") and p.get("ticker") != "RUB"
+    }
+
+    changed = []
+    for ticker, qty in tinkoff_qty.items():
+        old_qty = rules_qty.get(ticker, 0)
+        if abs(qty - old_qty) > 0:
+            changed.append(f"{ticker}: {old_qty} → {qty}")
+
+    # Новые тикеры (новые позиции)
+    for ticker in rules_qty:
+        if ticker not in tinkoff_qty:
+            changed.append(f"{ticker}: {rules_qty[ticker]} → 0 (продан)")
+
+    if changed:
+        print(f"  [Триггер] Изменения в портфеле: {', '.join(changed)}")
+        return True
+
+    return False
+
+
 def collect():
     print(f"\n{'='*50}")
     print(f"Сборщик запущен: {TODAY} {NOW}")
@@ -2214,6 +2251,8 @@ def collect():
         news = []
 
     tinkoff_portfolio = fetch_tinkoff_portfolio()
+    # Проверяем изменения в портфеле — триггер для обновления истории
+    portfolio_changed = check_portfolio_changed(tinkoff_portfolio, rules)
     # Синхронизируем портфель из Т-Инвестиций и сохраняем rules.json
     if tinkoff_portfolio:
         rules = sync_portfolio_from_tinkoff(rules, tinkoff_portfolio)
@@ -2339,16 +2378,26 @@ if __name__ == "__main__":
             f.write(err_text)
         raise
 
-    # Сбор истории операций (принудительно)
-    print("\n[OPERATIONS] Запускаем получение истории операций...")
-    try:
-        import subprocess as _sp
-        _r = _sp.run(
-            ["python3", str(BASE_DIR / "fetch_operations.py")],
-            timeout=90, capture_output=True, text=True
-        )
-        print(_r.stdout[-500:] if _r.stdout else "")
-        if _r.returncode != 0:
-            print(f"  [OPERATIONS] Ошибка: {_r.stderr[-300:]}")
-    except Exception as _e:
-        print(f"  [OPERATIONS] Ошибка: {_e}")
+    # Обновляем историю операций если:
+    # 1. Изменился портфель (покупка/продажа)
+    # 2. Файл истории не существует
+    _ops_file = BASE_DIR / "logs" / "operations_history.json"
+    _need_update = portfolio_changed or not _ops_file.exists()
+    if _need_update:
+        reason = "изменился портфель" if portfolio_changed else "файл не найден"
+        print(f"\n[OPERATIONS] Обновляем историю операций ({reason})...")
+        try:
+            import subprocess as _sp
+            _r = _sp.run(
+                ["python3", str(BASE_DIR / "fetch_operations.py")],
+                timeout=90, capture_output=True, text=True
+            )
+            print(_r.stdout[-800:] if _r.stdout else "")
+            if _r.returncode != 0:
+                print(f"  [OPERATIONS] Ошибка: {_r.stderr[-300:]}")
+            else:
+                print("  [OPERATIONS] История обновлена успешно")
+        except Exception as _e:
+            print(f"  [OPERATIONS] Ошибка: {_e}")
+    else:
+        print("  [OPERATIONS] Портфель не изменился — история актуальна")
