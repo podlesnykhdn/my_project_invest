@@ -2339,15 +2339,16 @@ if __name__ == "__main__":
             f.write(err_text)
         raise
 
-    # Разовый сбор истории операций если файла ещё нет
-    _ops_file = BASE_DIR / "logs" / "operations_history.json"
-    if not _ops_file.exists():
-        print("\n[OPERATIONS] Запускаем получение истории операций...")
-        try:
-            import subprocess
-            subprocess.run(
-                ["python", str(BASE_DIR / "fetch_operations.py")],
-                timeout=60
-            )
-        except Exception as _e:
-            print(f"  [OPERATIONS] Ошибка: {_e}")
+    # Сбор истории операций (принудительно)
+    print("\n[OPERATIONS] Запускаем получение истории операций...")
+    try:
+        import subprocess as _sp
+        _r = _sp.run(
+            ["python3", str(BASE_DIR / "fetch_operations.py")],
+            timeout=90, capture_output=True, text=True
+        )
+        print(_r.stdout[-500:] if _r.stdout else "")
+        if _r.returncode != 0:
+            print(f"  [OPERATIONS] Ошибка: {_r.stderr[-300:]}")
+    except Exception as _e:
+        print(f"  [OPERATIONS] Ошибка: {_e}")
