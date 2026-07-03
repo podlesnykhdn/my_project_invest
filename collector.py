@@ -2394,7 +2394,13 @@ if __name__ == "__main__":
             )
             print(_r.stdout[-800:] if _r.stdout else "")
             if _r.returncode != 0:
-                print(f"  [OPERATIONS] Ошибка: {_r.stderr[-300:]}")
+                err_msg = _r.stderr[-600:]
+                print(f"  [OPERATIONS] Ошибка:\n{err_msg}")
+                # Сохраняем ошибку в файл
+                try:
+                    with open(BASE_DIR / "logs" / "operations_error.txt", "w") as _ef:
+                        _ef.write(f"STDOUT:\n{_r.stdout}\n\nSTDERR:\n{_r.stderr}")
+                except Exception: pass
             else:
                 print("  [OPERATIONS] История обновлена успешно")
         except Exception as _e:
