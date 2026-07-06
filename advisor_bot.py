@@ -464,8 +464,8 @@ def build_morning_report(data):
     # Ссылка на дашборд
     lines.append(
         f"\n─ ─ ─\n"
-        f"📁 <a href='https://podlesnykhdn.github.io/my_prodject_invest/'>Дашборд</a>  |  "
-        f"<a href='https://github.com/podlesnykhdn/my_prodject_invest/tree/main/logs'>Логи</a>"
+        f"📁 <a href='https://podlesnykhdn.github.io/my_project_invest/'>Дашборд</a>  |  "
+        f"<a href='https://github.com/podlesnykhdn/my_project_invest/tree/main/logs'>Логи</a>"
     )
 
     return "\n".join(lines)
@@ -675,7 +675,7 @@ def run_morning():
                 '1\ufe0f\u20e3 Открой: https://www.tbank.ru/invest/settings/\n'
                 '2\ufe0f\u20e3 Выпусти новый токен (Read-only достаточно)\n'
                 '3\ufe0f\u20e3 Обнови TINKOFF_TOKEN в Secrets: '
-                'https://github.com/podlesnykhdn/my_prodject_invest/settings/secrets/actions'
+                'https://github.com/podlesnykhdn/my_project_invest/settings/secrets/actions'
             )
         except Exception as e:
             print(f'token error notify: {e}')
@@ -824,7 +824,7 @@ def self_check_and_retrigger():
         return  # нет токена — пропускаем
 
     import urllib.request as ur
-    repo = "podlesnykhdn/my_prodject_invest"
+    repo = "podlesnykhdn/my_project_invest"
     today = date.today().isoformat()
     headers = {
         "Authorization": f"Bearer {gh_token}",
