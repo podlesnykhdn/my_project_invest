@@ -86,7 +86,7 @@ def format_lesson(lesson, num):
         f"<b>{lesson['title']}</b>\n\n"
         f"{body}\n\n"
         f"{'─' * 28}\n"
-        f"📁 <a href='https://podlesnykhdn.github.io/my_prodject_invest/'>Дашборд портфеля</a>"
+        f"📁 <a href='https://podlesnykhdn.github.io/my_project_invest/'>Дашборд портфеля</a>"
     )
 
 def format_progress(num):
