@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>my_prodject_invest</title>
+<title>my_project_invest</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 :root{--bg:#0b0e1a;--surface:#111827;--surface2:#1a2235;--border:#1f2d45;--accent:#3b82f6;--green:#10b981;--red:#ef4444;--warn:#f59e0b;--text:#e2e8f0;--muted:#64748b;}
@@ -83,7 +83,7 @@ tr:hover td{background:var(--surface2);}
 </head>
 <body>
 <header>
-  <div class="logo">my_prodject_invest <span>/ MOEX</span></div>
+  <div class="logo">my_project_invest <span>/ MOEX</span></div>
   <div style="display:flex;align-items:center;gap:10px;">
     <span id="last-update" style="font-size:0.72rem;color:var(--muted)"></span>
     <button class="refresh-btn" onclick="loadAll()">Обновить</button>
@@ -288,7 +288,7 @@ async function getLog(){
   const today=new Date().toISOString().slice(0,10);
   if(_logD===today&&_log!==_E)return _log;
   try{
-    const r=await fetch('https://raw.githubusercontent.com/podlesnykhdn/my_prodject_invest/main/logs/collector/'+today+'.json',{signal:AbortSignal.timeout(5000)});
+    const r=await fetch('https://raw.githubusercontent.com/podlesnykhdn/my_project_invest/main/logs/collector/'+today+'.json',{signal:AbortSignal.timeout(5000)});
     if(r.ok){_log=await r.json();_logD=today;}
   }catch(e){}
   return _log;
