@@ -1925,7 +1925,7 @@ def check_tinkoff_token(tinkoff_token):
             try:
                 token_error_path = BASE_DIR / "logs" / "tinkoff_token_error.txt"
                 with open(token_error_path, "w") as f:
-                    f.write(f"ТОКЕН ИСТЁК {TODAY}. Ошибка 40003. Обнови TINKOFF_TOKEN в GitHub Secrets: https://github.com/podlesnykhdn/my_prodject_invest/settings/secrets/actions")
+                    f.write(f"ТОКЕН ИСТЁК {TODAY}. Ошибка 40003. Обнови TINKOFF_TOKEN в GitHub Secrets: https://github.com/podlesnykhdn/my_project_invest/settings/secrets/actions")
             except Exception:
                 pass
             return False
