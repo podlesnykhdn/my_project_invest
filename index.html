@@ -97,6 +97,7 @@ tr:hover td{background:var(--surface2);}
   <div class="tab" onclick="switchTab('market')">Рынок</div>
   <div class="tab" onclick="switchTab('ofz')">ОФЗ</div>
   <div class="tab" onclick="switchTab('pnl')">P&amp;L</div>
+  <div class="tab" onclick="switchTab('deposit')">Вклад vs Акции</div>
 </nav>
 <main>
 
@@ -218,6 +219,63 @@ tr:hover td{background:var(--surface2);}
   <div class="tbl-wrap"><table><thead><tr><th>Компания</th><th>Тикер</th><th>Кол-во</th><th>Ср. цена</th><th>Вложено</th><th>Тек. цена</th><th>Сейчас</th><th>P&amp;L ₽</th><th>P&amp;L %</th></tr></thead><tbody id="pnl-tbody"><tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted);">Загрузка...</td></tr></tbody></table></div>
   <div id="pnl-notice" style="font-size:0.75rem;color:var(--muted);margin-top:8px;text-align:center;"></div>
 </div>
+
+<div class="panel" id="tab-deposit">
+  <div style="margin-bottom:16px;">
+    <div class="st" style="margin:0;">Акции vs Вклад Сбербанка</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">
+      Сравнение: портфель акций против накопительного счёта Сбера по историческим ставкам
+    </div>
+  </div>
+
+  <!-- Карточки -->
+  <div class="cards" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="lbl">Вложено в акции</div>
+      <div class="val" id="dep-invested">—</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Акции сейчас</div>
+      <div class="val" id="dep-stocks">—</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Вклад Сбера (расчётно)</div>
+      <div class="val" id="dep-deposit">—</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Разница (акции − вклад)</div>
+      <div class="val" id="dep-diff">—</div>
+    </div>
+  </div>
+
+  <!-- График -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">Динамика (₽) — цель: зелёная линия пересекает оранжевую</div>
+    <canvas id="deposit-chart" style="width:100%;height:220px;"></canvas>
+  </div>
+
+  <!-- Таблица истории -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+      <thead>
+        <tr style="background:var(--bg);">
+          <th style="padding:10px 12px;text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Дата</th>
+          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Акции</th>
+          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Вклад</th>
+          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Разница</th>
+          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Ставка</th>
+        </tr>
+      </thead>
+      <tbody id="dep-table-body"></tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:12px;font-size:0.72rem;color:var(--muted);">
+    * Вклад рассчитан как: каждая покупка акций → та же сумма на накопительный счёт Сбербанка по ставке на дату покупки, начисление простых процентов до сегодня.
+    Данные обновляются ежедневно автоматически.
+  </div>
+</div>
+
 </main>
 <script>
 const FUNDAMENTALS={
@@ -240,7 +298,7 @@ const PORTFOLIO=[
 const PNAMES={X5:"ПАО «Корпоративный центр ИКС 5»",LENT:"МКПАО «Лента»",SBER:"ПАО Сбербанк",BELU:"ПАО «НоваБев Групп»",TGLD:"БПИФ «Тинькофф Золото»"};
 
 function switchTab(name){
-  ['portfolio','screener','mentor','analyst','market','ofz','pnl'].forEach((n,i)=>{
+  ['portfolio','screener','mentor','analyst','market','ofz','pnl','deposit'].forEach((n,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',n===name);
     document.getElementById('tab-'+n).classList.toggle('active',n===name);
   });
@@ -583,6 +641,148 @@ async function loadAll(){
   await Promise.all([loadPortfolio(),loadScreener(),loadIPO(),loadDividends(),loadRisingInterest()]);
 }
 loadAll();
+
+// ── Вклад vs Акции ────────────────────────────────────────────────────────
+const _DEP_HISTORY = [{"date": "2026-06-23", "stocks": 281885, "deposit": 414285, "invested": 370239, "diff": -132399, "rate": 12.5}, {"date": "2026-06-24", "stocks": 273579, "deposit": 414422, "invested": 370239, "diff": -140842, "rate": 12.5}, {"date": "2026-06-25", "stocks": 274253, "deposit": 414559, "invested": 370239, "diff": -140305, "rate": 12.5}, {"date": "2026-06-30", "stocks": 287571, "deposit": 415256, "invested": 370251, "diff": -127684, "rate": 12.5}, {"date": "2026-07-02", "stocks": 282747, "deposit": 415530, "invested": 370251, "diff": -132782, "rate": 12.5}, {"date": "2026-07-03", "stocks": 284161, "deposit": 415667, "invested": 370251, "diff": -131505, "rate": 12.5}, {"date": "2026-07-06", "stocks": 277386, "deposit": 416078, "invested": 370251, "diff": -138691, "rate": 12.5}, {"date": "2026-07-07", "stocks": 264734, "deposit": 416215, "invested": 370251, "diff": -151480, "rate": 12.5}, {"date": "2026-07-08", "stocks": 265037, "deposit": 416352, "invested": 370251, "diff": -151314, "rate": 12.5}];
+
+function initDepositTab() {
+  const h = _DEP_HISTORY;
+  if (!h || h.length === 0) return;
+  const latest = h[h.length - 1];
+
+  function fmtM(n) {
+    return (n >= 0 ? '' : '−') + Math.abs(Math.round(n)).toLocaleString('ru-RU') + ' ₽';
+  }
+  function fmtS(n) {
+    return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+  }
+
+  // Карточки
+  document.getElementById('dep-invested').textContent = fmtS(latest.invested);
+  const stocksEl = document.getElementById('dep-stocks');
+  stocksEl.textContent = fmtS(latest.stocks);
+  stocksEl.style.color = latest.stocks >= latest.invested ? 'var(--green)' : 'var(--red)';
+
+  document.getElementById('dep-deposit').textContent = fmtS(latest.deposit);
+
+  const diffEl = document.getElementById('dep-diff');
+  diffEl.textContent = (latest.diff >= 0 ? '+' : '') + fmtM(latest.diff);
+  diffEl.style.color = latest.diff >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // Таблица
+  const tbody = document.getElementById('dep-table-body');
+  tbody.innerHTML = [...h].reverse().map(r => {
+    const d = r.diff;
+    const dColor = d >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px 12px;color:var(--muted);">${r.date}</td>
+      <td style="padding:8px 12px;text-align:right;">${fmtS(r.stocks)}</td>
+      <td style="padding:8px 12px;text-align:right;color:#fbbf24;">${fmtS(r.deposit)}</td>
+      <td style="padding:8px 12px;text-align:right;font-weight:600;color:${dColor}">${d >= 0 ? '+' : ''}&thinsp;${Math.abs(Math.round(d)).toLocaleString('ru-RU')} ₽</td>
+      <td style="padding:8px 12px;text-align:right;color:var(--muted);">${r.rate}%</td>
+    </tr>`;
+  }).join('');
+
+  // График
+  const canvas = document.getElementById('deposit-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 600;
+  const H = 220;
+  canvas.width = W;
+  canvas.height = H;
+
+  const pad = {l:60, r:16, t:16, b:32};
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  const allVals = h.flatMap(r => [r.stocks, r.deposit, r.invested]);
+  const minV = Math.min(...allVals) * 0.97;
+  const maxV = Math.max(...allVals) * 1.02;
+
+  function xPos(i) { return pad.l + (i / (h.length - 1)) * cw; }
+  function yPos(v) { return pad.t + (1 - (v - minV) / (maxV - minV)) * ch; }
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Сетка
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (i / 4) * ch;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    const v = maxV - (i / 4) * (maxV - minV);
+    ctx.fillStyle = 'rgba(148,163,184,0.6)';
+    ctx.font = '10px system-ui';
+    ctx.textAlign = 'right';
+    ctx.fillText((Math.round(v/1000)) + 'к', pad.l - 4, y + 3);
+  }
+
+  // Линия нулевой разницы (если акции = вкладу)
+  const zeroY = yPos(h[0].deposit);
+
+  function drawLine(data, key, color, dash=[]) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(dash);
+    data.forEach((r, i) => {
+      const x = xPos(i), y = yPos(r[key]);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Вложено (пунктир серый)
+  drawLine(h, 'invested', 'rgba(148,163,184,0.4)', [4,4]);
+  // Вклад (оранжевый)
+  drawLine(h, 'deposit', '#fbbf24');
+  // Акции (синий/зелёный)
+  drawLine(h, 'stocks', '#60a5fa');
+
+  // Точки акций
+  h.forEach((r, i) => {
+    ctx.beginPath();
+    ctx.arc(xPos(i), yPos(r.stocks), 3, 0, Math.PI*2);
+    ctx.fillStyle = r.diff >= 0 ? '#4ade80' : '#60a5fa';
+    ctx.fill();
+  });
+
+  // Даты по оси X
+  ctx.fillStyle = 'rgba(148,163,184,0.6)';
+  ctx.font = '10px system-ui';
+  ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(h.length / 5));
+  h.forEach((r, i) => {
+    if (i % step === 0 || i === h.length - 1) {
+      ctx.fillText(r.date.slice(5), xPos(i), H - 6);
+    }
+  });
+
+  // Легенда
+  const leg = [['#60a5fa','Акции'], ['#fbbf24','Вклад Сбера'], ['rgba(148,163,184,0.5)','Вложено']];
+  let lx = pad.l;
+  ctx.font = '11px system-ui';
+  ctx.textAlign = 'left';
+  leg.forEach(([c, label]) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(lx, 4, 16, 3);
+    ctx.fillStyle = 'rgba(148,163,184,0.8)';
+    ctx.fillText(label, lx + 20, 12);
+    lx += ctx.measureText(label).width + 40;
+  });
+}
+
+// Инициализируем при переключении на вкладку
+const _origSwitch = switchTab;
+function switchTab(name) {
+  _origSwitch(name);
+  if (name === 'deposit') initDepositTab();
+}
+// Запускаем если вкладка уже активна
+if (document.getElementById('tab-deposit')?.classList.contains('active')) initDepositTab();
+
 </script>
 </body>
 </html>
