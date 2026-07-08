@@ -682,12 +682,17 @@ function _days(dateStr) {
 function _depInc(total, rate, days) {
   return total * (rate / 100) * (days / 365);
 }
+// Ставка берётся из операции (поле rate), которое заполняется getSberRate при загрузке
+// Пересчитываем ставки для операций при инициализации
+function _enrichOpsWithRates(ops) {
+  return ops.map(o => ({...o, rate: getSberRate(o.date)}));
+}
 
 function _getDepData() {
   // Всегда из _E — который обновляется ежедневно из Tinkoff API
   const ops  = _E.operations || {};
-  const buys  = (ops.buys  || []);
-  const sells = (ops.sells || []);
+  const buys  = _enrichOpsWithRates(ops.buys  || []);
+  const sells = _enrichOpsWithRates(ops.sells || []);
   const tp   = _E.tinkoff_portfolio || {};
   const divs = ops.dividends_by_ticker || {};
 
@@ -880,6 +885,34 @@ function _renderDepChart() {
     ctx.fillStyle=c; ctx.fillRect(lx,4,16,3);
     ctx.fillStyle='rgba(148,163,184,.7)'; ctx.textAlign='left'; ctx.fillText(l,lx+20,12);
   });
+}
+
+// История базовой ставки накопительного счёта Сбербанка
+// Источник: РБК Инвестиции, Банки.ру, официальный сайт Сбербанка
+const SBER_RATES = [
+  // [дата_начала, базовая_ставка_%]
+  ["2024-01-01", 10.0],  // базовая ~10%
+  ["2024-05-27", 12.0],  // после повышения ключевой ставки
+  ["2024-09-25", 16.0],  // ключевая 19%
+  ["2024-10-28", 18.0],  // ключевая 21%
+  ["2025-02-22", 17.0],  // снижение
+  ["2025-06-09", 15.0],  // ключевая начала снижаться
+  ["2025-09-16", 13.5],  // продолжение снижения
+  ["2025-12-25",  9.0],  // ключевая 16%
+  ["2026-01-05",  8.0],  // Сбер снизил с 5 января (РБК)
+  ["2026-02-20",  7.5],  // Сбер снизил с 20 февраля (РБК)
+  ["2026-04-01",  7.0],  // Сбер снизил с 1 апреля (Банки.ру)
+  ["2026-04-30",  6.5],  // Сбер снизил с 30 апреля
+];
+
+function getSberRate(dateStr) {
+  const d = new Date(dateStr);
+  let rate = SBER_RATES[0][1];
+  for (const [rd, r] of SBER_RATES) {
+    if (d >= new Date(rd)) rate = r;
+    else break;
+  }
+  return rate;
 }
 
 function initDepositTab() {
