@@ -2227,7 +2227,8 @@ SBER_DEPOSIT_RATES = [
     ("2026-06-19", 12.5),
 ]
 
-# История покупок (из Tinkoff API, обновляется при изменении портфеля)
+# История операций из Tinkoff API
+# Покупки — все наши акции
 BUYS_HISTORY = [
     {"date":"2025-02-28","ticker":"SBER","qty":120,"price":307.34,"total":36880.8},
     {"date":"2025-03-16","ticker":"TGLD","qty":100,"price":11.68,"total":1168.46},
@@ -2301,6 +2302,20 @@ BUYS_HISTORY = [
     {"date":"2026-06-26","ticker":"TGLD","qty":1,"price":12.58,"total":12.58},
 ]
 
+# Продажи наших акций
+SELLS_HISTORY = [
+    {"date":"2025-02-28","ticker":"SBER","qty":110,"price":308.41,"total":33925.1},
+    {"date":"2025-03-20","ticker":"X5","qty":5,"price":3735.0,"total":18675.0},
+    {"date":"2026-04-02","ticker":"TGLD","qty":340,"price":7.587,"total":2579.58},
+]
+
+# Дивиденды (чистыми после налогов)
+DIVIDENDS_RECEIVED = [
+    {"date":"2025-07-22","ticker":"X5","total":19848.0},   # дивиденды X5
+    {"date":"2025-06-30","ticker":"BELU","total":415.0},   # дивиденды BELU
+    {"date":"2025-08-15","ticker":"SBER","total":1045.0},  # дивиденды SBER
+]
+
 def get_sber_rate(dt_str):
     """Ставка накопительного счёта Сбербанка на дату."""
     from datetime import date as _date
@@ -2315,41 +2330,94 @@ def get_sber_rate(dt_str):
 
 def calc_deposit_comparison(today_str, tinkoff_portfolio):
     """
-    Считаем на сегодня:
-    - total_invested: сколько вложено в акции
-    - deposit_value: сколько было бы на вкладе (те же суммы в те же даты)
-    - stocks_value: текущая стоимость портфеля
-    - deposit_income: доход вклада
-    - diff: акции - вклад (положительное = акции выгоднее)
+    Корректный расчёт: акции vs вклад Сбербанка.
+
+    Логика вклада:
+    - Каждая покупка акций: та же сумма кладётся на вклад в эту же дату
+    - Каждая продажа акций: выручка остаётся на вкладе с даты продажи
+    - Дивиденды: реинвестируются на вклад с даты получения
+    - Итог вклада = сумма всех потоков × (1 + ставка × дни/365)
+
+    Логика акций:
+    - Текущая стоимость портфеля из Tinkoff API
+    - + выручка от уже совершённых продаж (с доходом на вкладе с даты продажи)
+    - + полученные дивиденды (с доходом на вкладе с даты получения)
     """
     from datetime import date as _date
     today = _date.fromisoformat(today_str)
 
-    total_invested = 0.0
-    deposit_value  = 0.0
+    # ── Сторона ВКЛАДА ──────────────────────────────────────────────────────
+    deposit_value = 0.0
+    total_spent   = 0.0  # сколько всего потратили на покупки
 
+    # Каждая покупка → лежала бы на вкладе с даты покупки
     for buy in BUYS_HISTORY:
         buy_date = _date.fromisoformat(buy["date"])
         if buy_date > today:
             continue
         days = (today - buy_date).days
         rate = get_sber_rate(buy["date"])
-        amount = buy["total"]
-        total_invested += amount
-        deposit_value  += amount * (1 + rate / 100 * days / 365)
+        deposit_value += buy["total"] * (1 + rate / 100 * days / 365)
+        total_spent   += buy["total"]
 
-    stocks_value   = tinkoff_portfolio.get("total_current", 0) if tinkoff_portfolio else 0
-    deposit_income = deposit_value - total_invested
-    diff           = stocks_value - deposit_value
+    # ── Сторона АКЦИЙ ───────────────────────────────────────────────────────
+    # Текущая стоимость портфеля
+    stocks_current = tinkoff_portfolio.get("total_current", 0) if tinkoff_portfolio else 0
+
+    # Выручка от продаж — с даты продажи лежала бы на вкладе
+    # И эти деньги НЕ работают в акциях, поэтому из deposit_value их вычитаем
+    # (они уже учтены через покупку), а добавляем их реальную стоимость на вкладе
+    total_sold_deposit = 0.0  # сколько выручка принесла бы на вкладе
+    total_sold         = 0.0  # сколько выручили от продаж
+
+    for sell in SELLS_HISTORY:
+        sell_date = _date.fromisoformat(sell["date"])
+        if sell_date > today:
+            continue
+        days = (today - sell_date).days
+        rate = get_sber_rate(sell["date"])
+        # Выручка от продажи на вкладе с даты продажи
+        total_sold_deposit += sell["total"] * (1 + rate / 100 * days / 365)
+        total_sold         += sell["total"]
+
+    # Дивиденды на вкладе с даты получения
+    total_divs_deposit = 0.0
+    total_divs         = 0.0
+    for div in DIVIDENDS_RECEIVED:
+        div_date = _date.fromisoformat(div["date"])
+        if div_date > today:
+            continue
+        days = (today - div_date).days
+        rate = get_sber_rate(div["date"])
+        total_divs_deposit += div["total"] * (1 + rate / 100 * days / 365)
+        total_divs         += div["total"]
+
+    # Итог для сравнения:
+    # Акции: текущий портфель + выручка от продаж на вкладе + дивиденды на вкладе
+    stocks_total  = stocks_current + total_sold_deposit + total_divs_deposit
+
+    # Вклад: всё что потратили на покупки лежало бы на вкладе
+    # (продажи уже включены в покупки по сумме, так что deposit_value корректен)
+    deposit_total = deposit_value
+
+    # Чистые вложения = потрачено - выручено от продаж
+    net_invested = total_spent - total_sold
+
+    diff           = stocks_total - deposit_total
+    deposit_income = deposit_total - total_spent
 
     return {
-        "date":            today_str,
-        "total_invested":  round(total_invested, 2),
-        "deposit_value":   round(deposit_value, 2),
-        "deposit_income":  round(deposit_income, 2),
-        "stocks_value":    round(stocks_value, 2),
-        "diff":            round(diff, 2),
-        "sber_rate_today": get_sber_rate(today_str),
+        "date":             today_str,
+        "total_spent":      round(total_spent, 2),       # всего потрачено на покупки
+        "total_sold":       round(total_sold, 2),         # выручено от продаж
+        "total_divs":       round(total_divs, 2),         # дивиденды получено
+        "net_invested":     round(net_invested, 2),       # чистые вложения
+        "deposit_value":    round(deposit_total, 2),      # вклад (все покупки)
+        "deposit_income":   round(deposit_income, 2),     # доход вклада
+        "stocks_current":   round(stocks_current, 2),     # портфель сейчас
+        "stocks_total":     round(stocks_total, 2),        # акции + продажи + дивы на вкладе
+        "diff":             round(diff, 2),               # акции_всего - вклад
+        "sber_rate_today":  get_sber_rate(today_str),
     }
 
 
