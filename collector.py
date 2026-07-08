@@ -2596,18 +2596,7 @@ if __name__ == "__main__":
             f.write(err_text)
         raise
 
-    # Разовый запуск fetch_operations для получения истории продаж
-    _ops_file = BASE_DIR / "logs" / "operations_history.json"
-    if not _ops_file.exists():
-        print("\n[OPERATIONS] Запрашиваем историю операций (покупки + продажи)...")
-        try:
-            import subprocess as _sp
-            _r = _sp.run(
-                ["python3", str(BASE_DIR / "fetch_operations.py")],
-                timeout=90, capture_output=True, text=True
-            )
-            print(_r.stdout[-600:] if _r.stdout else "")
-            if _r.returncode != 0:
-                print(f"  [OPERATIONS] Ошибка: {_r.stderr[-300:]}")
-        except Exception as _e:
-            print(f"  [OPERATIONS] Ошибка: {_e}")
+    # История операций — запускается отдельно через fetch_operations.py
+    # Триггер: изменение portfolio_changed (покупка/продажа)
+    # TODO: активировать когда fetch_operations стабилен
+    pass  # placeholder
