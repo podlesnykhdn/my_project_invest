@@ -2500,6 +2500,7 @@ def collect():
         "news":      news,
         "rules_fired":        fired_rules,
         "portfolio_signals":  portfolio_signals,
+        "deposit_comparison": deposit_comparison,
     }
 
     save_log(result)
