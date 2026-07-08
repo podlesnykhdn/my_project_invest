@@ -3,7 +3,7 @@
   "account_id": "2231486341",
   "period_from": "2024-01-01",
   "total_buys": 103,
-  "total_sells": 6,
+  "total_sells": 5,
   "total_divs": 10,
   "buys": [
     {
@@ -1412,22 +1412,6 @@
       "pnl_pct": 0
     },
     {
-      "date": "2026-04-02",
-      "datetime": "2026-04-02T07:50:11.159Z",
-      "figi": "BBG000K3STR7",
-      "ticker": "TGLD",
-      "name": "",
-      "price": 7.587,
-      "qty": 340,
-      "total": 2579.58,
-      "currency": "rub",
-      "type": "sell",
-      "company": "Тинькофф Золото",
-      "cost_basis": 3818.93,
-      "pnl": -1239.35,
-      "pnl_pct": -32.45
-    },
-    {
       "date": "2026-06-23",
       "datetime": "2026-06-23T16:29:31.453Z",
       "figi": "RU000A101PN3",
@@ -1588,5 +1572,15 @@
     "TCS20A107597": 7650.0,
     "SBER": 117.7,
     "X5": 243.5
-  }
+  },
+  "conversions": [
+    {
+      "date": "2026-04-02",
+      "ticker": "TGLD",
+      "figi": "BBG000K3STR7",
+      "qty": 340,
+      "price": 7.587,
+      "note": "Техническая конвертация паёв фонда в новый FIGI TCS80A101X50"
+    }
+  ]
 }
