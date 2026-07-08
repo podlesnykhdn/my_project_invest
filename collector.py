@@ -2212,6 +2212,147 @@ def check_portfolio_changed(tinkoff_portfolio, rules):
     return False
 
 
+
+# ─── СТАВКИ СБЕРБАНКА (накопительный счёт) ──────────────────────────────────
+SBER_DEPOSIT_RATES = [
+    ("2024-01-01", 10.0),
+    ("2024-05-27", 12.0),
+    ("2024-09-25", 16.0),
+    ("2024-10-28", 18.0),
+    ("2025-02-22", 17.0),
+    ("2025-06-09", 15.0),
+    ("2025-09-16", 13.5),
+    ("2025-12-25",  8.0),
+    ("2026-01-01",  8.5),
+    ("2026-06-19", 12.5),
+]
+
+# История покупок (из Tinkoff API, обновляется при изменении портфеля)
+BUYS_HISTORY = [
+    {"date":"2025-02-28","ticker":"SBER","qty":120,"price":307.34,"total":36880.8},
+    {"date":"2025-03-16","ticker":"TGLD","qty":100,"price":11.68,"total":1168.46},
+    {"date":"2025-03-16","ticker":"SBER","qty":10,"price":321.19,"total":3211.9},
+    {"date":"2025-03-18","ticker":"X5","qty":2,"price":3614.0,"total":7228.0},
+    {"date":"2025-03-20","ticker":"X5","qty":10,"price":3734.25,"total":37342.5},
+    {"date":"2025-03-28","ticker":"X5","qty":1,"price":3509.0,"total":3509.0},
+    {"date":"2025-03-31","ticker":"X5","qty":2,"price":3515.0,"total":7030.0},
+    {"date":"2025-03-31","ticker":"SBER","qty":10,"price":308.45,"total":3084.5},
+    {"date":"2025-04-25","ticker":"X5","qty":3,"price":3404.0,"total":10212.0},
+    {"date":"2025-05-16","ticker":"TGLD","qty":200,"price":10.06,"total":2012.18},
+    {"date":"2025-05-23","ticker":"BELU","qty":6,"price":459.0,"total":2754.0},
+    {"date":"2025-05-26","ticker":"LENT","qty":10,"price":1437.2,"total":14372.0},
+    {"date":"2025-05-28","ticker":"X5","qty":1,"price":3271.0,"total":3271.0},
+    {"date":"2025-05-28","ticker":"BELU","qty":1,"price":461.5,"total":461.5},
+    {"date":"2025-05-28","ticker":"LENT","qty":2,"price":1440.0,"total":2880.0},
+    {"date":"2025-06-11","ticker":"X5","qty":1,"price":3273.5,"total":3273.5},
+    {"date":"2025-06-26","ticker":"TGLD","qty":10,"price":9.72,"total":97.16},
+    {"date":"2025-06-27","ticker":"LENT","qty":1,"price":1412.0,"total":1412.0},
+    {"date":"2025-06-29","ticker":"LENT","qty":1,"price":1417.0,"total":1417.0},
+    {"date":"2025-07-01","ticker":"X5","qty":2,"price":3497.0,"total":6994.0},
+    {"date":"2025-07-01","ticker":"LENT","qty":2,"price":1445.5,"total":2891.0},
+    {"date":"2025-07-16","ticker":"X5","qty":3,"price":2935.0,"total":8805.0},
+    {"date":"2025-07-16","ticker":"BELU","qty":1,"price":426.5,"total":426.5},
+    {"date":"2025-07-16","ticker":"TGLD","qty":30,"price":9.33,"total":279.98},
+    {"date":"2025-07-28","ticker":"X5","qty":1,"price":3006.0,"total":3006.0},
+    {"date":"2025-07-28","ticker":"BELU","qty":2,"price":452.0,"total":904.0},
+    {"date":"2025-08-05","ticker":"LENT","qty":6,"price":1733.0,"total":10398.0},
+    {"date":"2025-08-05","ticker":"SBER","qty":3,"price":306.56,"total":919.68},
+    {"date":"2025-08-07","ticker":"LENT","qty":4,"price":1706.25,"total":6823.0},
+    {"date":"2025-08-13","ticker":"LENT","qty":2,"price":1715.0,"total":3430.0},
+    {"date":"2025-08-13","ticker":"TGLD","qty":2,"price":10.67,"total":21.34},
+    {"date":"2025-08-25","ticker":"TGLD","qty":709,"price":10.8,"total":7657.23},
+    {"date":"2025-08-28","ticker":"LENT","qty":3,"price":1817.5,"total":5452.5},
+    {"date":"2025-08-28","ticker":"BELU","qty":2,"price":448.6,"total":897.2},
+    {"date":"2025-08-29","ticker":"TGLD","qty":1,"price":10.92,"total":10.92},
+    {"date":"2025-10-10","ticker":"SBER","qty":16,"price":288.73,"total":4619.68},
+    {"date":"2025-10-13","ticker":"SBER","qty":11,"price":288.14,"total":3169.54},
+    {"date":"2025-10-13","ticker":"LENT","qty":3,"price":1690.0,"total":5070.0},
+    {"date":"2025-10-17","ticker":"TGLD","qty":3,"price":14.13,"total":42.39},
+    {"date":"2025-10-22","ticker":"LENT","qty":2,"price":1694.5,"total":3389.0},
+    {"date":"2025-11-05","ticker":"TGLD","qty":17,"price":12.83,"total":218.11},
+    {"date":"2025-11-13","ticker":"SBER","qty":14,"price":300.4,"total":4205.6},
+    {"date":"2025-11-13","ticker":"TGLD","qty":139,"price":13.6,"total":1890.38},
+    {"date":"2025-11-13","ticker":"X5","qty":3,"price":2686.67,"total":8060.0},
+    {"date":"2025-11-14","ticker":"TGLD","qty":3,"price":13.45,"total":40.24},
+    {"date":"2025-11-24","ticker":"TGLD","qty":250,"price":12.81,"total":3202.5},
+    {"date":"2025-11-28","ticker":"LENT","qty":2,"price":1712.5,"total":3425.0},
+    {"date":"2025-11-28","ticker":"TGLD","qty":202,"price":12.98,"total":2621.96},
+    {"date":"2025-12-12","ticker":"TGLD","qty":370,"price":13.52,"total":5002.41},
+    {"date":"2025-12-26","ticker":"TGLD","qty":100,"price":13.71,"total":1371.0},
+    {"date":"2026-01-23","ticker":"TGLD","qty":6,"price":14.76,"total":88.56},
+    {"date":"2026-02-02","ticker":"TGLD","qty":776,"price":13.82,"total":10724.16},
+    {"date":"2026-02-14","ticker":"LENT","qty":5,"price":2109.0,"total":10545.0},
+    {"date":"2026-02-14","ticker":"X5","qty":5,"price":2441.0,"total":12205.0},
+    {"date":"2026-02-16","ticker":"LENT","qty":2,"price":2129.0,"total":4258.0},
+    {"date":"2026-02-16","ticker":"TGLD","qty":1002,"price":15.25,"total":15280.5},
+    {"date":"2026-02-19","ticker":"LENT","qty":3,"price":2088.0,"total":6264.0},
+    {"date":"2026-02-19","ticker":"TGLD","qty":1,"price":15.26,"total":15.26},
+    {"date":"2026-02-24","ticker":"X5","qty":11,"price":2439.91,"total":26839.0},
+    {"date":"2026-02-24","ticker":"TGLD","qty":6,"price":15.75,"total":94.5},
+    {"date":"2026-02-25","ticker":"LENT","qty":5,"price":2060.5,"total":10302.5},
+    {"date":"2026-02-26","ticker":"TGLD","qty":2,"price":15.94,"total":31.88},
+    {"date":"2026-04-02","ticker":"TGLD","qty":175,"price":14.67,"total":2567.25},
+    {"date":"2026-04-10","ticker":"X5","qty":2,"price":2451.0,"total":4902.0},
+    {"date":"2026-04-13","ticker":"TGLD","qty":1,"price":14.24,"total":14.24},
+    {"date":"2026-04-23","ticker":"TGLD","qty":429,"price":14.0,"total":6006.02},
+    {"date":"2026-06-22","ticker":"TGLD","qty":382,"price":12.19,"total":4656.58},
+    {"date":"2026-06-22","ticker":"SBER","qty":6,"price":304.71,"total":1828.26},
+    {"date":"2026-06-22","ticker":"X5","qty":3,"price":2236.5,"total":6709.5},
+    {"date":"2026-06-26","ticker":"TGLD","qty":1,"price":12.58,"total":12.58},
+]
+
+def get_sber_rate(dt_str):
+    """Ставка накопительного счёта Сбербанка на дату."""
+    from datetime import date as _date
+    d = _date.fromisoformat(dt_str)
+    rate = SBER_DEPOSIT_RATES[0][1]
+    for rate_date, r in SBER_DEPOSIT_RATES:
+        if d >= _date.fromisoformat(rate_date):
+            rate = r
+        else:
+            break
+    return rate
+
+def calc_deposit_comparison(today_str, tinkoff_portfolio):
+    """
+    Считаем на сегодня:
+    - total_invested: сколько вложено в акции
+    - deposit_value: сколько было бы на вкладе (те же суммы в те же даты)
+    - stocks_value: текущая стоимость портфеля
+    - deposit_income: доход вклада
+    - diff: акции - вклад (положительное = акции выгоднее)
+    """
+    from datetime import date as _date
+    today = _date.fromisoformat(today_str)
+
+    total_invested = 0.0
+    deposit_value  = 0.0
+
+    for buy in BUYS_HISTORY:
+        buy_date = _date.fromisoformat(buy["date"])
+        if buy_date > today:
+            continue
+        days = (today - buy_date).days
+        rate = get_sber_rate(buy["date"])
+        amount = buy["total"]
+        total_invested += amount
+        deposit_value  += amount * (1 + rate / 100 * days / 365)
+
+    stocks_value   = tinkoff_portfolio.get("total_current", 0) if tinkoff_portfolio else 0
+    deposit_income = deposit_value - total_invested
+    diff           = stocks_value - deposit_value
+
+    return {
+        "date":            today_str,
+        "total_invested":  round(total_invested, 2),
+        "deposit_value":   round(deposit_value, 2),
+        "deposit_income":  round(deposit_income, 2),
+        "stocks_value":    round(stocks_value, 2),
+        "diff":            round(diff, 2),
+        "sber_rate_today": get_sber_rate(today_str),
+    }
+
+
 def collect():
     print(f"\n{'='*50}")
     print(f"Сборщик запущен: {TODAY} {NOW}")
@@ -2329,6 +2470,10 @@ def collect():
         usd_change = round(
             (currency["usd"] - currency["usd_prev"]) / currency["usd_prev"] * 100, 2
         )
+
+    # Считаем сравнение с вкладом
+    deposit_comparison = calc_deposit_comparison(TODAY, tinkoff_portfolio)
+    print(f"  [Вклад vs Акции] Акции: {deposit_comparison['stocks_value']:,.0f}₽ | Вклад: {deposit_comparison['deposit_value']:,.0f}₽ | Разница: {deposit_comparison['diff']:+,.0f}₽")
 
     result = {
         "meta": {
