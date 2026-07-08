@@ -2599,7 +2599,17 @@ if __name__ == "__main__":
             f.write(err_text)
         raise
 
-    # История операций — запускается отдельно через fetch_operations.py
-    # Триггер: изменение portfolio_changed (покупка/продажа)
-    # TODO: активировать когда fetch_operations стабилен
+    # Разовый запрос исторических цен
+    _prices_file = BASE_DIR / "logs" / "prices_20260501.json"
+    if not _prices_file.exists():
+        try:
+            import subprocess as _sp
+            _r = _sp.run(["python3", str(BASE_DIR / "get_historical_prices.py")],
+                timeout=60, capture_output=True, text=True)
+            print(_r.stdout[-400:] if _r.stdout else "")
+            if _r.returncode != 0:
+                print(f"  [PRICES] Ошибка: {_r.stderr[-200:]}")
+        except Exception as _e:
+            print(f"  [PRICES] Ошибка: {_e}")
+    # История операций — TODO
     pass  # placeholder
