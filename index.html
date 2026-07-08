@@ -244,13 +244,11 @@ tr:hover td{background:var(--surface2);}
   </div>
 
   <!-- Итоги по выбранной компании -->
-  <div id="dep-company-summary" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:12px;gap:20px;flex-wrap:wrap;">
-    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Куплено акций</div><div style="font-size:1rem;font-weight:700;" id="dep-s-bought">—</div></div>
-    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Продано акций</div><div style="font-size:1rem;font-weight:700;color:var(--red);" id="dep-s-sold">—</div></div>
-    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">В портфеле</div><div style="font-size:1rem;font-weight:700;color:var(--accent);" id="dep-s-held">—</div></div>
-    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Потрачено</div><div style="font-size:1rem;font-weight:700;" id="dep-s-spent">—</div></div>
-    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Выручено от продаж</div><div style="font-size:1rem;font-weight:700;color:var(--green);" id="dep-s-received">—</div></div>
-    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Вклад принёс бы</div><div style="font-size:1rem;font-weight:700;color:#fbbf24;" id="dep-s-deposit">—</div></div>
+  <div id="dep-company-summary" style="display:none;margin-bottom:16px;">
+    <!-- Строка 1: факты о позиции -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:8px;" id="dep-s-facts"></div>
+    <!-- Строка 2: сравнение акции vs вклад -->
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;" id="dep-s-compare"></div>
   </div>
 
   <!-- Таблица -->
@@ -769,27 +767,99 @@ function _renderDepSummary() {
 
   const { buys, sells, divs, current } = _getDepData();
   const t = _depFilter;
+  const color = TICKER_COLORS[t] || '#94a3b8';
 
   const tb = buys.filter(o => o.ticker===t);
   const ts = sells.filter(o => o.ticker===t);
+
+  // Факты
   const boughtQty = tb.reduce((s,o)=>s+o.qty, 0);
   const soldQty   = ts.reduce((s,o)=>s+o.qty, 0);
   const heldQty   = current[t]?.qty || 0;
-  const spent     = tb.reduce((s,o)=>s+o.total, 0);
-  const received  = ts.reduce((s,o)=>s+o.total, 0);
-  const depInc    = tb.reduce((s,o)=>s+_depInc(o.total,o.rate,_days(o.date)), 0);
-  const divAmt    = divs[t] || 0;
+  const currPrice = current[t]?.price || 0;
+  const avgPrice  = current[t]?.avg || 0;
 
-  el.style.display = 'flex';
-  document.getElementById('dep-s-bought').textContent   = _fmtQ(boughtQty);
-  document.getElementById('dep-s-sold').textContent     = soldQty>0 ? _fmtQ(soldQty) : '—';
-  document.getElementById('dep-s-held').textContent     = _fmtQ(heldQty);
-  document.getElementById('dep-s-spent').textContent    = _fmtR(spent);
-  document.getElementById('dep-s-received').textContent = received>0 ? _fmtR(received) : '—';
-  document.getElementById('dep-s-deposit').textContent  = _fmtR(depInc);
-  // Если есть дивиденды — показываем
-  const divEl = document.getElementById('dep-s-divs');
-  if (divEl) divEl.textContent = divAmt>0 ? _fmtR(divAmt) : '—';
+  // Деньги
+  const spent    = tb.reduce((s,o)=>s+o.total, 0);        // потрачено на покупки
+  const received = ts.reduce((s,o)=>s+o.total, 0);        // выручено от продаж
+  const netSpent = spent - received;                        // чистые вложения
+
+  // Текущая стоимость позиции в портфеле
+  const currVal  = heldQty * currPrice;
+
+  // Вклад: каждая покупка лежала бы на счёте по ставке на дату
+  const depVal   = tb.reduce((s,o)=>s+o.total*(1+o.rate/100*_days(o.date)/365), 0);
+  // Минус выручка от продаж (она "вышла" из вклада в дату продажи)
+  const soldDep  = ts.reduce((s,o)=>s+o.total*(1+o.rate/100*_days(o.date)/365), 0);
+  const depTotal = depVal - soldDep;  // что осталось бы на вкладе
+
+  // Итоговое сравнение
+  const pnl      = currVal - netSpent;
+  const pnlPct   = netSpent > 0 ? (pnl / netSpent * 100) : 0;
+  const diff     = currVal - depTotal;  // акции - вклад
+  const isWin    = diff >= 0;
+
+  el.style.display = 'block';
+
+  // Блок 1: факты
+  document.getElementById('dep-s-facts').innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Куплено</div>
+      <div style="font-size:1.1rem;font-weight:700;">${_fmtQ(boughtQty)}</div>
+      ${soldQty>0?`<div style="font-size:.72rem;color:var(--red);margin-top:2px;">продано ${_fmtQ(soldQty)}</div>`:''}
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">В портфеле сейчас</div>
+      <div style="font-size:1.1rem;font-weight:700;color:${color};">${_fmtQ(heldQty)}</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">по ${currPrice.toLocaleString('ru-RU',{minimumFractionDigits:2})} ₽</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Потрачено</div>
+      <div style="font-size:1.1rem;font-weight:700;">${_fmtR(spent)}</div>
+      ${received>0?`<div style="font-size:.72rem;color:var(--green);margin-top:2px;">выручено ${_fmtR(received)}</div>`:''}
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Стоимость сейчас</div>
+      <div style="font-size:1.1rem;font-weight:700;color:${pnl>=0?'var(--green)':'var(--red)'};">${_fmtR(currVal)}</div>
+      <div style="font-size:.72rem;color:${pnl>=0?'var(--green)':'var(--red)'};margin-top:2px;">${pnl>=0?'+':''}${_fmtR(pnl)} (${pnlPct>=0?'+':''}${pnlPct.toFixed(1)}%)</div>
+    </div>
+  `;
+
+  // Блок 2: сравнение с вкладом
+  document.getElementById('dep-s-compare').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <span style="font-size:.8rem;font-weight:600;color:var(--text);">Сравнение с вкладом Сбербанка</span>
+      <span style="font-size:.7rem;color:var(--muted);">(базовая ставка на дату каждой покупки)</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Акции сейчас</div>
+        <div style="font-size:1.2rem;font-weight:700;color:${color};">${_fmtR(currVal)}</div>
+      </div>
+      <div>
+        <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Вклад принёс бы</div>
+        <div style="font-size:1.2rem;font-weight:700;color:#fbbf24;">${_fmtR(depTotal)}</div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:2px;">доход ${_fmtR(depTotal-netSpent)}</div>
+      </div>
+      <div>
+        <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Разница</div>
+        <div style="font-size:1.2rem;font-weight:700;color:${isWin?'var(--green)':'var(--red)'};">${isWin?'+':''}${_fmtR(diff)}</div>
+        <div style="font-size:.7rem;color:${isWin?'var(--green)':'var(--red)'};margin-top:2px;font-weight:600;">${isWin?'🎯 Акции выгоднее':'📉 Вклад выгоднее'}</div>
+      </div>
+    </div>
+    <!-- Визуальный индикатор -->
+    <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+      ${(()=>{
+        const total = currVal + depTotal;
+        const stocksPct = total>0 ? (currVal/total*100) : 50;
+        return `<div style="height:100%;width:${stocksPct.toFixed(1)}%;background:${color};border-radius:4px;transition:width .5s;"></div>`;
+      })()}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-top:4px;">
+      <span style="color:${color};">▪ Акции</span>
+      <span style="color:#fbbf24;">▪ Вклад</span>
+    </div>
+  `;
 }
 
 function _renderDepTable() {
