@@ -2541,7 +2541,7 @@ def collect():
 
     # Считаем сравнение с вкладом
     deposit_comparison = calc_deposit_comparison(TODAY, tinkoff_portfolio)
-    print(f"  [Вклад vs Акции] Акции: {deposit_comparison['stocks_value']:,.0f}₽ | Вклад: {deposit_comparison['deposit_value']:,.0f}₽ | Разница: {deposit_comparison['diff']:+,.0f}₽")
+    print(f"  [Вклад vs Акции] Акции: {deposit_comparison.get('stocks_total', deposit_comparison.get('stocks_value',0)):,.0f}₽ | Вклад: {deposit_comparison['deposit_value']:,.0f}₽ | Разница: {deposit_comparison['diff']:+,.0f}₽")
 
     result = {
         "meta": {
