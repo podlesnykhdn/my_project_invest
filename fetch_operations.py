@@ -138,7 +138,16 @@ for op in all_ops:
     elif op_type in SELL_TYPES:
         record["type"] = "sell"
         record["total"] = round(abs(payment), 2)
-        sells.append(record)
+        # Исключаем технические конвертации паёв фонда
+        # (старый FIGI BBG000K3STR7 TGLD был конвертирован в TCS80A101X50)
+        # Признак: цена пая аномально низкая (< половины от текущей цены)
+        # или это известный FIGI конвертации
+        CONVERSION_FIGIS = {'BBG000K3STR7'}  # старый FIGI TGLD до конвертации
+        if figi in CONVERSION_FIGIS and price < 10.0:
+            print(f'  [OPERATIONS] Пропускаем техническую конвертацию: {figi} {qty} шт × {price}₽ (не реальная продажа)')
+            record["type"] = "conversion"  # помечаем как конвертацию
+        else:
+            sells.append(record)
     elif op_type in DIV_TYPES:
         record["type"] = "dividend" if "TAX" not in op_type else "dividend_tax"
         divs.append(record)
