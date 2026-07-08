@@ -224,59 +224,67 @@ tr:hover td{background:var(--surface2);}
   <div style="margin-bottom:16px;">
     <div class="st" style="margin:0;">Акции vs Вклад Сбербанка</div>
     <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">
-      Сравнение: портфель акций против накопительного счёта Сбера по историческим ставкам
+      Покупки и продажи с 28.02.2025 · Ставки накопительного счёта Сбера по датам
     </div>
   </div>
 
-  <!-- Карточки -->
-  <div class="cards" style="margin-bottom:20px;">
-    <div class="card">
-      <div class="lbl">Вложено в акции</div>
-      <div class="val" id="dep-invested">—</div>
-    </div>
-    <div class="card">
-      <div class="lbl">Акции сейчас</div>
-      <div class="val" id="dep-stocks">—</div>
-    </div>
-    <div class="card">
-      <div class="lbl">Вклад Сбера (расчётно)</div>
-      <div class="val" id="dep-deposit">—</div>
-    </div>
-    <div class="card">
-      <div class="lbl">Разница (акции − вклад)</div>
-      <div class="val" id="dep-diff">—</div>
-    </div>
+  <!-- Сводные карточки -->
+  <div class="cards" style="margin-bottom:16px;" id="dep-cards"></div>
+
+  <!-- Фильтры -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;" id="dep-filters">
+    <button class="dep-btn active" onclick="depFilter('ALL',this)">Все</button>
+    <button class="dep-btn" onclick="depFilter('SBER',this)">SBER</button>
+    <button class="dep-btn" onclick="depFilter('X5',this)">X5</button>
+    <button class="dep-btn" onclick="depFilter('LENT',this)">LENT</button>
+    <button class="dep-btn" onclick="depFilter('BELU',this)">BELU</button>
+    <button class="dep-btn" onclick="depFilter('TGLD',this)">TGLD</button>
   </div>
 
-  <!-- График -->
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
-    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">Динамика (₽) — цель: зелёная линия пересекает оранжевую</div>
-    <canvas id="deposit-chart" style="width:100%;height:220px;"></canvas>
+  <!-- Итоги по выбранной компании -->
+  <div id="dep-company-summary" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:12px;gap:20px;flex-wrap:wrap;">
+    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Куплено акций</div><div style="font-size:1rem;font-weight:700;" id="dep-s-bought">—</div></div>
+    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Продано акций</div><div style="font-size:1rem;font-weight:700;color:var(--red);" id="dep-s-sold">—</div></div>
+    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">В портфеле</div><div style="font-size:1rem;font-weight:700;color:var(--accent);" id="dep-s-held">—</div></div>
+    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Потрачено</div><div style="font-size:1rem;font-weight:700;" id="dep-s-spent">—</div></div>
+    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Выручено от продаж</div><div style="font-size:1rem;font-weight:700;color:var(--green);" id="dep-s-received">—</div></div>
+    <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Вклад принёс бы</div><div style="font-size:1rem;font-weight:700;color:#fbbf24;" id="dep-s-deposit">—</div></div>
   </div>
 
-  <!-- Таблица истории -->
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+  <!-- Таблица -->
+  <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border);margin-bottom:16px;">
     <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
       <thead>
         <tr style="background:var(--bg);">
-          <th style="padding:10px 12px;text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Дата</th>
-          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Акции</th>
-          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Вклад</th>
-          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Чистые вложения</th>
-          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Разница</th>
-          <th style="padding:10px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Ставка</th>
+          <th style="padding:9px 12px;text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap;">Дата</th>
+          <th style="padding:9px 12px;text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Тип</th>
+          <th style="padding:9px 12px;text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Тикер</th>
+          <th style="padding:9px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Кол-во</th>
+          <th style="padding:9px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Цена</th>
+          <th style="padding:9px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Сумма</th>
+          <th style="padding:9px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Итого за день</th>
+          <th style="padding:9px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Ставка</th>
+          <th style="padding:9px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Дней</th>
+          <th style="padding:9px 12px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Вклад принёс бы</th>
         </tr>
       </thead>
-      <tbody id="dep-table-body"></tbody>
+      <tbody id="dep-tbody"></tbody>
+      <tfoot id="dep-tfoot"></tfoot>
     </table>
   </div>
 
-  <div style="margin-top:12px;font-size:0.72rem;color:var(--muted);">
-    * Вклад рассчитан как: каждая покупка акций → та же сумма на накопительный счёт Сбербанка по ставке на дату покупки, начисление простых процентов до сегодня.
-    Данные обновляются ежедневно автоматически.
+  <!-- График динамики -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:10px;">📈 Динамика: акции vs вклад (цель — синяя линия выше оранжевой)</div>
+    <canvas id="deposit-chart" style="width:100%;height:180px;"></canvas>
+  </div>
+
+  <div style="font-size:0.7rem;color:var(--muted);line-height:1.6;">
+    * Вклад: каждая покупка → та же сумма на накопит. счёт Сбера по ставке на дату покупки.
+    Продажи: выручка лежит на вкладе с даты продажи.
+    Дивиденды: реинвестируются на вклад с даты получения.
   </div>
 </div>
-
 </main>
 <script>
 const FUNDAMENTALS={
@@ -645,140 +653,265 @@ async function loadAll(){
 }
 loadAll();
 
-// ── Вклад vs Акции ────────────────────────────────────────────────────────
-const _DEP_HISTORY = [{"date": "2026-07-08", "stocks": 357504, "deposit": 416306, "invested": 315026, "spent": 370206, "sold": 55179, "divs": 21308, "diff": -58801, "rate": 12.5}];
+// ── Вклад vs Акции ──────────────────────────────────────────────────────────
 
-function initDepositTab() {
-  const h = _DEP_HISTORY;
-  if (!h || h.length === 0) return;
-  const latest = h[h.length - 1];
+// Все операции: покупки + продажи
+const DEP_OPS = [
+  // ПОКУПКИ
+  {date:"2025-02-28",type:"buy",ticker:"SBER",name:"Сбербанк",qty:120,price:307.34,total:36880.8,rate:17.0},
+  {date:"2025-03-16",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:100,price:11.68,total:1168.46,rate:17.0},
+  {date:"2025-03-16",type:"buy",ticker:"SBER",name:"Сбербанк",qty:10,price:321.19,total:3211.9,rate:17.0},
+  {date:"2025-03-18",type:"buy",ticker:"X5",name:"ИКС 5",qty:2,price:3614.0,total:7228.0,rate:17.0},
+  {date:"2025-03-20",type:"buy",ticker:"X5",name:"ИКС 5",qty:10,price:3734.25,total:37342.5,rate:17.0},
+  {date:"2025-03-28",type:"buy",ticker:"X5",name:"ИКС 5",qty:1,price:3509.0,total:3509.0,rate:17.0},
+  {date:"2025-03-31",type:"buy",ticker:"X5",name:"ИКС 5",qty:2,price:3515.0,total:7030.0,rate:17.0},
+  {date:"2025-03-31",type:"buy",ticker:"SBER",name:"Сбербанк",qty:10,price:308.45,total:3084.5,rate:17.0},
+  {date:"2025-04-25",type:"buy",ticker:"X5",name:"ИКС 5",qty:3,price:3404.0,total:10212.0,rate:17.0},
+  {date:"2025-05-16",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:200,price:10.06,total:2012.18,rate:15.0},
+  {date:"2025-05-23",type:"buy",ticker:"BELU",name:"НоваБев",qty:6,price:459.0,total:2754.0,rate:15.0},
+  {date:"2025-05-26",type:"buy",ticker:"LENT",name:"Лента",qty:10,price:1437.2,total:14372.0,rate:15.0},
+  {date:"2025-05-28",type:"buy",ticker:"X5",name:"ИКС 5",qty:1,price:3271.0,total:3271.0,rate:15.0},
+  {date:"2025-05-28",type:"buy",ticker:"BELU",name:"НоваБев",qty:1,price:461.5,total:461.5,rate:15.0},
+  {date:"2025-05-28",type:"buy",ticker:"LENT",name:"Лента",qty:2,price:1440.0,total:2880.0,rate:15.0},
+  {date:"2025-06-11",type:"buy",ticker:"X5",name:"ИКС 5",qty:1,price:3273.5,total:3273.5,rate:15.0},
+  {date:"2025-06-26",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:10,price:9.72,total:97.16,rate:15.0},
+  {date:"2025-06-27",type:"buy",ticker:"LENT",name:"Лента",qty:1,price:1412.0,total:1412.0,rate:15.0},
+  {date:"2025-06-29",type:"buy",ticker:"LENT",name:"Лента",qty:1,price:1417.0,total:1417.0,rate:15.0},
+  {date:"2025-07-01",type:"buy",ticker:"X5",name:"ИКС 5",qty:2,price:3497.0,total:6994.0,rate:15.0},
+  {date:"2025-07-01",type:"buy",ticker:"LENT",name:"Лента",qty:2,price:1445.5,total:2891.0,rate:15.0},
+  {date:"2025-07-16",type:"buy",ticker:"X5",name:"ИКС 5",qty:3,price:2935.0,total:8805.0,rate:15.0},
+  {date:"2025-07-16",type:"buy",ticker:"BELU",name:"НоваБев",qty:1,price:426.5,total:426.5,rate:15.0},
+  {date:"2025-07-16",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:30,price:9.33,total:279.98,rate:15.0},
+  {date:"2025-07-28",type:"buy",ticker:"X5",name:"ИКС 5",qty:1,price:3006.0,total:3006.0,rate:15.0},
+  {date:"2025-07-28",type:"buy",ticker:"BELU",name:"НоваБев",qty:2,price:452.0,total:904.0,rate:15.0},
+  {date:"2025-08-05",type:"buy",ticker:"LENT",name:"Лента",qty:6,price:1733.0,total:10398.0,rate:15.0},
+  {date:"2025-08-05",type:"buy",ticker:"SBER",name:"Сбербанк",qty:3,price:306.56,total:919.68,rate:15.0},
+  {date:"2025-08-07",type:"buy",ticker:"LENT",name:"Лента",qty:4,price:1706.25,total:6823.0,rate:15.0},
+  {date:"2025-08-13",type:"buy",ticker:"LENT",name:"Лента",qty:2,price:1715.0,total:3430.0,rate:15.0},
+  {date:"2025-08-13",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:2,price:10.67,total:21.34,rate:15.0},
+  {date:"2025-08-25",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:709,price:10.8,total:7657.23,rate:15.0},
+  {date:"2025-08-28",type:"buy",ticker:"LENT",name:"Лента",qty:3,price:1817.5,total:5452.5,rate:15.0},
+  {date:"2025-08-28",type:"buy",ticker:"BELU",name:"НоваБев",qty:2,price:448.6,total:897.2,rate:15.0},
+  {date:"2025-08-29",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:1,price:10.92,total:10.92,rate:15.0},
+  {date:"2025-10-10",type:"buy",ticker:"SBER",name:"Сбербанк",qty:16,price:288.73,total:4619.68,rate:13.5},
+  {date:"2025-10-13",type:"buy",ticker:"SBER",name:"Сбербанк",qty:11,price:288.14,total:3169.54,rate:13.5},
+  {date:"2025-10-13",type:"buy",ticker:"LENT",name:"Лента",qty:3,price:1690.0,total:5070.0,rate:13.5},
+  {date:"2025-10-17",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:3,price:14.13,total:42.39,rate:13.5},
+  {date:"2025-10-22",type:"buy",ticker:"LENT",name:"Лента",qty:2,price:1694.5,total:3389.0,rate:13.5},
+  {date:"2025-11-05",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:17,price:12.83,total:218.11,rate:13.5},
+  {date:"2025-11-13",type:"buy",ticker:"SBER",name:"Сбербанк",qty:14,price:300.4,total:4205.6,rate:13.5},
+  {date:"2025-11-13",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:139,price:13.6,total:1890.38,rate:13.5},
+  {date:"2025-11-13",type:"buy",ticker:"X5",name:"ИКС 5",qty:3,price:2686.67,total:8060.0,rate:13.5},
+  {date:"2025-11-14",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:3,price:13.45,total:40.24,rate:13.5},
+  {date:"2025-11-24",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:250,price:12.81,total:3202.5,rate:13.5},
+  {date:"2025-11-28",type:"buy",ticker:"LENT",name:"Лента",qty:2,price:1712.5,total:3425.0,rate:13.5},
+  {date:"2025-11-28",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:202,price:12.98,total:2621.96,rate:13.5},
+  {date:"2025-12-12",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:370,price:13.52,total:5002.41,rate:8.0},
+  {date:"2025-12-26",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:100,price:13.71,total:1371.0,rate:8.0},
+  {date:"2026-01-23",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:6,price:14.76,total:88.56,rate:8.5},
+  {date:"2026-02-02",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:776,price:13.82,total:10724.16,rate:8.5},
+  {date:"2026-02-14",type:"buy",ticker:"LENT",name:"Лента",qty:5,price:2109.0,total:10545.0,rate:8.5},
+  {date:"2026-02-14",type:"buy",ticker:"X5",name:"ИКС 5",qty:5,price:2441.0,total:12205.0,rate:8.5},
+  {date:"2026-02-16",type:"buy",ticker:"LENT",name:"Лента",qty:2,price:2129.0,total:4258.0,rate:8.5},
+  {date:"2026-02-16",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:1002,price:15.25,total:15280.5,rate:8.5},
+  {date:"2026-02-19",type:"buy",ticker:"LENT",name:"Лента",qty:3,price:2088.0,total:6264.0,rate:8.5},
+  {date:"2026-02-19",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:1,price:15.26,total:15.26,rate:8.5},
+  {date:"2026-02-24",type:"buy",ticker:"X5",name:"ИКС 5",qty:11,price:2439.91,total:26839.0,rate:8.5},
+  {date:"2026-02-24",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:6,price:15.75,total:94.5,rate:8.5},
+  {date:"2026-02-25",type:"buy",ticker:"LENT",name:"Лента",qty:5,price:2060.5,total:10302.5,rate:8.5},
+  {date:"2026-02-26",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:2,price:15.94,total:31.88,rate:8.5},
+  {date:"2026-04-02",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:175,price:14.67,total:2567.25,rate:8.5},
+  {date:"2026-04-10",type:"buy",ticker:"X5",name:"ИКС 5",qty:2,price:2451.0,total:4902.0,rate:8.5},
+  {date:"2026-04-13",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:1,price:14.24,total:14.24,rate:8.5},
+  {date:"2026-04-23",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:429,price:14.0,total:6006.02,rate:8.5},
+  {date:"2026-06-22",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:382,price:12.19,total:4656.58,rate:12.5},
+  {date:"2026-06-22",type:"buy",ticker:"SBER",name:"Сбербанк",qty:6,price:304.71,total:1828.26,rate:12.5},
+  {date:"2026-06-22",type:"buy",ticker:"X5",name:"ИКС 5",qty:3,price:2236.5,total:6709.5,rate:12.5},
+  {date:"2026-06-26",type:"buy",ticker:"TGLD",name:"Тинькофф Золото",qty:1,price:12.58,total:12.58,rate:12.5},
+  // ПРОДАЖИ
+  {date:"2025-02-28",type:"sell",ticker:"SBER",name:"Сбербанк",qty:110,price:308.41,total:33925.1,rate:17.0},
+  {date:"2025-03-20",type:"sell",ticker:"X5",name:"ИКС 5",qty:5,price:3735.0,total:18675.0,rate:17.0},
+  {date:"2026-04-02",type:"sell",ticker:"TGLD",name:"Тинькофф Золото",qty:340,price:7.587,total:2579.58,rate:8.5},
+];
 
-  function fmtM(n) {
-    return (n >= 0 ? '' : '−') + Math.abs(Math.round(n)).toLocaleString('ru-RU') + ' ₽';
+// Текущий портфель
+const DEP_CURRENT = {
+  SBER:{qty:80,price:304.53}, X5:{qty:45,price:2261.0},
+  LENT:{qty:53,price:1740.5}, BELU:{qty:12,price:249.2}, TGLD:{qty:5001,price:12.44}
+};
+
+const TICKER_COLORS = {
+  SBER:'#4ade80', X5:'#c084fc', LENT:'#fb923c', BELU:'#f87171', TGLD:'#fbbf24'
+};
+
+let _depFilter = 'ALL';
+
+function depFilter(ticker, btn) {
+  _depFilter = ticker;
+  document.querySelectorAll('.dep-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _renderDepTable();
+  _renderDepSummary();
+}
+
+function _fmtR(n) { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+function _fmtQ(n) { return n.toLocaleString('ru-RU') + ' шт'; }
+function _days(dateStr) {
+  const now = new Date(); const d = new Date(dateStr);
+  return Math.floor((now - d) / 86400000);
+}
+function _depIncome(total, rate, days) {
+  return total * (rate / 100) * (days / 365);
+}
+
+function _renderDepCards() {
+  const ops = DEP_OPS;
+  const buys = ops.filter(o => o.type === 'buy');
+  const sells = ops.filter(o => o.type === 'sell');
+  const totalSpent = buys.reduce((s,o) => s+o.total, 0);
+  const totalSold  = sells.reduce((s,o) => s+o.total, 0);
+  const netInv     = totalSpent - totalSold;
+  const curVal     = Object.entries(DEP_CURRENT).reduce((s,[,c]) => s+c.qty*c.price, 0);
+  const depVal     = buys.reduce((s,o) => s + o.total*(1+o.rate/100*_days(o.date)/365), 0);
+  const soldDep    = sells.reduce((s,o) => s + o.total*(1+o.rate/100*_days(o.date)/365), 0);
+  const totalDivs  = 21308;
+  const divDep     = totalDivs * (1 + 0.125 * (_days('2025-07-22')/365));
+  const stocksTotal = curVal + soldDep + divDep;
+  const diff = stocksTotal - depVal;
+
+  document.getElementById('dep-cards').innerHTML = `
+    <div class="card"><div class="lbl">Потрачено на покупки</div><div class="val" style="color:var(--accent)">${_fmtR(totalSpent)}</div></div>
+    <div class="card"><div class="lbl">Чистые вложения</div><div class="val">${_fmtR(netInv)}</div><div style="font-size:.7rem;color:var(--muted)">после продаж</div></div>
+    <div class="card"><div class="lbl">Акции + продажи + дивы</div><div class="val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${_fmtR(stocksTotal)}</div></div>
+    <div class="card"><div class="lbl">Вклад Сбера (расчётно)</div><div class="val" style="color:#fbbf24">${_fmtR(depVal)}</div></div>
+    <div class="card"><div class="lbl">Разница (акции − вклад)</div><div class="val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${_fmtR(diff)}</div></div>
+  `;
+}
+
+function _renderDepSummary() {
+  const el = document.getElementById('dep-company-summary');
+  if (_depFilter === 'ALL') { el.style.display = 'none'; return; }
+
+  const buys  = DEP_OPS.filter(o => o.type==='buy'  && o.ticker===_depFilter);
+  const sells = DEP_OPS.filter(o => o.type==='sell' && o.ticker===_depFilter);
+  const boughtQty = buys.reduce((s,o) => s+o.qty, 0);
+  const soldQty   = sells.reduce((s,o) => s+o.qty, 0);
+  const heldQty   = DEP_CURRENT[_depFilter]?.qty || 0;
+  const spent     = buys.reduce((s,o) => s+o.total, 0);
+  const received  = sells.reduce((s,o) => s+o.total, 0);
+  const depInc    = buys.reduce((s,o) => s+_depIncome(o.total, o.rate, _days(o.date)), 0);
+
+  el.style.display = 'flex';
+  document.getElementById('dep-s-bought').textContent   = _fmtQ(boughtQty);
+  document.getElementById('dep-s-sold').textContent     = soldQty > 0 ? _fmtQ(soldQty) : '—';
+  document.getElementById('dep-s-held').textContent     = _fmtQ(heldQty);
+  document.getElementById('dep-s-spent').textContent    = _fmtR(spent);
+  document.getElementById('dep-s-received').textContent = received > 0 ? _fmtR(received) : '—';
+  document.getElementById('dep-s-deposit').textContent  = _fmtR(depInc);
+}
+
+function _renderDepTable() {
+  const filtered = _depFilter === 'ALL'
+    ? DEP_OPS
+    : DEP_OPS.filter(o => o.ticker === _depFilter);
+
+  // Группируем по дате
+  const dates = [...new Set(filtered.map(o => o.date))].sort();
+  let html = '';
+  let totalQty = 0, totalSpent = 0, totalDepInc = 0;
+
+  for (const d of dates) {
+    const dayOps = filtered.filter(o => o.date === d);
+    const dayNet = dayOps.reduce((s,o) => s + (o.type==='buy'?o.total:-o.total), 0);
+    const days   = _days(d);
+
+    dayOps.forEach((op, i) => {
+      const isSell = op.type === 'sell';
+      const depInc = _depIncome(op.total, op.rate, days);
+      const color  = TICKER_COLORS[op.ticker] || '#94a3b8';
+
+      if (!isSell) { totalQty += op.qty; totalSpent += op.total; totalDepInc += depInc; }
+      else { totalQty -= op.qty; totalSpent -= op.total; }
+
+      html += `<tr style="border-bottom:1px solid var(--border);${isSell?'background:rgba(239,68,68,.07)':''}">
+        <td style="padding:7px 12px;color:var(--muted);white-space:nowrap;">${i===0?d:''}</td>
+        <td style="padding:7px 12px;"><span style="padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:700;background:${isSell?'rgba(239,68,68,.2)':'rgba(74,222,128,.15)'};color:${isSell?'var(--red)':'var(--green)'};">${isSell?'Продажа':'Покупка'}</span></td>
+        <td style="padding:7px 12px;"><span style="padding:2px 7px;border-radius:5px;font-size:.7rem;font-weight:700;background:${color}22;color:${color}">${op.ticker}</span></td>
+        <td style="padding:7px 12px;text-align:right;font-weight:600;color:${isSell?'var(--red)':'var(--text)'};">${isSell?'-':''}${op.qty.toLocaleString('ru-RU')} шт</td>
+        <td style="padding:7px 12px;text-align:right;">${op.price.toLocaleString('ru-RU',{minimumFractionDigits:2})} ₽</td>
+        <td style="padding:7px 12px;text-align:right;color:${isSell?'var(--green)':'var(--text)'};">${isSell?'+':'-'}${_fmtR(op.total)}</td>
+        <td style="padding:7px 12px;text-align:right;color:var(--muted);">${i===0?_fmtR(Math.abs(dayNet)):''}</td>
+        <td style="padding:7px 12px;text-align:right;color:var(--muted);">${i===0?op.rate+'%':''}</td>
+        <td style="padding:7px 12px;text-align:right;color:var(--muted);">${i===0?days+' д':''}</td>
+        <td style="padding:7px 12px;text-align:right;color:#fbbf24;">${i===0?_fmtR(depInc):''}</td>
+      </tr>`;
+    });
   }
-  function fmtS(n) {
-    return Math.round(n).toLocaleString('ru-RU') + ' ₽';
-  }
 
-  // Карточки
-  const depInv = latest.invested || (latest.spent - (latest.sold||0));
-  document.getElementById('dep-invested').textContent = fmtS(depInv);
-  const stocksEl = document.getElementById('dep-stocks');
-  stocksEl.textContent = fmtS(latest.stocks);
-  stocksEl.style.color = latest.stocks >= latest.invested ? 'var(--green)' : 'var(--red)';
+  document.getElementById('dep-tbody').innerHTML = html;
 
-  document.getElementById('dep-deposit').textContent = fmtS(latest.deposit);
-
-  const diffEl = document.getElementById('dep-diff');
-  diffEl.textContent = (latest.diff >= 0 ? '+' : '') + fmtM(latest.diff);
-  diffEl.style.color = latest.diff >= 0 ? 'var(--green)' : 'var(--red)';
-
-  // Таблица
-  const tbody = document.getElementById('dep-table-body');
-  tbody.innerHTML = [...h].reverse().map(r => {
-    const d = r.diff;
-    const dColor = d >= 0 ? 'var(--green)' : 'var(--red)';
-    return `<tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:8px 12px;color:var(--muted);">${r.date}</td>
-      <td style="padding:8px 12px;text-align:right;">${fmtS(r.stocks)}</td>
-      <td style="padding:8px 12px;text-align:right;color:#fbbf24;">${fmtS(r.deposit)}</td>
-      <td style="padding:8px 12px;text-align:right;font-weight:600;color:${dColor}">${d >= 0 ? '+' : ''}&thinsp;${Math.abs(Math.round(d)).toLocaleString('ru-RU')} ₽</td>
-      <td style="padding:8px 12px;text-align:right;color:var(--muted);">${r.rate}%</td>
+  // Итоговая строка
+  document.getElementById('dep-tfoot').innerHTML = `
+    <tr style="background:var(--bg);font-weight:700;border-top:2px solid var(--border);">
+      <td colspan="3" style="padding:9px 12px;">Итого по выборке</td>
+      <td style="padding:9px 12px;text-align:right;">${_fmtQ(Math.abs(totalQty))}</td>
+      <td style="padding:9px 12px;"></td>
+      <td style="padding:9px 12px;text-align:right;">${_fmtR(Math.abs(totalSpent))}</td>
+      <td colspan="3" style="padding:9px 12px;"></td>
+      <td style="padding:9px 12px;text-align:right;color:#fbbf24;">${_fmtR(totalDepInc)}</td>
     </tr>`;
-  }).join('');
+}
 
-  // График
+function _renderDepChart() {
+  const h = _DEP_HISTORY;
+  if (!h || h.length < 2) return;
   const canvas = document.getElementById('deposit-chart');
   if (!canvas) return;
+  const W = canvas.offsetWidth || 600, H = 180;
+  canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth || 600;
-  const H = 220;
-  canvas.width = W;
-  canvas.height = H;
-
-  const pad = {l:60, r:16, t:16, b:32};
-  const cw = W - pad.l - pad.r;
-  const ch = H - pad.t - pad.b;
-
-  const allVals = h.flatMap(r => [r.stocks, r.deposit, r.invested]);
-  const minV = Math.min(...allVals) * 0.97;
-  const maxV = Math.max(...allVals) * 1.02;
-
-  function xPos(i) { return pad.l + (i / (h.length - 1)) * cw; }
-  function yPos(v) { return pad.t + (1 - (v - minV) / (maxV - minV)) * ch; }
-
-  ctx.clearRect(0, 0, W, H);
-
+  const pad = {l:55,r:12,t:12,b:28};
+  const cw = W-pad.l-pad.r, ch = H-pad.t-pad.b;
+  const vals = h.flatMap(r=>[r.stocks,r.deposit]);
+  const minV = Math.min(...vals)*0.97, maxV = Math.max(...vals)*1.02;
+  const xP = i => pad.l + (i/(h.length-1))*cw;
+  const yP = v => pad.t + (1-(v-minV)/(maxV-minV))*ch;
+  ctx.clearRect(0,0,W,H);
   // Сетка
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.t + (i / 4) * ch;
-    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-    const v = maxV - (i / 4) * (maxV - minV);
-    ctx.fillStyle = 'rgba(148,163,184,0.6)';
-    ctx.font = '10px system-ui';
-    ctx.textAlign = 'right';
-    ctx.fillText((Math.round(v/1000)) + 'к', pad.l - 4, y + 3);
+  for(let i=0;i<=4;i++){
+    const y=pad.t+i/4*ch;
+    ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+    ctx.fillStyle='rgba(148,163,184,.5)'; ctx.font='10px system-ui'; ctx.textAlign='right';
+    ctx.fillText(Math.round((maxV-(i/4)*(maxV-minV))/1000)+'к', pad.l-4, y+3);
   }
-
-  // Линия нулевой разницы (если акции = вкладу)
-  const zeroY = yPos(h[0].deposit);
-
-  function drawLine(data, key, color, dash=[]) {
-    ctx.beginPath();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.setLineDash(dash);
-    data.forEach((r, i) => {
-      const x = xPos(i), y = yPos(r[key]);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    });
+  // Линии
+  [[h,'deposit','#fbbf24'],[h,'stocks','#60a5fa']].forEach(([data,key,color])=>{
+    ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2;
+    data.forEach((r,i)=>{ const x=xP(i),y=yP(r[key]); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
     ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  // Вложено (пунктир серый)
-  drawLine(h, 'invested', 'rgba(148,163,184,0.4)', [4,4]);
-  // Вклад (оранжевый)
-  drawLine(h, 'deposit', '#fbbf24');
-  // Акции (синий/зелёный)
-  drawLine(h, 'stocks', '#60a5fa');
-
+  });
   // Точки акций
-  h.forEach((r, i) => {
-    ctx.beginPath();
-    ctx.arc(xPos(i), yPos(r.stocks), 3, 0, Math.PI*2);
-    ctx.fillStyle = r.diff >= 0 ? '#4ade80' : '#60a5fa';
-    ctx.fill();
-  });
-
-  // Даты по оси X
-  ctx.fillStyle = 'rgba(148,163,184,0.6)';
-  ctx.font = '10px system-ui';
-  ctx.textAlign = 'center';
-  const step = Math.max(1, Math.floor(h.length / 5));
-  h.forEach((r, i) => {
-    if (i % step === 0 || i === h.length - 1) {
-      ctx.fillText(r.date.slice(5), xPos(i), H - 6);
-    }
-  });
-
+  h.forEach((r,i)=>{ ctx.beginPath(); ctx.arc(xP(i),yP(r.stocks),3,0,Math.PI*2); ctx.fillStyle=r.diff>=0?'#4ade80':'#60a5fa'; ctx.fill(); });
+  // Даты
+  ctx.fillStyle='rgba(148,163,184,.5)'; ctx.font='10px system-ui'; ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(h.length/5));
+  h.forEach((r,i)=>{ if(i%step===0||i===h.length-1) ctx.fillText(r.date.slice(5),xP(i),H-4); });
   // Легенда
-  const leg = [['#60a5fa','Акции'], ['#fbbf24','Вклад Сбера'], ['rgba(148,163,184,0.5)','Вложено']];
-  let lx = pad.l;
-  ctx.font = '11px system-ui';
-  ctx.textAlign = 'left';
-  leg.forEach(([c, label]) => {
-    ctx.fillStyle = c;
-    ctx.fillRect(lx, 4, 16, 3);
-    ctx.fillStyle = 'rgba(148,163,184,0.8)';
-    ctx.fillText(label, lx + 20, 12);
-    lx += ctx.measureText(label).width + 40;
+  [{c:'#60a5fa',l:'Акции'},{c:'#fbbf24',l:'Вклад Сбера'}].forEach(({c,l},i)=>{
+    const lx=pad.l+i*110;
+    ctx.fillStyle=c; ctx.fillRect(lx,4,16,3);
+    ctx.fillStyle='rgba(148,163,184,.7)'; ctx.textAlign='left'; ctx.fillText(l,lx+20,12);
   });
 }
 
-// Запускаем если вкладка уже активна
+function initDepositTab() {
+  _renderDepCards();
+  _renderDepSummary();
+  _renderDepTable();
+  _renderDepChart();
+}
+
 if (document.getElementById('tab-deposit')?.classList.contains('active')) initDepositTab();
 
 </script>
