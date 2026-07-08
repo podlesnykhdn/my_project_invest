@@ -18,6 +18,8 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20
 nav::-webkit-scrollbar{display:none;}
 .tab{padding:10px 14px;font-size:0.82rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;user-select:none;white-space:nowrap;}
 .tab:hover{color:var(--text);}.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.dep-btn{padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-size:.78rem;font-weight:500;transition:all .15s;white-space:nowrap;}
+.dep-btn:hover,.dep-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 main{max-width:980px;margin:0 auto;padding:20px 12px;}
 .panel{display:none;}.panel.active{display:block;}
 .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px;}
@@ -736,8 +738,11 @@ const DEP_OPS = [
 
 // Текущий портфель
 const DEP_CURRENT = {
-  SBER:{qty:80,price:304.53}, X5:{qty:45,price:2261.0},
-  LENT:{qty:53,price:1740.5}, BELU:{qty:12,price:249.2}, TGLD:{qty:5001,price:12.44}
+  SBER:{qty:80, price:295.71, avg:301.41},
+  X5:  {qty:45, price:1878.0, avg:2907.0},
+  LENT:{qty:53, price:1756.0, avg:1742.1},
+  BELU:{qty:12, price:244.4,  avg:453.6},
+  TGLD:{qty:5001,price:12.24, avg:13.24},
 };
 
 const TICKER_COLORS = {
