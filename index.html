@@ -306,6 +306,8 @@ function switchTab(name){
   if(name==='ofz'&&!window._ofzL){window._ofzL=true;loadOFZ();}
   if(name==='market'&&!window._mktL){window._mktL=true;loadMarket();}
   if(name==='pnl'&&!window._pnlL){window._pnlL=true;loadPnL();}
+
+  if(name==='deposit') initDepositTab();
 }
 function fmt(n){return new Intl.NumberFormat('ru-RU').format(Math.round(n));}
 function fmtVol(v){
@@ -776,12 +778,6 @@ function initDepositTab() {
   });
 }
 
-// Инициализируем при переключении на вкладку
-const _origSwitch = switchTab;
-function switchTab(name) {
-  _origSwitch(name);
-  if (name === 'deposit') initDepositTab();
-}
 // Запускаем если вкладка уже активна
 if (document.getElementById('tab-deposit')?.classList.contains('active')) initDepositTab();
 
