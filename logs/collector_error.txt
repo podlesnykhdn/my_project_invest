@@ -1,9 +1,0 @@
-[FATAL ERROR] 'stocks_value'
-
-Traceback (most recent call last):
-  File "/home/runner/work/my_project_invest/my_project_invest/collector.py", line 2588, in <module>
-    collect()
-  File "/home/runner/work/my_project_invest/my_project_invest/collector.py", line 2544, in collect
-    print(f"  [Вклад vs Акции] Акции: {deposit_comparison['stocks_value']:,.0f}₽ | Вклад: {deposit_comparison['deposit_value']:,.0f}₽ | Разница: {deposit_comparison['diff']:+,.0f}₽")
-                                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
-KeyError: 'stocks_value'
