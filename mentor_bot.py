@@ -56,9 +56,9 @@ def save_log(data):
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
 def get_lesson_num():
-    """Считаем номер урока по дням с начала проекта."""
-    start = date(2026, 6, 6)
-    delta = (date.today() - start).days + 6  # стартуем с урока 6
+    """Считаем номер урока по дням с начала проекта. Один урок в день, последовательно."""
+    start = date(2025, 2, 28)  # первая покупка акций — начало инвестиционного пути
+    delta = (date.today() - start).days + 1
     return max(delta, 1)
 
 # ─── ЗАГРУЗКА УРОКА ───────────────────────────────────────────────────────────
@@ -90,21 +90,37 @@ def format_lesson(lesson, num):
     )
 
 def format_progress(num):
-    total = 15
+    total = 43  # общее количество уроков
     done  = min(num, total)
     pct   = int(done / total * 100)
-    bar   = "█" * (done // 2) + "░" * ((total - done) // 2)
+    bar_len = 20
+    filled = int(done / total * bar_len)
+    bar = "█" * filled + "░" * (bar_len - filled)
+
+    BLOCKS = [
+        (1, 10, "Основы: акции, биржа, брокер"),
+        (11, 20, "Анализ компаний: отчётность, мультипликаторы"),
+        (21, 27, "Дивиденды: механика, налоги, стратегии"),
+        (28, 35, "Макро: ставка ЦБ, нефть, инфляция, санкции"),
+        (36, 43, "Стратегия: портфель, психология, когда продавать"),
+    ]
+    block_lines = []
+    for start, end, title in BLOCKS:
+        if done >= end:
+            icon = "✅"
+        elif done >= start:
+            icon = "📍"
+        else:
+            icon = "⬜"
+        block_lines.append(f"{icon} Уроки {start}-{end}: {title}")
+
     return (
         f"📊 <b>Твой прогресс обучения</b>\n"
         f"{'─' * 28}\n"
-        f"Пройдено уроков: {done}/{total}\n"
+        f"Пройдено: {done}/{total} уроков\n"
         f"[{bar}] {pct}%\n\n"
-        f"Текущий урок: #{num}\n"
-        f"Осталось до конца блока: {total - done} уроков\n\n"
-        f"Блоки обучения:\n"
-        f"{'✅' if num > 5 else '📍'} Уроки 1-5: Основы акций и биржи\n"
-        f"{'✅' if num > 10 else ('📍' if num > 5 else '⬜')} Уроки 6-10: Котировки, дивиденды, P/E\n"
-        f"{'✅' if num > 15 else ('📍' if num > 10 else '⬜')} Уроки 11-15: Стратегии и риски"
+        f"Текущий урок: #{num}\n\n"
+        f"<b>Блоки:</b>\n" + "\n".join(block_lines)
     )
 
 # ─── ОСНОВНАЯ ЛОГИКА ──────────────────────────────────────────────────────────
