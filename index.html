@@ -402,8 +402,8 @@ async function loadPortfolio(){
       const lp=lmap[pos.ticker]||{};
       const tp=tinkoffPos[pos.ticker]||{};
       // qty и avg_price — только из Tinkoff API
-      const qty=+(tp.qty||qty||0);
-      const avg_price=+(tavg_price||0);
+      const qty=+(tp.qty||pos.qty||0);
+      const avg_price=+(tp.avg_price||0);
       const price=qi.price||lp.price||+(tp.curr_price||0)||0;
       const ch=qi.change||lp.change||0,pct=qi.pct||lp.pct||0,vol=qi.vol||lp.volume||0;
       const pv=price*qty;if(price>0)hd=true;tv+=pv;tc+=ch*qty;
