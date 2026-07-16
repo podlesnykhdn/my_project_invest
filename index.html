@@ -713,27 +713,22 @@ function _getDepData() {
 function _renderDepCards() {
   const { buys, sells, divs, current, tp } = _getDepData();
 
-  const totalSpent = buys.reduce((s,o) => s+o.total, 0);
-  const totalSold  = sells.reduce((s,o) => s+o.total, 0);
-  const netInv     = totalSpent - totalSold;
+  // Потрачено и выручено
+  const totalSpent    = buys.reduce((s,o) => s+o.total, 0);
+  const totalSold     = sells.reduce((s,o) => s+o.total, 0);
+  const netInvested   = totalSpent - totalSold;
 
-  // Текущая стоимость портфеля из Tinkoff
+  // Текущая стоимость портфеля из Tinkoff API
   const curVal = tp.total_current || 0;
 
-  // Вклад: каждая покупка лежала бы на вкладе
-  const depVal = buys.reduce((s,o) => s + o.total*(1 + o.rate/100*_days(o.date)/365), 0);
+  // Вклад: каждая покупка лежала бы на счёте, каждая продажа — уходила
+  const depVal = buys.reduce((s,o) => s + o.total*(1 + o.rate/100*_days(o.date)/365), 0)
+               - sells.reduce((s,o) => s + o.total*(1 + o.rate/100*_days(o.date)/365), 0);
 
-  // Выручка от продаж на вкладе с даты продажи
-  const soldDep = sells.reduce((s,o) => s + o.total*(1 + o.rate/100*_days(o.date)/365), 0);
+  const depIncome = depVal - netInvested;
 
-  // Дивиденды на вкладе
-  const totalDivs = Object.values(divs).reduce((s,v) => s+v, 0);
-  // Используем среднюю дату получения дивидендов ~365 дней назад (приближение)
-  const divDep = totalDivs * (1 + 0.125 * (180/365));
-
-  // Итого «сторона акций»: текущий портфель + выручка на вкладе + дивиденды на вкладе
-  const stocksTotal = curVal + soldDep + divDep;
-  const diff = stocksTotal - depVal;
+  // Разница: портфель vs вклад
+  const diff = curVal - depVal;
 
   document.getElementById('dep-cards').innerHTML = `
     <div class="card">
@@ -741,67 +736,59 @@ function _renderDepCards() {
       <div class="val" style="color:var(--accent)">${_fmtR(totalSpent)}</div>
     </div>
     <div class="card">
-      <div class="lbl">Портфель сейчас</div>
-      <div class="val" style="color:${curVal>=netInv?'var(--green)':'var(--red)'}">${_fmtR(curVal)}</div>
-      <div style="font-size:.7rem;color:var(--muted)">чистые вложения ${_fmtR(netInv)}</div>
+      <div class="lbl">Чистые вложения</div>
+      <div class="val">${_fmtR(netInvested)}</div>
+      <div style="font-size:.7rem;color:var(--muted)">выручено от продаж ${_fmtR(totalSold)}</div>
     </div>
     <div class="card">
-      <div class="lbl">Акции + продажи + дивы</div>
-      <div class="val" style="color:${stocksTotal>=depVal?'var(--green)':'var(--red)'}">${_fmtR(stocksTotal)}</div>
+      <div class="lbl">Портфель акций сейчас</div>
+      <div class="val" style="color:${curVal>=netInvested?'var(--green)':'var(--red)'}">${_fmtR(curVal)}</div>
     </div>
     <div class="card">
       <div class="lbl">Вклад Сбера (расчётно)</div>
       <div class="val" style="color:#fbbf24">${_fmtR(depVal)}</div>
+      <div style="font-size:.7rem;color:var(--muted)">доход ${_fmtR(depIncome)}</div>
     </div>
     <div class="card">
       <div class="lbl">Разница (акции − вклад)</div>
       <div class="val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${_fmtR(diff)}</div>
-      <div style="font-size:.7rem;color:var(--muted)">${diff>=0?'акции выгоднее 🎯':'вклад выгоднее пока'}</div>
+      <div style="font-size:.7rem;color:${diff>=0?'var(--green)':'var(--red)'};">${diff>=0?'🎯 Акции выгоднее':'📉 Вклад выгоднее на '+_fmtR(Math.abs(diff))}</div>
     </div>
   `;
 }
-
 function _renderDepSummary() {
   const el = document.getElementById('dep-company-summary');
   if (_depFilter === 'ALL') { el.style.display='none'; return; }
 
-  const { buys, sells, divs, current } = _getDepData();
+  const { buys, sells, current } = _getDepData();
   const t = _depFilter;
   const color = TICKER_COLORS[t] || '#94a3b8';
 
   const tb = buys.filter(o => o.ticker===t);
   const ts = sells.filter(o => o.ticker===t);
 
-  // Факты
-  const boughtQty = tb.reduce((s,o)=>s+o.qty, 0);
-  const soldQty   = ts.reduce((s,o)=>s+o.qty, 0);
-  const heldQty   = current[t]?.qty || 0;
-  const currPrice = current[t]?.price || 0;
-  const avgPrice  = current[t]?.avg || 0;
+  const boughtQty  = tb.reduce((s,o) => s+o.qty, 0);
+  const soldQty    = ts.reduce((s,o) => s+o.qty, 0);
+  const heldQty    = current[t]?.qty || 0;
+  const currPrice  = current[t]?.price || 0;
+  const currVal    = heldQty * currPrice;
 
-  // Деньги
-  const spent    = tb.reduce((s,o)=>s+o.total, 0);        // потрачено на покупки
-  const received = ts.reduce((s,o)=>s+o.total, 0);        // выручено от продаж
-  const netSpent = spent - received;                        // чистые вложения
+  const spent      = tb.reduce((s,o) => s+o.total, 0);
+  const received   = ts.reduce((s,o) => s+o.total, 0);
+  const netSpent   = spent - received;
 
-  // Текущая стоимость позиции в портфеле
-  const currVal  = heldQty * currPrice;
+  // Вклад по этой позиции
+  const depVal = tb.reduce((s,o) => s+o.total*(1+o.rate/100*_days(o.date)/365), 0)
+               - ts.reduce((s,o) => s+o.total*(1+o.rate/100*_days(o.date)/365), 0);
 
-  // Вклад: каждая покупка лежала бы на счёте по ставке на дату
-  const depVal   = tb.reduce((s,o)=>s+o.total*(1+o.rate/100*_days(o.date)/365), 0);
-  // Минус выручка от продаж (она "вышла" из вклада в дату продажи)
-  const soldDep  = ts.reduce((s,o)=>s+o.total*(1+o.rate/100*_days(o.date)/365), 0);
-  const depTotal = depVal - soldDep;  // что осталось бы на вкладе
-
-  // Итоговое сравнение
-  const pnl      = currVal - netSpent;
-  const pnlPct   = netSpent > 0 ? (pnl / netSpent * 100) : 0;
-  const diff     = currVal - depTotal;  // акции - вклад
-  const isWin    = diff >= 0;
+  const pnl     = currVal - netSpent;
+  const pnlPct  = netSpent > 0 ? (pnl/netSpent*100) : 0;
+  const diff    = currVal - depVal;
+  const isWin   = diff >= 0;
 
   el.style.display = 'block';
 
-  // Блок 1: факты
+  // Блок фактов
   document.getElementById('dep-s-facts').innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;">
       <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Куплено</div>
@@ -825,43 +812,40 @@ function _renderDepSummary() {
     </div>
   `;
 
-  // Блок 2: сравнение с вкладом
+  // Блок сравнения
   document.getElementById('dep-s-compare').innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-      <span style="font-size:.8rem;font-weight:600;color:var(--text);">Сравнение с вкладом Сбербанка</span>
+      <span style="font-size:.8rem;font-weight:600;">Сравнение с вкладом Сбербанка</span>
       <span style="font-size:.7rem;color:var(--muted);">(базовая ставка на дату каждой покупки)</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
       <div>
+        <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Чистые вложения</div>
+        <div style="font-size:1.1rem;font-weight:700;">${_fmtR(netSpent)}</div>
+      </div>
+      <div>
         <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Акции сейчас</div>
-        <div style="font-size:1.2rem;font-weight:700;color:${color};">${_fmtR(currVal)}</div>
+        <div style="font-size:1.1rem;font-weight:700;color:${color};">${_fmtR(currVal)}</div>
       </div>
       <div>
         <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Вклад принёс бы</div>
-        <div style="font-size:1.2rem;font-weight:700;color:#fbbf24;">${_fmtR(depTotal)}</div>
-        <div style="font-size:.7rem;color:var(--muted);margin-top:2px;">доход ${_fmtR(depTotal-netSpent)}</div>
-      </div>
-      <div>
-        <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Разница</div>
-        <div style="font-size:1.2rem;font-weight:700;color:${isWin?'var(--green)':'var(--red)'};">${isWin?'+':''}${_fmtR(diff)}</div>
-        <div style="font-size:.7rem;color:${isWin?'var(--green)':'var(--red)'};margin-top:2px;font-weight:600;">${isWin?'🎯 Акции выгоднее':'📉 Вклад выгоднее'}</div>
+        <div style="font-size:1.1rem;font-weight:700;color:#fbbf24;">${_fmtR(depVal)}</div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:2px;">доход ${_fmtR(depVal-netSpent)}</div>
       </div>
     </div>
-    <!-- Визуальный индикатор -->
-    <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+    <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden;margin-bottom:6px;">
       ${(()=>{
-        const total = currVal + depTotal;
-        const stocksPct = total>0 ? (currVal/total*100) : 50;
-        return `<div style="height:100%;width:${stocksPct.toFixed(1)}%;background:${color};border-radius:4px;transition:width .5s;"></div>`;
+        const total = currVal + depVal;
+        const pct = total>0?(currVal/total*100):50;
+        return `<div style="height:100%;width:${pct.toFixed(1)}%;background:${color};border-radius:4px;transition:width .5s;"></div>`;
       })()}
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-top:4px;">
-      <span style="color:${color};">▪ Акции</span>
-      <span style="color:#fbbf24;">▪ Вклад</span>
+    <div style="display:flex;justify-content:space-between;font-size:.75rem;font-weight:600;">
+      <span style="color:${isWin?'var(--green)':'var(--red)'};">${isWin?'🎯':'📉'} Разница: ${diff>=0?'+':''}${_fmtR(diff)}</span>
+      <span style="color:var(--muted);">${isWin?'Акции выгоднее':'Вклад выгоднее'}</span>
     </div>
   `;
 }
-
 function _renderDepTable() {
   const { buys, sells } = _getDepData();
   const t = _depFilter;
