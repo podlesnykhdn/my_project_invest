@@ -297,13 +297,34 @@ const FUNDAMENTALS={
 const CBR_RATE=14.25;
 const DEBT_DATA={"X5": {"debt_ebitda": 0.5, "note": "МСФО 2025"}, "LENT": {"debt_ebitda": 2.38, "note": "временно из-за O'Key"}, "SBER": {"debt_ebitda": null, "note": "банк"}, "BELU": {"debt_ebitda": 1.96, "note": "МСФО 2025"}, "TGLD": {"debt_ebitda": null, "note": "ETF"}};
 const TNAMES={"AKFB": "Альфа-Капитал Обл с перем купоном", "AKMP": "Альфа-Капитал Денежный рынок Плюс", "BCSD": "БКС Денежный рынок", "CNYM": "Альфа-Капитал Юань", "FMMM": "Финам Денежный рынок", "OBLG": "ВТБ Российские облигации", "PSMM": "ПСБ Денежный рынок", "AKMM": "Альфа-Капитал Денежный рынок", "AKMB": "Альфа-Капитал Управляемые облигации", "LQDT": "ВТБ Ликвидность", "CASH": "ААА Ежедневный процент", "TMON": "Т-Капитал Денежный рынок", "SBMM": "Сбер Денежный рынок", "SCLI": "Система-Капитал Ликвидный", "GOOD": "ДОХОДЪ Денежный рынок", "MONY": "АК БАРС Денежный рынок", "TGLD": "Тинькофф Золото", "GOLD": "ВТБ Золото", "EQMX": "ВТБ Индекс МосБиржи", "TMOS": "Тинькофф Индекс МосБиржи", "SBGB": "Сбер Гособлигации", "SBER": "Сбер", "SBERP": "Сбер п", "LKOH": "Лукойл", "GAZP": "Газпром", "ROSN": "Роснефть", "NVTK": "Новатэк", "GMKN": "Норникель", "TATN": "Татнефть", "TATNP": "Татнефть п", "MGNT": "Магнит", "YDEX": "Яндекс", "MTSS": "МТС", "MOEX": "Мосбиржа", "PLZL": "Полюс", "CHMF": "Северсталь", "NLMK": "НЛМК", "MAGN": "ММК", "ALRS": "Алроса", "SNGS": "Сургутнефтегаз", "VTBR": "ВТБ", "T": "Т-Технологии", "SMLT": "Самолёт", "UGLD": "ЮГК", "AFKS": "АФК Система", "AFLT": "Аэрофлот", "ASTR": "Астра", "CBOM": "МКБ", "ENPG": "ЭН+ Груп", "IRAO": "Интер РАО", "MTLR": "Мечел", "MTLRP": "Мечел п", "PIKK": "ПИК", "HYDR": "РусГидро", "FEES": "Россети", "MSNG": "Мосэнерго", "RUAL": "Русал", "FLOT": "Совкомфлот", "PHOR": "ФосАгро", "OZON": "Озон", "HEAD": "Хэдхантер", "POSI": "Позитив", "SGZH": "Сегежа", "VKCO": "ВК", "SELG": "Селигдар", "WUSH": "Whoosh", "LEAS": "Европлан", "BSPB": "БСП", "SVCB": "Совкомбанк", "SPBE": "СПБ Биржа", "RTKM": "Ростелеком", "UPRO": "Юнипро", "TRNFP": "Транснефть п", "NMTP": "НМТП", "FESH": "FESCO", "SVAV": "СОЛЛЕРС", "UKUZ": "Южный Кузбасс", "KUZB": "Кузбасская топл", "MBNK": "МТС Банк", "RENI": "Ренессанс страхование", "ZAYM": "Займер", "FIXR": "Fix Price", "MVID": "М.Видео", "LSRG": "ЛСР", "AKRN": "Акрон", "TRMK": "ТМК", "RASP": "Распадская", "KMAZ": "КАМАЗ", "NKNC": "Нижнекамскнефтехим", "BELU": "НоваБев (Белуга)", "LENT": "Лента", "X5": "ИКС 5 (Пятёрочка)", "ABRD": "Абрау-Дюрсо", "AQUA": "Инарктика", "DELI": "Делимобиль", "DIAS": "Диасофт", "EUTR": "ЕвроТранс", "HNFG": "Хэндерсон", "MDMG": "Мать и дитя", "NKHP": "НКХП", "OKEY": "О'Кей", "PRMD": "Промомед", "RUGR": "Русагро", "SFIN": "ЭсЭфАй", "SOFL": "Softline", "SFTL": "Softline", "TNSE": "ТНС энерго"};
-const PORTFOLIO=[
-  {name:"ПАО «Корпоративный центр ИКС 5»",short:"ИКС 5",ticker:"X5",board:"TQBR",qty:45,div:true},
-  {name:"МКПАО «Лента»",short:"Лента",ticker:"LENT",board:"TQBR",qty:53,div:false},
-  {name:"ПАО Сбербанк",short:"Сбербанк",ticker:"SBER",board:"TQBR",qty:80,div:true},
-  {name:"ПАО «НоваБев Групп»",short:"НоваБев Групп",ticker:"BELU",board:"TQBR",qty:12,div:true},
-  {name:"БПИФ «Тинькофф Золото»",short:"ТБанк Золото",ticker:"TGLD",board:"TQTF",qty:5001,div:false,etf:true},
-];
+// Мета-данные позиций (статичные: название, доска, флаги)
+// qty, avg_price, curr_price — ВСЕГДА из _E.tinkoff_portfolio (Tinkoff API)
+const PORTFOLIO_META={
+  X5:   {name:"ПАО «Корпоративный центр ИКС 5»", short:"ИКС 5",   board:"TQBR", div:true},
+  LENT: {name:"МКПАО «Лента»",                   short:"Лента",    board:"TQBR", div:false},
+  SBER: {name:"ПАО Сбербанк",                     short:"Сбербанк", board:"TQBR", div:true},
+  BELU: {name:"ПАО «НоваБев Групп»",              short:"НоваБев",  board:"TQBR", div:true},
+  TGLD: {name:"БПИФ «Тинькофф Золото»",           short:"ТБанк Золото", board:"TQTF", div:false, etf:true},
+};
+
+// PORTFOLIO — строится из Tinkoff API при каждой загрузке
+function buildPortfolioFromAPI() {
+  const positions = (_E.tinkoff_portfolio || {}).positions || [];
+  return positions
+    .filter(p => p.ticker && p.ticker !== 'RUB' && PORTFOLIO_META[p.ticker])
+    .map(p => ({
+      ...PORTFOLIO_META[p.ticker],
+      ticker:      p.ticker,
+      qty:         +p.qty,
+      avg_price:   +p.avg_price,
+      curr_price:  +p.curr_price,
+      pnl:         +p.pnl,
+      invested:    Math.round(+p.qty * +p.avg_price),
+      current_val: Math.round(+p.qty * +p.curr_price),
+    }));
+}
+
+const PORTFOLIO = buildPortfolioFromAPI();
 const PNAMES={X5:"ПАО «Корпоративный центр ИКС 5»",LENT:"МКПАО «Лента»",SBER:"ПАО Сбербанк",BELU:"ПАО «НоваБев Групп»",TGLD:"БПИФ «Тинькофф Золото»"};
 
 function switchTab(name){
