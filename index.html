@@ -324,7 +324,19 @@ function buildPortfolioFromAPI() {
     }));
 }
 
-const PORTFOLIO = buildPortfolioFromAPI();
+// PORTFOLIO строится лениво при первом обращении — после того как _E загружен
+let _PORTFOLIO_CACHE = null;
+function getPortfolio() {
+  if (!_PORTFOLIO_CACHE || _PORTFOLIO_CACHE.length === 0) {
+    _PORTFOLIO_CACHE = buildPortfolioFromAPI();
+  }
+  return _PORTFOLIO_CACHE;
+}
+// Совместимость: PORTFOLIO как геттер
+const PORTFOLIO = new Proxy([], {
+  get(_, prop) { return getPortfolio()[prop]; },
+  has(_, prop) { return prop in getPortfolio(); },
+});
 const PNAMES={X5:"ПАО «Корпоративный центр ИКС 5»",LENT:"МКПАО «Лента»",SBER:"ПАО Сбербанк",BELU:"ПАО «НоваБев Групп»",TGLD:"БПИФ «Тинькофф Золото»"};
 
 function switchTab(name){
@@ -386,8 +398,8 @@ async function getLog(){
 
 async function loadPortfolio(){
   try{
-    const st=PORTFOLIO.filter(p=>p.board==='TQBR').map(p=>p.ticker).join(',');
-    const et=PORTFOLIO.filter(p=>p.board==='TQTF').map(p=>p.ticker).join(',');
+    const st=getPortfolio().filter(p=>p.board==='TQBR').map(p=>p.ticker).join(',');
+    const et=getPortfolio().filter(p=>p.board==='TQTF').map(p=>p.ticker).join(',');
     const q={};
     function parse(data){
       if(!data||!data.marketdata)return;
@@ -411,7 +423,7 @@ async function loadPortfolio(){
     const lpos=((_E.portfolio||{}).positions||[]);
     const lmap={};lpos.forEach(p=>{lmap[p.ticker]=p;});
     let tv=0,tc=0,hd=false;
-    const rows=PORTFOLIO.map(pos=>{
+    const rows=getPortfolio().map(pos=>{
       const qi=q[pos.ticker]||{};
       const lp=lmap[pos.ticker]||{};
       const price=qi.price||lp.price||0,ch=qi.change||lp.change||0,pct=qi.pct||lp.pct||0,vol=qi.vol||lp.volume||0;
@@ -641,7 +653,7 @@ async function loadPnL(){
     document.getElementById('pnl-rub').className='val '+cls;
     document.getElementById('pnl-pct').textContent=sign+pct.toFixed(2)+'%';
     document.getElementById('pnl-pct').className='val '+cls;
-    const nm={};PORTFOLIO.forEach(function(p){nm[p.ticker]=p.short||p.name;});
+    const nm={};getPortfolio().forEach(function(p){nm[p.ticker]=p.short||p.name;});
     const pos=(tp.positions||[]).filter(function(p){return p.ticker!=='RUB';});
     pos.sort(function(a,b){return Math.abs(b.pnl)-Math.abs(a.pnl);});
     tb.innerHTML=pos.map(function(p){
