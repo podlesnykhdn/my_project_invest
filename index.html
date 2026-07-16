@@ -307,20 +307,6 @@ const PORTFOLIO=[
   {name:"БПИФ «Тинькофф Золото»",           short:"ТБанк Золото",ticker:"TGLD",board:"TQTF", div:false, etf:true},
 ];
 
-// Получить данные позиции из Tinkoff API
-function getTinkoffPosition(ticker) {
-  const positions = ((_E||{}).tinkoff_portfolio||{}).positions || [];
-  const p = positions.find(p => p.ticker === ticker);
-  if (!p) return null;
-  return {
-    qty:         +p.qty,
-    avg_price:   +p.avg_price,
-    curr_price:  +p.curr_price,
-    pnl:         +p.pnl,
-    invested:    Math.round(+p.qty * +p.avg_price),
-    current_val: Math.round(+p.qty * +p.curr_price),
-  };
-}
 
 const PNAMES={X5:"ПАО «Корпоративный центр ИКС 5»",LENT:"МКПАО «Лента»",SBER:"ПАО Сбербанк",BELU:"ПАО «НоваБев Групп»",TGLD:"БПИФ «Тинькофф Золото»"};
 
@@ -408,11 +394,19 @@ async function loadPortfolio(){
     const lpos=((_E.portfolio||{}).positions||[]);
     const lmap={};lpos.forEach(p=>{lmap[p.ticker]=p;});
     let tv=0,tc=0,hd=false;
+    // Берём qty и avg_price из Tinkoff API (_E.tinkoff_portfolio)
+    const tinkoffPos={};
+    ((_E.tinkoff_portfolio||{}).positions||[]).forEach(p=>{tinkoffPos[p.ticker]=p;});
     const rows=PORTFOLIO.map(pos=>{
       const qi=q[pos.ticker]||{};
       const lp=lmap[pos.ticker]||{};
-      const price=qi.price||lp.price||0,ch=qi.change||lp.change||0,pct=qi.pct||lp.pct||0,vol=qi.vol||lp.volume||0;
-      const pv=price*pos.qty;if(price>0)hd=true;tv+=pv;tc+=ch*pos.qty;
+      const tp=tinkoffPos[pos.ticker]||{};
+      // qty и avg_price — только из Tinkoff API
+      const qty=+(tp.qty||qty||0);
+      const avg_price=+(tavg_price||0);
+      const price=qi.price||lp.price||+(tp.curr_price||0)||0;
+      const ch=qi.change||lp.change||0,pct=qi.pct||lp.pct||0,vol=qi.vol||lp.volume||0;
+      const pv=price*qty;if(price>0)hd=true;tv+=pv;tc+=ch*qty;
       const cls=ch>0?'up':ch<0?'dn':'neu',sign=ch>=0?'+':'';
       const badge=pos.etf?'<span class="badge etf">ETF</span>':pos.div?'<span class="badge yes">Да</span>':'<span class="badge no">Нет</span>';
       const prevC=(lp.prev_price&&lp.prev_price!==price)?'<span style="color:var(--muted);font-size:0.72rem;">'+fmt(lp.prev_price)+' ₽</span>':'—';
@@ -466,7 +460,7 @@ async function loadPortfolio(){
         const peAvgStr=peAvg?' (ср. '+peAvg+')':'';
         peHtml='<span class="mono" style="'+peC+'">'+pe+peAvgStr+'</span>';
       }
-      return '<tr><td title="'+pos.name+'">'+(pos.short||pos.name)+'</td><td class="mono">'+pos.ticker+'</td><td class="mono">'+fmt(pos.qty)+'</td><td class="mono">'+(price?fmt(price)+' ₽':'—')+'</td><td class="mono">'+prevC+'</td><td class="mono '+cls+'">'+(price?(sign+ch.toFixed(2)+' ('+sign+pct.toFixed(1)+'%)'):'—')+'</td><td class="mono">'+fmtVol(vol)+'</td><td class="mono">'+(price?fmt(pv)+' ₽':'—')+'</td><td>'+athC+'</td><td>'+peHtml+'</td><td>'+badge+'</td></tr>';
+      return '<tr><td title="'+pos.name+'">'+(pos.short||pos.name)+'</td><td class="mono">'+pos.ticker+'</td><td class="mono">'+fmt(qty)+'</td><td class="mono">'+(price?fmt(price)+' ₽':'—')+'</td><td class="mono">'+prevC+'</td><td class="mono '+cls+'">'+(price?(sign+ch.toFixed(2)+' ('+sign+pct.toFixed(1)+'%)'):'—')+'</td><td class="mono">'+fmtVol(vol)+'</td><td class="mono">'+(price?fmt(pv)+' ₽':'—')+'</td><td>'+athC+'</td><td>'+peHtml+'</td><td>'+badge+'</td></tr>';
     });
     document.getElementById('ptbody').innerHTML=rows.join('');
     if(hd){const cls=tc>=0?'up':'dn',sign=tc>=0?'+':'';document.getElementById('c-total').textContent=fmt(tv)+' ₽';document.getElementById('c-change').className='val '+cls;document.getElementById('c-change').textContent=sign+fmt(tc)+' ₽';document.getElementById('c-status').textContent='MOEX Live';document.getElementById('c-status').style.color='var(--green)';document.getElementById('portfolio-notice').innerHTML='';}
@@ -650,7 +644,7 @@ async function loadPnL(){
         +'<td>'+name+'</td>'
         +'<td class="mono">'+(p.ticker||'—')+'</td>'
         +'<td class="mono">'+((getTinkoffPosition(p.ticker)||{}).qty||p.qty||'—')+'</td>'
-        +'<td class="mono">'+(p.avg_price?fmt(p.avg_price)+' ₽':'—')+'</td>'
+        +'<td class="mono">'+(avg_price?fmt(avg_price)+' ₽':'—')+'</td>'
         +'<td class="mono">'+(p.invested?fmt(p.invested)+' ₽':'—')+'</td>'
         +'<td class="mono">'+(p.curr_price?fmt(p.curr_price)+' ₽':'—')+'</td>'
         +'<td class="mono">'+(p.current_val?fmt(p.current_val)+' ₽':'—')+'</td>'
@@ -721,7 +715,7 @@ function _getDepData() {
       current[p.ticker] = {
         qty:   +p.qty,
         price: +p.curr_price,
-        avg:   +p.avg_price,
+        avg:   +avg_price,
         pnl:   +p.pnl,
       };
     }
