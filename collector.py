@@ -2230,94 +2230,34 @@ SBER_DEPOSIT_RATES = [
     ("2026-04-30",  6.5),
 ]
 
-# История операций из Tinkoff API
-# Покупки — все наши акции
-BUYS_HISTORY = [
-    {"date":"2025-02-28","ticker":"SBER","qty":120,"price":307.34,"total":36880.8},
-    {"date":"2025-03-16","ticker":"TGLD","qty":100,"price":11.68,"total":1168.46},
-    {"date":"2025-03-16","ticker":"SBER","qty":10,"price":321.19,"total":3211.9},
-    {"date":"2025-03-18","ticker":"X5","qty":2,"price":3614.0,"total":7228.0},
-    {"date":"2025-03-20","ticker":"X5","qty":10,"price":3734.25,"total":37342.5},
-    {"date":"2025-03-28","ticker":"X5","qty":1,"price":3509.0,"total":3509.0},
-    {"date":"2025-03-31","ticker":"X5","qty":2,"price":3515.0,"total":7030.0},
-    {"date":"2025-03-31","ticker":"SBER","qty":10,"price":308.45,"total":3084.5},
-    {"date":"2025-04-25","ticker":"X5","qty":3,"price":3404.0,"total":10212.0},
-    {"date":"2025-05-16","ticker":"TGLD","qty":200,"price":10.06,"total":2012.18},
-    {"date":"2025-05-23","ticker":"BELU","qty":6,"price":459.0,"total":2754.0},
-    {"date":"2025-05-26","ticker":"LENT","qty":10,"price":1437.2,"total":14372.0},
-    {"date":"2025-05-28","ticker":"X5","qty":1,"price":3271.0,"total":3271.0},
-    {"date":"2025-05-28","ticker":"BELU","qty":1,"price":461.5,"total":461.5},
-    {"date":"2025-05-28","ticker":"LENT","qty":2,"price":1440.0,"total":2880.0},
-    {"date":"2025-06-11","ticker":"X5","qty":1,"price":3273.5,"total":3273.5},
-    {"date":"2025-06-26","ticker":"TGLD","qty":10,"price":9.72,"total":97.16},
-    {"date":"2025-06-27","ticker":"LENT","qty":1,"price":1412.0,"total":1412.0},
-    {"date":"2025-06-29","ticker":"LENT","qty":1,"price":1417.0,"total":1417.0},
-    {"date":"2025-07-01","ticker":"X5","qty":2,"price":3497.0,"total":6994.0},
-    {"date":"2025-07-01","ticker":"LENT","qty":2,"price":1445.5,"total":2891.0},
-    {"date":"2025-07-16","ticker":"X5","qty":3,"price":2935.0,"total":8805.0},
-    {"date":"2025-07-16","ticker":"BELU","qty":1,"price":426.5,"total":426.5},
-    {"date":"2025-07-16","ticker":"TGLD","qty":30,"price":9.33,"total":279.98},
-    {"date":"2025-07-28","ticker":"X5","qty":1,"price":3006.0,"total":3006.0},
-    {"date":"2025-07-28","ticker":"BELU","qty":2,"price":452.0,"total":904.0},
-    {"date":"2025-08-05","ticker":"LENT","qty":6,"price":1733.0,"total":10398.0},
-    {"date":"2025-08-05","ticker":"SBER","qty":3,"price":306.56,"total":919.68},
-    {"date":"2025-08-07","ticker":"LENT","qty":4,"price":1706.25,"total":6823.0},
-    {"date":"2025-08-13","ticker":"LENT","qty":2,"price":1715.0,"total":3430.0},
-    {"date":"2025-08-13","ticker":"TGLD","qty":2,"price":10.67,"total":21.34},
-    {"date":"2025-08-25","ticker":"TGLD","qty":709,"price":10.8,"total":7657.23},
-    {"date":"2025-08-28","ticker":"LENT","qty":3,"price":1817.5,"total":5452.5},
-    {"date":"2025-08-28","ticker":"BELU","qty":2,"price":448.6,"total":897.2},
-    {"date":"2025-08-29","ticker":"TGLD","qty":1,"price":10.92,"total":10.92},
-    {"date":"2025-10-10","ticker":"SBER","qty":16,"price":288.73,"total":4619.68},
-    {"date":"2025-10-13","ticker":"SBER","qty":11,"price":288.14,"total":3169.54},
-    {"date":"2025-10-13","ticker":"LENT","qty":3,"price":1690.0,"total":5070.0},
-    {"date":"2025-10-17","ticker":"TGLD","qty":3,"price":14.13,"total":42.39},
-    {"date":"2025-10-22","ticker":"LENT","qty":2,"price":1694.5,"total":3389.0},
-    {"date":"2025-11-05","ticker":"TGLD","qty":17,"price":12.83,"total":218.11},
-    {"date":"2025-11-13","ticker":"SBER","qty":14,"price":300.4,"total":4205.6},
-    {"date":"2025-11-13","ticker":"TGLD","qty":139,"price":13.6,"total":1890.38},
-    {"date":"2025-11-13","ticker":"X5","qty":3,"price":2686.67,"total":8060.0},
-    {"date":"2025-11-14","ticker":"TGLD","qty":3,"price":13.45,"total":40.24},
-    {"date":"2025-11-24","ticker":"TGLD","qty":250,"price":12.81,"total":3202.5},
-    {"date":"2025-11-28","ticker":"LENT","qty":2,"price":1712.5,"total":3425.0},
-    {"date":"2025-11-28","ticker":"TGLD","qty":202,"price":12.98,"total":2621.96},
-    {"date":"2025-12-12","ticker":"TGLD","qty":370,"price":13.52,"total":5002.41},
-    {"date":"2025-12-26","ticker":"TGLD","qty":100,"price":13.71,"total":1371.0},
-    {"date":"2026-01-23","ticker":"TGLD","qty":6,"price":14.76,"total":88.56},
-    {"date":"2026-02-02","ticker":"TGLD","qty":776,"price":13.82,"total":10724.16},
-    {"date":"2026-02-14","ticker":"LENT","qty":5,"price":2109.0,"total":10545.0},
-    {"date":"2026-02-14","ticker":"X5","qty":5,"price":2441.0,"total":12205.0},
-    {"date":"2026-02-16","ticker":"LENT","qty":2,"price":2129.0,"total":4258.0},
-    {"date":"2026-02-16","ticker":"TGLD","qty":1002,"price":15.25,"total":15280.5},
-    {"date":"2026-02-19","ticker":"LENT","qty":3,"price":2088.0,"total":6264.0},
-    {"date":"2026-02-19","ticker":"TGLD","qty":1,"price":15.26,"total":15.26},
-    {"date":"2026-02-24","ticker":"X5","qty":11,"price":2439.91,"total":26839.0},
-    {"date":"2026-02-24","ticker":"TGLD","qty":6,"price":15.75,"total":94.5},
-    {"date":"2026-02-25","ticker":"LENT","qty":5,"price":2060.5,"total":10302.5},
-    {"date":"2026-02-26","ticker":"TGLD","qty":2,"price":15.94,"total":31.88},
-    {"date":"2026-04-02","ticker":"TGLD","qty":175,"price":14.67,"total":2567.25},
-    {"date":"2026-04-10","ticker":"X5","qty":2,"price":2451.0,"total":4902.0},
-    {"date":"2026-04-13","ticker":"TGLD","qty":1,"price":14.24,"total":14.24},
-    {"date":"2026-04-23","ticker":"TGLD","qty":429,"price":14.0,"total":6006.02},
-    {"date":"2026-06-22","ticker":"TGLD","qty":382,"price":12.19,"total":4656.58},
-    {"date":"2026-06-22","ticker":"SBER","qty":6,"price":304.71,"total":1828.26},
-    {"date":"2026-06-22","ticker":"X5","qty":3,"price":2236.5,"total":6709.5},
-    {"date":"2026-06-26","ticker":"TGLD","qty":1,"price":12.58,"total":12.58},
-]
+# История операций — читается из logs/operations_history.json (Tinkoff API)
+# Никаких захардкоженных данных — всё из реального API
 
-# Продажи наших акций
-SELLS_HISTORY = [
-    {"date":"2025-02-28","ticker":"SBER","qty":110,"price":308.41,"total":33925.1},
-    {"date":"2025-03-20","ticker":"X5","qty":5,"price":3735.0,"total":18675.0},
-    {"date":"2026-04-02","ticker":"TGLD","qty":340,"price":7.587,"total":2579.58},
-]
+MY_TICKERS = {"SBER", "X5", "LENT", "BELU", "TGLD"}
 
-# Дивиденды (чистыми после налогов)
-DIVIDENDS_RECEIVED = [
-    {"date":"2025-07-22","ticker":"X5","total":19848.0},   # дивиденды X5
-    {"date":"2025-06-30","ticker":"BELU","total":415.0},   # дивиденды BELU
-    {"date":"2025-08-15","ticker":"SBER","total":1045.0},  # дивиденды SBER
-]
+def _load_operations_from_file():
+    """Загружает операции из logs/operations_history.json (данные Tinkoff API)."""
+    ops_file = BASE_DIR / "logs" / "operations_history.json"
+    if not ops_file.exists():
+        print("  [deposit] operations_history.json не найден — используем пустые списки")
+        return [], [], {}
+    try:
+        with open(ops_file, encoding="utf-8") as f:
+            ops = json.load(f)
+        buys  = [b for b in ops.get("buys",  []) if b.get("ticker") in MY_TICKERS]
+        sells = [s for s in ops.get("sells", []) if s.get("ticker") in MY_TICKERS]
+        divs  = ops.get("dividends_by_ticker", {})
+        return buys, sells, divs
+    except Exception as e:
+        print(f"  [deposit] Ошибка чтения операций: {e}")
+        return [], [], {}
+
+# Загружаем при старте
+_OPS_BUYS, _OPS_SELLS, _OPS_DIVS = _load_operations_from_file()
+
+# Совместимость: BUYS_HISTORY и SELLS_HISTORY = данные из API
+BUYS_HISTORY  = _OPS_BUYS
+SELLS_HISTORY = _OPS_SELLS
 
 def get_sber_rate(dt_str):
     """Ставка накопительного счёта Сбербанка на дату."""
@@ -2333,94 +2273,62 @@ def get_sber_rate(dt_str):
 
 def calc_deposit_comparison(today_str, tinkoff_portfolio):
     """
-    Корректный расчёт: акции vs вклад Сбербанка.
+    Расчёт: чистые вложения vs вклад Сбербанка.
 
-    Логика вклада:
-    - Каждая покупка акций: та же сумма кладётся на вклад в эту же дату
-    - Каждая продажа акций: выручка остаётся на вкладе с даты продажи
-    - Дивиденды: реинвестируются на вклад с даты получения
-    - Итог вклада = сумма всех потоков × (1 + ставка × дни/365)
+    Чистые вложения = потрачено на покупки − выручено от продаж.
+    Вклад: каждая покупка лежала бы на счёте с даты покупки по базовой ставке.
+           При продаже — деньги уходили бы со счёта.
+    Портфель: текущая стоимость из Tinkoff API.
+    Разница: портфель − вклад.
 
-    Логика акций:
-    - Текущая стоимость портфеля из Tinkoff API
-    - + выручка от уже совершённых продаж (с доходом на вкладе с даты продажи)
-    - + полученные дивиденды (с доходом на вкладе с даты получения)
+    Все данные берутся из operations_history.json (Tinkoff API).
     """
     from datetime import date as _date
     today = _date.fromisoformat(today_str)
 
-    # ── Сторона ВКЛАДА ──────────────────────────────────────────────────────
-    deposit_value = 0.0
-    total_spent   = 0.0  # сколько всего потратили на покупки
+    # Перезагружаем операции из файла (могут обновиться)
+    buys, sells, _ = _load_operations_from_file()
 
-    # Каждая покупка → лежала бы на вкладе с даты покупки
-    for buy in BUYS_HISTORY:
+    total_spent   = 0.0
+    total_sold    = 0.0
+    deposit_value = 0.0
+
+    for buy in buys:
         buy_date = _date.fromisoformat(buy["date"])
         if buy_date > today:
             continue
         days = (today - buy_date).days
         rate = get_sber_rate(buy["date"])
-        deposit_value += buy["total"] * (1 + rate / 100 * days / 365)
         total_spent   += buy["total"]
+        deposit_value += buy["total"] * (1 + rate / 100 * days / 365)
 
-    # ── Сторона АКЦИЙ ───────────────────────────────────────────────────────
-    # Текущая стоимость портфеля
-    stocks_current = tinkoff_portfolio.get("total_current", 0) if tinkoff_portfolio else 0
-
-    # Выручка от продаж — с даты продажи лежала бы на вкладе
-    # И эти деньги НЕ работают в акциях, поэтому из deposit_value их вычитаем
-    # (они уже учтены через покупку), а добавляем их реальную стоимость на вкладе
-    total_sold_deposit = 0.0  # сколько выручка принесла бы на вкладе
-    total_sold         = 0.0  # сколько выручили от продаж
-
-    for sell in SELLS_HISTORY:
+    for sell in sells:
         sell_date = _date.fromisoformat(sell["date"])
         if sell_date > today:
             continue
         days = (today - sell_date).days
         rate = get_sber_rate(sell["date"])
-        # Выручка от продажи на вкладе с даты продажи
-        total_sold_deposit += sell["total"] * (1 + rate / 100 * days / 365)
-        total_sold         += sell["total"]
+        total_sold    += sell["total"]
+        deposit_value -= sell["total"] * (1 + rate / 100 * days / 365)
 
-    # Дивиденды на вкладе с даты получения
-    total_divs_deposit = 0.0
-    total_divs         = 0.0
-    for div in DIVIDENDS_RECEIVED:
-        div_date = _date.fromisoformat(div["date"])
-        if div_date > today:
-            continue
-        days = (today - div_date).days
-        rate = get_sber_rate(div["date"])
-        total_divs_deposit += div["total"] * (1 + rate / 100 * days / 365)
-        total_divs         += div["total"]
+    net_invested   = total_spent - total_sold
+    deposit_income = deposit_value - net_invested
 
-    # Итог для сравнения:
-    # Акции: текущий портфель + выручка от продаж на вкладе + дивиденды на вкладе
-    stocks_total  = stocks_current + total_sold_deposit + total_divs_deposit
+    # Текущая стоимость портфеля из Tinkoff API
+    stocks_current = tinkoff_portfolio.get("total_current", 0) if tinkoff_portfolio else 0
 
-    # Вклад: всё что потратили на покупки лежало бы на вкладе
-    # (продажи уже включены в покупки по сумме, так что deposit_value корректен)
-    deposit_total = deposit_value
-
-    # Чистые вложения = потрачено - выручено от продаж
-    net_invested = total_spent - total_sold
-
-    diff           = stocks_total - deposit_total
-    deposit_income = deposit_total - total_spent
+    diff = stocks_current - deposit_value
 
     return {
-        "date":             today_str,
-        "total_spent":      round(total_spent, 2),       # всего потрачено на покупки
-        "total_sold":       round(total_sold, 2),         # выручено от продаж
-        "total_divs":       round(total_divs, 2),         # дивиденды получено
-        "net_invested":     round(net_invested, 2),       # чистые вложения
-        "deposit_value":    round(deposit_total, 2),      # вклад (все покупки)
-        "deposit_income":   round(deposit_income, 2),     # доход вклада
-        "stocks_current":   round(stocks_current, 2),     # портфель сейчас
-        "stocks_total":     round(stocks_total, 2),        # акции + продажи + дивы на вкладе
-        "diff":             round(diff, 2),               # акции_всего - вклад
-        "sber_rate_today":  get_sber_rate(today_str),
+        "date":           today_str,
+        "total_spent":    round(total_spent, 2),
+        "total_sold":     round(total_sold, 2),
+        "net_invested":   round(net_invested, 2),
+        "deposit_value":  round(deposit_value, 2),
+        "deposit_income": round(deposit_income, 2),
+        "stocks_current": round(stocks_current, 2),
+        "diff":           round(diff, 2),
+        "sber_rate_today": get_sber_rate(today_str),
     }
 
 
