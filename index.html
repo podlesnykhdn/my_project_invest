@@ -621,8 +621,8 @@ async function loadPnL(){
   const tb=document.getElementById('pnl-tbody');
   const nt=document.getElementById('pnl-notice');
   try{
-    const log=await getLog();
-    const tp=log.tinkoff_portfolio;
+    // Данные из _E (Tinkoff API, обновляется ежедневно)
+    const tp=_E.tinkoff_portfolio;
     if(!tp||!tp.total_current){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">Данные не получены. Запусти workflow → auto</td></tr>';return;}
     const inv=tp.total_invested||0,cur=tp.total_current||0,pnl=tp.total_pnl||0,pct=tp.total_pnl_pct||0;
     const cls=pnl>=0?'up':'dn',sign=pnl>=0?'+':'';
@@ -640,11 +640,14 @@ async function loadPnL(){
       const bw=Math.min(Math.abs(ppp)*2,100),bc=pp>=0?'var(--green)':'var(--red)';
       const bar='<div style="width:'+bw+'%;height:3px;background:'+bc+';border-radius:2px;margin-top:3px;"></div>';
       const name=nm[p.ticker]||p.name||p.ticker||'—';
+      // Все данные берём из tinkoff_portfolio.positions (Tinkoff API)
+      const qty=+(p.qty||0);
+      const avgP=+(p.avg_price||0);
       return '<tr>'
         +'<td>'+name+'</td>'
         +'<td class="mono">'+(p.ticker||'—')+'</td>'
-        +'<td class="mono">'+((getTinkoffPosition(p.ticker)||{}).qty||p.qty||'—')+'</td>'
-        +'<td class="mono">'+(avg_price?fmt(avg_price)+' ₽':'—')+'</td>'
+        +'<td class="mono">'+(qty||'—')+'</td>'
+        +'<td class="mono">'+(avgP?fmt(avgP)+' ₽':'—')+'</td>'
         +'<td class="mono">'+(p.invested?fmt(p.invested)+' ₽':'—')+'</td>'
         +'<td class="mono">'+(p.curr_price?fmt(p.curr_price)+' ₽':'—')+'</td>'
         +'<td class="mono">'+(p.current_val?fmt(p.current_val)+' ₽':'—')+'</td>'
@@ -726,6 +729,10 @@ function _getDepData() {
 
 function _renderDepCards() {
   const { buys, sells, divs, current, tp } = _getDepData();
+  if (!buys || buys.length === 0) {
+    document.getElementById('dep-cards').innerHTML = '<div style="color:var(--muted);padding:20px;">Загрузка данных из Tinkoff API...</div>';
+    return;
+  }
 
   // Потрачено и выручено
   const totalSpent    = buys.reduce((s,o) => s+o.total, 0);
