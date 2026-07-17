@@ -1,0 +1,943 @@
+{
+  "meta": {
+    "date": "2026-07-17",
+    "time": "03:01",
+    "month": 7,
+    "weekday": 4,
+    "is_friday": true
+  },
+  "currency": {
+    "usd": 78.32,
+    "eur": 89.33,
+    "cny": 11.5139,
+    "usd_prev": 78.32,
+    "usd_change": 0.0
+  },
+  "oil": {
+    "price": 84.82,
+    "change": 0.0,
+    "change_pct": 0.0,
+    "source": "Yahoo Finance ✅",
+    "is_cached": false
+  },
+  "portfolio": {
+    "total_value": 255899.0,
+    "total_change": -5154.0,
+    "total_pct": -1.97,
+    "positions": [
+      {
+        "ticker": "X5",
+        "name": "ПАО «Корпоративный центр ИКС 5»",
+        "qty": 45,
+        "price": 1806,
+        "change": -74,
+        "pct": -3.94,
+        "value": 81270,
+        "day_rub": -3330,
+        "pe": 5.9,
+        "eps_ttm": 306.0,
+        "pe_sector_avg": 6.5,
+        "pe_vs_sector": "на уровне среднего",
+        "ath": 3764,
+        "prev_price": 1818,
+        "pct_from_ath": -52.0,
+        "near_ath": false
+      },
+      {
+        "ticker": "LENT",
+        "name": "МКПАО «Лента»",
+        "qty": 53,
+        "price": 1665,
+        "change": -15,
+        "pct": -0.89,
+        "value": 88245,
+        "day_rub": -795,
+        "pe": 5.7,
+        "eps_ttm": 290.0,
+        "pe_sector_avg": 6.5,
+        "pe_vs_sector": "ниже среднего",
+        "ath": 2300,
+        "prev_price": 1678,
+        "pct_from_ath": -27.6,
+        "near_ath": false
+      },
+      {
+        "ticker": "SBER",
+        "name": "ПАО Сбербанк",
+        "qty": 80,
+        "price": 277.02,
+        "change": -11.06,
+        "pct": -3.84,
+        "value": 22162.0,
+        "day_rub": -885.0,
+        "pe": 3.5,
+        "eps_ttm": 78.4,
+        "pe_sector_avg": 5.0,
+        "pe_vs_sector": "ниже среднего",
+        "ath": 388.11,
+        "prev_price": 279.03,
+        "pct_from_ath": -28.6,
+        "near_ath": false
+      },
+      {
+        "ticker": "BELU",
+        "name": "ПАО «НоваБев Групп»",
+        "qty": 12,
+        "price": 216.6,
+        "change": -12,
+        "pct": -5.25,
+        "value": 2599.0,
+        "day_rub": -144,
+        "pe": 3.4,
+        "eps_ttm": 63.0,
+        "pe_sector_avg": 8.0,
+        "pe_vs_sector": "ниже среднего",
+        "ath": 6822,
+        "prev_price": 220.2,
+        "pct_from_ath": -96.8,
+        "near_ath": false
+      },
+      {
+        "ticker": "TGLD",
+        "name": "БПИФ «Тинькофф Золото»",
+        "qty": 5010,
+        "price": 12.3,
+        "change": 0,
+        "pct": 0,
+        "value": 61623.0,
+        "day_rub": 0,
+        "pe": null,
+        "eps_ttm": null,
+        "pe_sector_avg": null,
+        "pe_vs_sector": null,
+        "ath": null,
+        "prev_price": null,
+        "pct_from_ath": null,
+        "near_ath": false
+      }
+    ]
+  },
+  "quotes": {
+    "BELU": {
+      "price": 216.6,
+      "prev": 216.6,
+      "change": -12,
+      "pct": -5.25,
+      "volume": 128928276
+    },
+    "LENT": {
+      "price": 1665,
+      "prev": 1665,
+      "change": -15,
+      "pct": -0.89,
+      "volume": 303695453
+    },
+    "SBER": {
+      "price": 277.02,
+      "prev": 277.02,
+      "change": -11.06,
+      "pct": -3.84,
+      "volume": 23114190298
+    },
+    "X5": {
+      "price": 1806,
+      "prev": 1806,
+      "change": -74,
+      "pct": -3.94,
+      "volume": 2338508272
+    }
+  },
+  "screener": {
+    "top_volume": [
+      {
+        "ticker": "SBER",
+        "name": "Сбербанк",
+        "price": 277.02,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 23114190298,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "VTBR",
+        "name": "ВТБ ао",
+        "price": 57.17,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 14278407684,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "GAZP",
+        "name": "ГАЗПРОМ ао",
+        "price": 83.46,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 13029658881,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "T",
+        "name": "Т-Техно ао",
+        "price": 227.9,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 7536460209,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "LKOH",
+        "name": "ЛУКОЙЛ",
+        "price": 4115,
+        "pct": 0.0,
+        "change": 0,
+        "volume": 7125679535,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "PLZL",
+        "name": "Полюс",
+        "price": 1006.4,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 6744762467,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "YDEX",
+        "name": "ЯНДЕКС",
+        "price": 3283,
+        "pct": 0.0,
+        "change": 0,
+        "volume": 4508295331,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "ROSN",
+        "name": "Роснефть",
+        "price": 293,
+        "pct": 0.0,
+        "change": 0,
+        "volume": 4351560552,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "GMKN",
+        "name": "ГМКНорНик",
+        "price": 98.84,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 4196041708,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "NVTK",
+        "name": "Новатэк ао",
+        "price": 896.2,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 4151518987,
+        "vol_label": "⚪ Нейтрально"
+      }
+    ],
+    "cheap_growth": [
+      {
+        "ticker": "FEES",
+        "name": "Россети",
+        "price": 0.04,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 180344047,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "HYDR",
+        "name": "РусГидро",
+        "price": 0.24,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 126052140,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "UGLD",
+        "name": "ЮГК",
+        "price": 0.56,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 419891540,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "IRAO",
+        "name": "ИнтерРАОао",
+        "price": 2.12,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 748679538,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "AFKS",
+        "name": "Система ао",
+        "price": 7.85,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 2571554848,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "SVCB",
+        "name": "Совкомбанк",
+        "price": 9.01,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 1341954200,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "SNGS",
+        "name": "Сургнфгз",
+        "price": 13.48,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 1629237128,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "MAGN",
+        "name": "ММК",
+        "price": 15.61,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 1776917939,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "ALRS",
+        "name": "АЛРОСА ао",
+        "price": 16,
+        "pct": 0.0,
+        "change": 0,
+        "volume": 1742607165,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      },
+      {
+        "ticker": "RUAL",
+        "name": "РУСАЛ ао",
+        "price": 20.34,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 2262934125,
+        "score": 60,
+        "grade": "🟡 B",
+        "pays_dividends": true,
+        "dividend_next": null
+      }
+    ],
+    "rising_interest": [],
+    "rising_new": [],
+    "rising_dropped": [],
+    "ipo": [],
+    "_source": "moex_targeted"
+  },
+  "assets": [
+    {
+      "name": "Золото",
+      "ticker": "TGLD",
+      "in_portfolio": true,
+      "why_watch": "Защитный актив. Растёт при ослаблении рубля, геополитике, инфляции и снижении ставки ФРС.",
+      "price": 0,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "🔴 D",
+      "reasons": [],
+      "signals": {
+        "buy_zone": "Рубль ослабляется (USD > +2%) + мировое золото растёт",
+        "risk_zone": "Рубль укрепляется + ставка ФРС растёт",
+        "neutral": "Стабильный курс рубля и нейтральная ФРС"
+      },
+      "note": ""
+    },
+    {
+      "name": "Нефть (рублёвая)",
+      "ticker": "Brent",
+      "in_portfolio": false,
+      "why_watch": "Влияет на курс рубля и весь российский рынок. Рост нефти → укрепление рубля → позитив для акций.",
+      "price": 84.82,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "ℹ️",
+      "reasons": [
+        "Источник: Yahoo Finance ✅"
+      ],
+      "signals": {
+        "buy_zone": "Нефть Brent растёт + рубль стабилен",
+        "risk_zone": "Нефть падает > 3% + ОПЕК+ снимает ограничения",
+        "neutral": "Нефть в диапазоне $70-85"
+      },
+      "note": " (цена в USD/баррель)"
+    },
+    {
+      "name": "Серебро",
+      "ticker": "SILV",
+      "in_portfolio": false,
+      "why_watch": "Более волатильный аналог золота. Реагирует на промышленный спрос (электроника, солнечные панели) + защитный актив.",
+      "price": 0,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "🔴 D",
+      "reasons": [],
+      "signals": {
+        "buy_zone": "Золото растёт + промышленный спрос растёт + рубль слабеет",
+        "risk_zone": "Промышленный спрос падает (рецессия) + рубль укрепляется",
+        "neutral": "Золото стабильно, промышленность без изменений"
+      },
+      "note": "Серебро исторически растёт быстрее золота в бычьем цикле и падает быстрее в медвежьем"
+    }
+  ],
+  "dividends": {
+    "X5": {
+      "history": [
+        {
+          "registry_close_date": "2025-07-09",
+          "amount_per_share": 648
+        }
+      ],
+      "next_payment": null,
+      "announced": {
+        "amount_per_share": 245,
+        "record_date": "2026-07-07",
+        "status": "рекомендовано советом директоров за 2025 год, доходность ~9.9%",
+        "source": "dohod.ru, investmint.ru (15.06.2026)",
+        "days_to_record": -10,
+        "your_total_gross": 11025,
+        "your_total_net": 9591.75,
+        "your_shares": 45
+      },
+      "pays_dividends": true
+    },
+    "LENT": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "SBER": {
+      "history": [
+        {
+          "registry_close_date": "2025-07-18",
+          "amount_per_share": 34.84
+        },
+        {
+          "registry_close_date": "2024-07-11",
+          "amount_per_share": 33.3
+        },
+        {
+          "registry_close_date": "2023-05-11",
+          "amount_per_share": 25
+        },
+        {
+          "registry_close_date": "2021-05-12",
+          "amount_per_share": 18.7
+        }
+      ],
+      "next_payment": null,
+      "announced": {
+        "amount_per_share": 37.64,
+        "record_date": null,
+        "payment_date": "2026-08-03",
+        "status": "рекомендовано советом директоров за 2025 год, дата отсечки уточняется",
+        "source": "investmint.ru (15.06.2026)",
+        "days_to_record": null,
+        "your_total_gross": 3011.2,
+        "your_total_net": 2619.74,
+        "your_shares": 80
+      },
+      "pays_dividends": true
+    },
+    "BELU": {
+      "history": [
+        {
+          "registry_close_date": "2025-06-09",
+          "amount_per_share": 25
+        },
+        {
+          "registry_close_date": "2024-10-11",
+          "amount_per_share": 12.5
+        },
+        {
+          "registry_close_date": "2024-05-13",
+          "amount_per_share": 225
+        },
+        {
+          "registry_close_date": "2023-12-27",
+          "amount_per_share": 135
+        }
+      ],
+      "next_payment": null,
+      "announced": {
+        "amount_per_share_min": 27,
+        "amount_per_share_max": 42,
+        "status": "прогноз аналитиков на 2026 год, доходность 7.4-11.5%",
+        "source": "t-bank пульс (30.03.2026)",
+        "days_to_record": null,
+        "your_shares": 12,
+        "your_total_net_min": 281.88,
+        "your_total_net_max": 438.48
+      },
+      "pays_dividends": true
+    },
+    "FEES": {
+      "history": [
+        {
+          "registry_close_date": "2021-07-16",
+          "amount_per_share": 0.016132865449
+        },
+        {
+          "registry_close_date": "2020-05-29",
+          "amount_per_share": 0.009494338212
+        },
+        {
+          "registry_close_date": "2020-01-13",
+          "amount_per_share": 0.00880960765
+        },
+        {
+          "registry_close_date": "2019-07-16",
+          "amount_per_share": 0.016042926012
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "HYDR": {
+      "history": [
+        {
+          "registry_close_date": "2025-07-11",
+          "amount_per_share": 0.075648608
+        },
+        {
+          "registry_close_date": "2023-07-11",
+          "amount_per_share": 0.050254795
+        },
+        {
+          "registry_close_date": "2022-07-10",
+          "amount_per_share": 0.05304937
+        },
+        {
+          "registry_close_date": "2021-07-10",
+          "amount_per_share": 0.0530482
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "UGLD": {
+      "history": [
+        {
+          "registry_close_date": "2021-08-27",
+          "amount_per_share": 0.005
+        },
+        {
+          "registry_close_date": "2019-07-08",
+          "amount_per_share": 0.018
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "IRAO": {
+      "history": [
+        {
+          "registry_close_date": "2025-06-09",
+          "amount_per_share": 0.353756516888506
+        },
+        {
+          "registry_close_date": "2024-06-03",
+          "amount_per_share": 0.325999263608046
+        },
+        {
+          "registry_close_date": "2023-05-30",
+          "amount_per_share": 0.28365531801897
+        },
+        {
+          "registry_close_date": "2022-06-10",
+          "amount_per_share": 0.23658380041773
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "AFKS": {
+      "history": [
+        {
+          "registry_close_date": "2024-07-17",
+          "amount_per_share": 0.52
+        },
+        {
+          "registry_close_date": "2023-07-19",
+          "amount_per_share": 0.41
+        },
+        {
+          "registry_close_date": "2021-07-15",
+          "amount_per_share": 0.31
+        },
+        {
+          "registry_close_date": "2020-07-16",
+          "amount_per_share": 0.13
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "SVCB": {
+      "history": [
+        {
+          "registry_close_date": "2025-07-08",
+          "amount_per_share": 0.35
+        },
+        {
+          "registry_close_date": "2024-07-08",
+          "amount_per_share": 1.14
+        },
+        {
+          "registry_close_date": "2023-11-13",
+          "amount_per_share": 0.262531330926804
+        },
+        {
+          "registry_close_date": "2021-07-11",
+          "amount_per_share": 0.0660097985071846
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "SNGS": {
+      "history": [
+        {
+          "registry_close_date": "2025-07-17",
+          "amount_per_share": 0.9
+        },
+        {
+          "registry_close_date": "2024-07-18",
+          "amount_per_share": 0.85
+        },
+        {
+          "registry_close_date": "2023-07-20",
+          "amount_per_share": 0.8
+        },
+        {
+          "registry_close_date": "2022-07-20",
+          "amount_per_share": 0.8
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "MAGN": {
+      "history": [
+        {
+          "registry_close_date": "2024-10-17",
+          "amount_per_share": 2.494
+        },
+        {
+          "registry_close_date": "2024-06-10",
+          "amount_per_share": 2.752
+        },
+        {
+          "registry_close_date": "2022-01-13",
+          "amount_per_share": 2.663
+        },
+        {
+          "registry_close_date": "2021-09-27",
+          "amount_per_share": 3.53
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "ALRS": {
+      "history": [
+        {
+          "registry_close_date": "2024-10-19",
+          "amount_per_share": 2.49
+        },
+        {
+          "registry_close_date": "2024-05-31",
+          "amount_per_share": 2.02
+        },
+        {
+          "registry_close_date": "2023-10-18",
+          "amount_per_share": 3.77
+        },
+        {
+          "registry_close_date": "2021-10-19",
+          "amount_per_share": 8.79
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    },
+    "RUAL": {
+      "history": [
+        {
+          "registry_close_date": "2022-10-20",
+          "amount_per_share": 0.02
+        }
+      ],
+      "next_payment": null,
+      "announced": null,
+      "pays_dividends": true
+    }
+  },
+  "biweekly_report": {
+    "period": "2026-P14 → текущий",
+    "prev_date": "2026-06-29",
+    "curr_date": "2026-07-17",
+    "prev_value": 283725.0,
+    "curr_value": 255899.0,
+    "diff_rub": -27826.0,
+    "diff_pct": -9.81,
+    "positions": [
+      {
+        "ticker": "X5",
+        "prev_price": 2189.5,
+        "curr_price": 1806,
+        "diff": -383.5,
+        "pct": -17.52
+      },
+      {
+        "ticker": "LENT",
+        "prev_price": 1810.5,
+        "curr_price": 1665,
+        "diff": -145.5,
+        "pct": -8.04
+      },
+      {
+        "ticker": "SBER",
+        "prev_price": 297.51,
+        "curr_price": 277.02,
+        "diff": -20.49,
+        "pct": -6.89
+      },
+      {
+        "ticker": "BELU",
+        "prev_price": 239.8,
+        "curr_price": 216.6,
+        "diff": -23.2,
+        "pct": -9.67
+      },
+      {
+        "ticker": "TGLD",
+        "prev_price": 12.51,
+        "curr_price": 12.3,
+        "diff": -0.21,
+        "pct": -1.68
+      }
+    ],
+    "best": {
+      "ticker": "TGLD",
+      "prev_price": 12.51,
+      "curr_price": 12.3,
+      "diff": -0.21,
+      "pct": -1.68
+    },
+    "worst": {
+      "ticker": "X5",
+      "prev_price": 2189.5,
+      "curr_price": 1806,
+      "diff": -383.5,
+      "pct": -17.52
+    }
+  },
+  "inefficiencies": {
+    "portfolio": [],
+    "market": [],
+    "total": 0,
+    "timestamp": "2026-07-17"
+  },
+  "price_history": {
+    "X5": {
+      "ticker": "X5",
+      "days_count": 365,
+      "last_date": "2026-07-16",
+      "last_close": 1838.5
+    },
+    "LENT": {
+      "ticker": "LENT",
+      "days_count": 365,
+      "last_date": "2024-01-03",
+      "last_close": 677
+    },
+    "SBER": {
+      "ticker": "SBER",
+      "days_count": 365,
+      "last_date": "2009-07-28",
+      "last_close": 40.46
+    },
+    "BELU": {
+      "ticker": "BELU",
+      "days_count": 365,
+      "last_date": "2019-09-18",
+      "last_close": 660
+    },
+    "TGLD": {
+      "ticker": "TGLD",
+      "days_count": 365,
+      "last_date": "2023-12-01",
+      "last_close": 7.42
+    }
+  },
+  "tinkoff_portfolio": {
+    "account_id": "2231486341",
+    "account_name": "Брокерский счет",
+    "total_invested": 319034.7,
+    "total_current": 255899.63,
+    "total_pnl": -63135.07,
+    "total_pnl_pct": -19.79,
+    "total_shares": 194275.8,
+    "total_etf": 61623.0,
+    "total_bonds": 0.0,
+    "positions": [
+      {
+        "figi": "TCS03A108X38",
+        "ticker": "X5",
+        "itype": "share",
+        "qty": 45.0,
+        "avg_price": 2907.0,
+        "curr_price": 1806.0,
+        "invested": 130815.0,
+        "current_val": 81270.0,
+        "pnl": -49685.0,
+        "pnl_pct": -37.98
+      },
+      {
+        "figi": "BBG0063FKTD9",
+        "ticker": "LENT",
+        "itype": "share",
+        "qty": 53.0,
+        "avg_price": 1742.1,
+        "curr_price": 1665.0,
+        "invested": 92331.3,
+        "current_val": 88245.0,
+        "pnl": -4084.0,
+        "pnl_pct": -4.42
+      },
+      {
+        "figi": "BBG000TY1CD1",
+        "ticker": "BELU",
+        "itype": "share",
+        "qty": 12.0,
+        "avg_price": 453.6,
+        "curr_price": 216.6,
+        "invested": 5443.2,
+        "current_val": 2599.2,
+        "pnl": -2844.0,
+        "pnl_pct": -52.25
+      },
+      {
+        "figi": "TCS80A101X50",
+        "ticker": "TGLD",
+        "itype": "etf",
+        "qty": 5010.0,
+        "avg_price": 13.24,
+        "curr_price": 12.3,
+        "invested": 66332.4,
+        "current_val": 61623.0,
+        "pnl": -4726.57,
+        "pnl_pct": -7.13
+      },
+      {
+        "figi": "BBG004730N88",
+        "ticker": "SBER",
+        "itype": "share",
+        "qty": 80.0,
+        "avg_price": 301.41,
+        "curr_price": 277.02,
+        "invested": 24112.8,
+        "current_val": 22161.6,
+        "pnl": -1950.96,
+        "pnl_pct": -8.09
+      }
+    ],
+    "as_of": "2026-07-17"
+  },
+  "news": {
+    "portfolio_news": {
+      "X5": [],
+      "LENT": [],
+      "SBER": [],
+      "BELU": [],
+      "TGLD": []
+    },
+    "global_alerts": [],
+    "total_collected": 115
+  },
+  "rules_fired": [
+    {
+      "rule_id": "USD_STABLE",
+      "signal": "ok",
+      "message": "Курс доллара стабилен (78.3 руб.)",
+      "portfolio_impact": {}
+    },
+    {
+      "rule_id": "DIV_SEASON_ACTIVE",
+      "signal": "info",
+      "message": "Дивидендный сезон — следи за датами отсечек по X5, Сберу и Novabev",
+      "portfolio_impact": {}
+    }
+  ],
+  "portfolio_signals": {},
+  "deposit_comparison": {
+    "date": "2026-07-17",
+    "total_spent": 374874.32,
+    "total_sold": 52600.1,
+    "net_invested": 322274.22,
+    "deposit_value": 347997.25,
+    "deposit_income": 25723.03,
+    "stocks_current": 255899.63,
+    "diff": -92097.62,
+    "sber_rate_today": 6.5
+  }
+}
