@@ -743,7 +743,7 @@ function _depRenderCards() {
       <div class="val" style="color:#fbbf24">${_fmtR(depV)}</div>
       <div style="font-size:.7rem;color:var(--muted)">доход ${_fmtR(inc)}</div></div>
     <div class="card"><div class="lbl">Разница (акции − вклад)</div>
-      <div class="val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}{}_fmtR(Math.abs(diff))}</div>
+      <div class="val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${_fmtR(Math.abs(diff))}</div>
       <div style="font-size:.7rem;color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'🎯 Акции выгоднее':'📉 Вклад выгоднее'}</div></div>
   `;
 }
@@ -796,7 +796,7 @@ function _depRenderSummary() {
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;">
       <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Стоимость сейчас</div>
       <div style="font-size:1.1rem;font-weight:700;color:${pnl>=0?'var(--green)':'var(--red)'}">${_fmtR(currVal)}</div>
-      <div style="font-size:.72rem;color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}{}_fmtR(pnl)} (${pnlPct>=0?'+':''}{}_fmtR(pnlPct)}%)</div>
+      <div style="font-size:.72rem;color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}${_fmtR(pnl)} (${pnlPct>=0?'+':''}${_fmtR(pnlPct)}%)</div>
     </div>
   `;
   const ci = document.getElementById('dep-s-compare');
@@ -809,7 +809,7 @@ function _depRenderSummary() {
            <div style="font-size:1.1rem;font-weight:700;color:#fbbf24">${_fmtR(depV)}</div>
            <div style="font-size:.7rem;color:var(--muted)">доход ${_fmtR(depV-netSpent)}</div></div>
       <div><div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Разница</div>
-           <div style="font-size:1.1rem;font-weight:700;color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}{}_fmtR(Math.abs(diff))}</div>
+           <div style="font-size:1.1rem;font-weight:700;color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${_fmtR(Math.abs(diff))}</div>
            <div style="font-size:.7rem;font-weight:600;color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'🎯 Акции выгоднее':'📉 Вклад выгоднее'}</div></div>
     </div>
   `;
