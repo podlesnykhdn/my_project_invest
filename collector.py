@@ -2484,6 +2484,20 @@ def collect():
 
     save_log(result)
 
+    # Обновляем index.html актуальными данными
+    try:
+        import subprocess as _sp
+        _r = _sp.run(
+            ["python3", str(BASE_DIR / "update_dashboard.py")],
+            timeout=30, capture_output=True, text=True, cwd=str(BASE_DIR)
+        )
+        if _r.returncode == 0:
+            print(f"  [Dashboard] {_r.stdout.strip()}")
+        else:
+            print(f"  [Dashboard] Ошибка: {_r.stderr[-200:]}")
+    except Exception as _e:
+        print(f"  [Dashboard] {_e}")
+
     print(f"\n{'='*50}")
     print(f"Готово! Правил сработало: {len(fired_rules)}")
     print(f"Стоимость портфеля: {portfolio['total_value']:,.0f} руб. "
