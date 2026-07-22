@@ -107,3 +107,18 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/bots.yml/dispatches" \
             -d '{"ref":"main","inputs":{"mode":"auto","chain":"true"}}'
           echo "Следующее звено запущено."
+          - name: Обновить историю операций
+        if: always()
+        env:
+          TINKOFF_TOKEN: ${{ secrets.TINKOFF_TOKEN }}
+        run: |
+          if [ ! -f logs/operations_history.json ]; then
+            echo "Файл отсутствует — запускаем"
+            python fetch_operations.py
+          else
+            echo "Файл существует — пропускаем"
+          fi
+
+      - name: Обновить дашборд
+        if: always()
+        run: python update_dashboard.py || echo "skip"
