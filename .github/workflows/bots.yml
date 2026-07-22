@@ -27,12 +27,10 @@ jobs:
       - name: Установить зависимости
         run: |
           pip install requests --quiet
-          # Устанавливаем сертификат Минцифры РФ для tbank.ru (T-Invest API)
           cd /usr/local/share/ca-certificates
           curl -sk "https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt" -o russian_root_ca.crt || true
           curl -sk "https://gu-st.ru/content/lending/russian_trusted_sub_ca_pem.crt" -o russian_sub_ca.crt || true
           update-ca-certificates --verbose 2>/dev/null || true
-          # Добавляем в certifi (используется Python urllib и requests)
           curl -sk "https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt" >> $(python -c "import certifi; print(certifi.where())") || true
           curl -sk "https://gu-st.ru/content/lending/russian_trusted_sub_ca_pem.crt" >> $(python -c "import certifi; print(certifi.where())") || true
           echo "Сертификаты Минцифры установлены"
@@ -40,6 +38,20 @@ jobs:
         env:
           TINKOFF_TOKEN: ${{ secrets.TINKOFF_TOKEN }}
         run: python collector.py
+      - name: Обновить историю операций
+        if: always()
+        env:
+          TINKOFF_TOKEN: ${{ secrets.TINKOFF_TOKEN }}
+        run: |
+          if [ ! -f logs/operations_history.json ]; then
+            echo "Файл отсутствует — запускаем fetch_operations.py"
+            python fetch_operations.py
+          else
+            echo "Файл существует — пропускаем"
+          fi
+      - name: Обновить дашборд
+        if: always()
+        run: python update_dashboard.py || echo "skip"
       - name: Определить режим
         id: mode
         run: |
@@ -75,7 +87,6 @@ jobs:
           git push origin main || \
             (git pull --strategy=ours origin main && \
              git push origin main) || true
-
       - name: Само-цепочка — запланировать следующий запуск
         if: always()
         env:
@@ -107,18 +118,3 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/bots.yml/dispatches" \
             -d '{"ref":"main","inputs":{"mode":"auto","chain":"true"}}'
           echo "Следующее звено запущено."
-          - name: Обновить историю операций
-        if: always()
-        env:
-          TINKOFF_TOKEN: ${{ secrets.TINKOFF_TOKEN }}
-        run: |
-          if [ ! -f logs/operations_history.json ]; then
-            echo "Файл отсутствует — запускаем"
-            python fetch_operations.py
-          else
-            echo "Файл существует — пропускаем"
-          fi
-
-      - name: Обновить дашборд
-        if: always()
-        run: python update_dashboard.py || echo "skip"
