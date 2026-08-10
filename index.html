@@ -714,13 +714,12 @@ function _depRenderCards() {
     sold  = sRows.reduce((s,r)=>s+r.total,0);
     // Вклад по этому тикеру
     const today2 = new Date();
-    depV = bRows.reduce((s,r)=>{
-      const days=(today2-new Date(r.date))/86400000;
-      return s+r.total*(1+r.rate/100*days/365);
-    },0) - sRows.reduce((s,r)=>{
-      const days=(today2-new Date(r.date))/86400000;
-      return s+r.total*(1+r.rate/100*days/365);
-    },0);
+    // Используем r.days из _DEP_ROWS (посчитано на Python при сборке)
+    // Фильтруем только строки с реальной датой (is_first=true)
+    const bFirst = bRows.filter(r=>r.is_first);
+    const sFirst = sRows.filter(r=>r.is_first);
+    depV = bFirst.reduce((s,r)=>s+r.total*(1+r.rate/100*r.days/365),0)
+         - sFirst.reduce((s,r)=>s+r.total*(1+r.rate/100*r.days/365),0);
     // Текущая стоимость из _E
     const pos = ((_E.tinkoff_portfolio||{}).positions||[]).find(p=>p.ticker===t)||{};
     curV = +(pos.qty||0) * +(pos.curr_price||0);
@@ -766,10 +765,9 @@ function _depRenderSummary() {
   const currVal   = heldQty*currPrice;
   const avgPrice  = +(pos.avg_price||0);
   const today2    = new Date();
-  const depV = bRows.reduce((s,r)=>{
-    const days=(today2-new Date(r.date))/86400000;
-    return s+r.total*(1+r.rate/100*days/365);
-  },0);
+  // Используем r.days из _DEP_ROWS (посчитано на Python)
+  const bFirst2 = bRows.filter(r=>r.is_first);
+  const depV = bFirst2.reduce((s,r)=>s+r.total*(1+r.rate/100*r.days/365),0);
   const netSpent  = spent-received;
   const pnl       = currVal-netSpent;
   const pnlPct    = netSpent>0?(pnl/netSpent*100):0;
