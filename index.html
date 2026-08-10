@@ -713,7 +713,7 @@ function _depRenderCards() {
     spent = bRows.reduce((s,r)=>s+r.total,0);
     sold  = sRows.reduce((s,r)=>s+r.total,0);
     // Вклад по этому тикеру
-    const today2 = new Date("2026-07-17");
+    const today2 = new Date();
     depV = bRows.reduce((s,r)=>{
       const days=(today2-new Date(r.date))/86400000;
       return s+r.total*(1+r.rate/100*days/365);
@@ -765,7 +765,7 @@ function _depRenderSummary() {
   const currPrice = +(pos.curr_price||0);
   const currVal   = heldQty*currPrice;
   const avgPrice  = +(pos.avg_price||0);
-  const today2    = new Date("2026-07-17");
+  const today2    = new Date();
   const depV = bRows.reduce((s,r)=>{
     const days=(today2-new Date(r.date))/86400000;
     return s+r.total*(1+r.rate/100*days/365);
