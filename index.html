@@ -100,6 +100,7 @@ tr:hover td{background:var(--surface2);}
   <div class="tab" onclick="switchTab('ofz')">ОФЗ</div>
   <div class="tab" onclick="switchTab('pnl')">P&amp;L</div>
   <div class="tab" onclick="switchTab('deposit')">Вклад vs Акции</div>
+  <div class="tab" onclick="switchTab('tgld')">TGLD / Золото</div>
 </nav>
 <main>
 
@@ -285,6 +286,48 @@ tr:hover td{background:var(--surface2);}
     Дивиденды: реинвестируются на вклад с даты получения.
   </div>
 </div>
+<div class="panel" id="tab-tgld" style="display:none;">
+  <div style="margin-bottom:16px;">
+    <div class="st" style="margin:0;">🥇 TGLD — Золото</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">
+      Цена TGLD (₽) · Курс USD/₽ · Произведение TGLD × USD — отражает «рублёвую цену золота»
+    </div>
+  </div>
+
+  <!-- Карточки текущих значений -->
+  <div class="cards" style="margin-bottom:20px;" id="tgld-cards"></div>
+
+  <!-- График -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;font-size:0.72rem;">
+      <span style="color:#fbbf24;">▪ TGLD × USD (правая ось)</span>
+      <span style="color:#60a5fa;">▪ TGLD ₽ (левая ось)</span>
+      <span style="color:#4ade80;">▪ USD/₽ (левая ось)</span>
+    </div>
+    <canvas id="tgld-chart" style="width:100%;height:220px;"></canvas>
+  </div>
+
+  <!-- Таблица -->
+  <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border);">
+    <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+      <thead>
+        <tr style="background:var(--bg);">
+          <th style="padding:9px 14px;text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Дата</th>
+          <th style="padding:9px 14px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">TGLD ₽</th>
+          <th style="padding:9px 14px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">USD / ₽</th>
+          <th style="padding:9px 14px;text-align:right;color:#fbbf24;font-weight:500;border-bottom:1px solid var(--border);">TGLD × USD</th>
+          <th style="padding:9px 14px;text-align:right;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);">Δ к пред. дню</th>
+        </tr>
+      </thead>
+      <tbody id="tgld-tbody"></tbody>
+    </table>
+  </div>
+
+  <div style="font-size:0.7rem;color:var(--muted);margin-top:12px;line-height:1.6;">
+    * TGLD × USD — произведение цены пая в рублях на курс доллара. Отражает «условную стоимость» без влияния курса рубля.
+    Если это число растёт — золото дорожает в долларах. Если TGLD растёт, а произведение нет — это только ослабление рубля.
+  </div>
+</div>
 </main>
 <script>
 const FUNDAMENTALS={
@@ -311,7 +354,7 @@ const PORTFOLIO=[
 const PNAMES={X5:"ПАО «Корпоративный центр ИКС 5»",LENT:"МКПАО «Лента»",SBER:"ПАО Сбербанк",BELU:"ПАО «НоваБев Групп»",TGLD:"БПИФ «Тинькофф Золото»"};
 
 function switchTab(name){
-  ['portfolio','screener','mentor','analyst','market','ofz','pnl','deposit'].forEach((n,i)=>{
+  ['portfolio','screener','mentor','analyst','market','ofz','pnl','deposit','tgld'].forEach((n,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',n===name);
     document.getElementById('tab-'+n).classList.toggle('active',n===name);
   });
@@ -894,6 +937,122 @@ function _depRenderAll() {
 
 function initDepositTab() { _depRenderAll(); }
 
+
+
+// ── TGLD / Золото ────────────────────────────────────────────────────────────
+
+const _TGLD_HISTORY = [{"date": "2026-06-23", "usd_rub": 74.62, "tgld_price": 12.02, "tgld_rub_x_usd": 896.93}, {"date": "2026-06-24", "usd_rub": 74.77, "tgld_price": 11.7, "tgld_rub_x_usd": 874.81}, {"date": "2026-06-25", "usd_rub": 74.77, "tgld_price": 11.72, "tgld_rub_x_usd": 876.3}, {"date": "2026-06-30", "usd_rub": 78.27, "tgld_price": 12.44, "tgld_rub_x_usd": 973.68}, {"date": "2026-07-02", "usd_rub": 77.93, "tgld_price": 12.5, "tgld_rub_x_usd": 974.13}, {"date": "2026-07-03", "usd_rub": 77.23, "tgld_price": 12.69, "tgld_rub_x_usd": 980.05}, {"date": "2026-07-06", "usd_rub": 77.97, "tgld_price": 12.39, "tgld_rub_x_usd": 966.05}, {"date": "2026-07-07", "usd_rub": 76.13, "tgld_price": 12.44, "tgld_rub_x_usd": 947.06}, {"date": "2026-07-08", "usd_rub": 76.4, "tgld_price": 12.16, "tgld_rub_x_usd": 929.02}, {"date": "2026-07-09", "usd_rub": 75.93, "tgld_price": 12.39, "tgld_rub_x_usd": 940.77}, {"date": "2026-07-10", "usd_rub": 76.66, "tgld_price": 12.4, "tgld_rub_x_usd": 950.58}, {"date": "2026-07-13", "usd_rub": 76.62, "tgld_price": 12.16, "tgld_rub_x_usd": 931.7}, {"date": "2026-07-14", "usd_rub": 77.49, "tgld_price": 12.44, "tgld_rub_x_usd": 963.98}, {"date": "2026-07-15", "usd_rub": 77.96, "tgld_price": 12.34, "tgld_rub_x_usd": 962.03}, {"date": "2026-07-16", "usd_rub": 78.32, "tgld_price": 12.3, "tgld_rub_x_usd": 963.34}, {"date": "2026-07-17", "usd_rub": 78.4, "tgld_price": 12.35, "tgld_rub_x_usd": 968.24}, {"date": "2026-07-20", "usd_rub": 78.32, "tgld_price": 12.41, "tgld_rub_x_usd": 971.95}, {"date": "2026-07-21", "usd_rub": 78.55, "tgld_price": 12.49, "tgld_rub_x_usd": 981.09}, {"date": "2026-07-22", "usd_rub": 78.48, "tgld_price": 12.7, "tgld_rub_x_usd": 996.7}, {"date": "2026-07-23", "usd_rub": 78.4, "tgld_price": 12.43, "tgld_rub_x_usd": 974.51}, {"date": "2026-07-24", "usd_rub": 78.03, "tgld_price": 12.39, "tgld_rub_x_usd": 966.79}, {"date": "2026-07-27", "usd_rub": 78.02, "tgld_price": 12.45, "tgld_rub_x_usd": 971.35}, {"date": "2026-07-28", "usd_rub": 78.7, "tgld_price": 12.48, "tgld_rub_x_usd": 982.18}, {"date": "2026-07-29", "usd_rub": 79.36, "tgld_price": 12.53, "tgld_rub_x_usd": 994.38}, {"date": "2026-07-30", "usd_rub": 79.86, "tgld_price": 12.76, "tgld_rub_x_usd": 1019.01}, {"date": "2026-07-31", "usd_rub": 79.46, "tgld_price": 12.59, "tgld_rub_x_usd": 1000.4}, {"date": "2026-08-03", "usd_rub": 80.07, "tgld_price": 12.73, "tgld_rub_x_usd": 1019.29}, {"date": "2026-08-04", "usd_rub": 81.13, "tgld_price": 12.92, "tgld_rub_x_usd": 1048.2}, {"date": "2026-08-05", "usd_rub": 80.93, "tgld_price": 13.39, "tgld_rub_x_usd": 1083.65}, {"date": "2026-08-06", "usd_rub": 81.41, "tgld_price": 13.59, "tgld_rub_x_usd": 1106.36}, {"date": "2026-08-07", "usd_rub": 82.17, "tgld_price": 13.96, "tgld_rub_x_usd": 1147.09}, {"date": "2026-08-10", "usd_rub": 82.61, "tgld_price": 14.01, "tgld_rub_x_usd": 1157.37}, {"date": "2026-08-11", "usd_rub": 82.37, "tgld_price": 14.14, "tgld_rub_x_usd": 1164.71}, {"date": "2026-08-12", "usd_rub": 83.0, "tgld_price": 14.33, "tgld_rub_x_usd": 1189.39}, {"date": "2026-08-13", "usd_rub": 83.81, "tgld_price": 14.31, "tgld_rub_x_usd": 1199.32}, {"date": "2026-08-14", "usd_rub": 84.54, "tgld_price": 14.42, "tgld_rub_x_usd": 1219.07}, {"date": "2026-08-17", "usd_rub": 84.54, "tgld_price": 14.64, "tgld_rub_x_usd": 1237.67}];
+
+function initTgldTab() {
+  const h = _TGLD_HISTORY;
+  if (!h || h.length === 0) return;
+  const last = h[h.length - 1];
+  const prev = h[h.length - 2] || last;
+
+  // Карточки
+  const dUsd  = last.usd_rub - prev.usd_rub;
+  const dTgld = last.tgld_price - prev.tgld_price;
+  const dProd = last.tgld_rub_x_usd - prev.tgld_rub_x_usd;
+  const fmt2  = n => n.toLocaleString('ru-RU', {minimumFractionDigits:2});
+  const sign  = n => (n>=0?'+':'')+fmt2(n);
+  const col   = n => n>=0?'var(--green)':'var(--red)';
+
+  document.getElementById('tgld-cards').innerHTML = `
+    <div class="card">
+      <div class="lbl">TGLD сейчас</div>
+      <div class="val" style="color:#fbbf24">${fmt2(last.tgld_price)} ₽</div>
+      <div style="font-size:.72rem;color:${col(dTgld)};margin-top:2px;">${sign(dTgld)} ₽ к пред. дню</div>
+    </div>
+    <div class="card">
+      <div class="lbl">USD / ₽</div>
+      <div class="val" style="color:#60a5fa">${fmt2(last.usd_rub)} ₽</div>
+      <div style="font-size:.72rem;color:${col(dUsd)};margin-top:2px;">${sign(dUsd)} ₽ к пред. дню</div>
+    </div>
+    <div class="card">
+      <div class="lbl">TGLD × USD</div>
+      <div class="val" style="color:var(--accent)">${Math.round(last.tgld_rub_x_usd).toLocaleString('ru-RU')}</div>
+      <div style="font-size:.72rem;color:${col(dProd)};margin-top:2px;">${sign(dProd)} к пред. дню</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Ваших паёв TGLD</div>
+      <div class="val">${((_E.tinkoff_portfolio||{}).positions||[]).find(p=>p.ticker==='TGLD')?.qty?.toLocaleString('ru-RU')||'—'} шт</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">
+        ≈ ${Math.round((((_E.tinkoff_portfolio||{}).positions||[]).find(p=>p.ticker==='TGLD')?.qty||0)*last.tgld_price).toLocaleString('ru-RU')} ₽
+      </div>
+    </div>
+  `;
+
+  // Таблица (от новых к старым)
+  const rows = [...h].reverse().map((r, i, arr) => {
+    const p = arr[i+1];
+    const delta = p ? r.tgld_rub_x_usd - p.tgld_rub_x_usd : 0;
+    const dc = delta>0?'var(--green)':delta<0?'var(--red)':'var(--muted)';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 14px;color:var(--muted)">${r.date.slice(5)}.20${r.date.slice(2,4)}</td>
+      <td style="padding:7px 14px;text-align:right;font-weight:600;color:#fbbf24">${fmt2(r.tgld_price)}</td>
+      <td style="padding:7px 14px;text-align:right;color:#60a5fa">${fmt2(r.usd_rub)}</td>
+      <td style="padding:7px 14px;text-align:right;font-weight:600;color:var(--accent)">${Math.round(r.tgld_rub_x_usd).toLocaleString('ru-RU')}</td>
+      <td style="padding:7px 14px;text-align:right;color:${dc}">${p?(delta>=0?'+':'')+fmt2(delta):'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tgld-tbody').innerHTML = rows;
+
+  // График
+  const canvas = document.getElementById('tgld-chart');
+  if (!canvas) return;
+  const W = canvas.offsetWidth || 700, H = 220;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const pad = {l:55, r:65, t:16, b:32};
+  const cw = W-pad.l-pad.r, ch = H-pad.t-pad.b;
+  const n = h.length;
+  const xP = i => pad.l + (i/(n-1))*cw;
+
+  // Левая ось: TGLD и USD
+  const left_vals = h.flatMap(r => [r.tgld_price, r.usd_rub]);
+  const lMin = Math.min(...left_vals)*0.97, lMax = Math.max(...left_vals)*1.02;
+  const yL = v => pad.t + (1-(v-lMin)/(lMax-lMin))*ch;
+
+  // Правая ось: произведение
+  const prod_vals = h.map(r => r.tgld_rub_x_usd);
+  const pMin = Math.min(...prod_vals)*0.97, pMax = Math.max(...prod_vals)*1.02;
+  const yR = v => pad.t + (1-(v-pMin)/(pMax-pMin))*ch;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Сетка
+  for (let i=0; i<=4; i++) {
+    const y = pad.t + i/4*ch;
+    ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+    // Левые подписи
+    ctx.fillStyle='rgba(148,163,184,.5)'; ctx.font='10px system-ui'; ctx.textAlign='right';
+    ctx.fillText((lMin+(1-i/4)*(lMax-lMin)).toFixed(1), pad.l-4, y+3);
+    // Правые подписи
+    ctx.textAlign='left';
+    ctx.fillText(Math.round(pMin+(1-i/4)*(pMax-pMin)), W-pad.r+4, y+3);
+  }
+
+  // Линия TGLD × USD (правая ось, жёлтая)
+  ctx.beginPath(); ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2.5;
+  h.forEach((r,i) => { const x=xP(i),y=yR(r.tgld_rub_x_usd); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+
+  // Линия TGLD ₽ (синяя)
+  ctx.beginPath(); ctx.strokeStyle='#60a5fa'; ctx.lineWidth=1.5;
+  h.forEach((r,i) => { const x=xP(i),y=yL(r.tgld_price); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+
+  // Линия USD/₽ (зелёная)
+  ctx.beginPath(); ctx.strokeStyle='#4ade80'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+  h.forEach((r,i) => { const x=xP(i),y=yL(r.usd_rub); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Даты по X
+  ctx.fillStyle='rgba(148,163,184,.5)'; ctx.font='10px system-ui'; ctx.textAlign='center';
+  const step = Math.max(1, Math.floor(n/6));
+  h.forEach((r,i) => { if(i%step===0||i===n-1) ctx.fillText(r.date.slice(5), xP(i), H-4); });
+}
 
 </script>
 </body>
