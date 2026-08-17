@@ -161,6 +161,36 @@ if old_hist:
 # _logD
 html = re.sub(r"_logD='[\d-]+'", f"_logD='{TODAY}'", html)
 
+
+# Обновляем _TGLD_HISTORY — добавляем сегодняшнюю точку
+import re as _re
+usd_today  = ld.get("currency", {}).get("usd", 0)
+tgld_today = next((p["curr_price"] for p in tp.get("positions", []) if p.get("ticker")=="TGLD"), 0)
+
+if usd_today and tgld_today:
+    new_point = {
+        "date":           TODAY,
+        "usd_rub":        round(usd_today, 2),
+        "tgld_price":     round(tgld_today, 2),
+        "tgld_rub_x_usd": round(tgld_today * usd_today, 2),
+    }
+    # Читаем текущую историю из HTML
+    m = _re.search(r'const _TGLD_HISTORY = (\[.*?\]);', html, _re.DOTALL)
+    if m:
+        try:
+            hist = json.loads(m.group(1))
+            # Обновляем или добавляем сегодняшнюю точку
+            existing = next((i for i,r in enumerate(hist) if r["date"]==TODAY), None)
+            if existing is not None:
+                hist[existing] = new_point
+            else:
+                hist.append(new_point)
+            # Записываем обратно
+            html = html[:m.start()] + f"const _TGLD_HISTORY = {json.dumps(hist, ensure_ascii=False)};" + html[m.end():]
+            print(f"  [TGLD] История обновлена: {len(hist)} дней, сегодня TGLD={tgld_today}₽ USD={usd_today}₽")
+        except Exception as e:
+            print(f"  [TGLD] Ошибка обновления истории: {e}")
+
 with open(index_file, "w", encoding="utf-8") as f:
     f.write(html)
 
