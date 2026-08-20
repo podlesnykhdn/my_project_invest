@@ -2271,6 +2271,80 @@ def get_sber_rate(dt_str):
             break
     return rate
 
+
+def fetch_cbr_rate():
+    """
+    Получаем актуальную ключевую ставку ЦБ РФ.
+    Источники (в порядке приоритета):
+    1. MOEX ISS API — фьючерс RUSFAR (ставка овернайт, близка к ключевой)
+    2. cbr.ru XML API
+    3. Fallback: последнее известное значение из rules.json
+    """
+    import re as _re, ssl as _ssl
+
+    ctx = _ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = _ssl.CERT_NONE
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+        "Accept": "application/json, text/xml, */*",
+    }
+
+    # 1. cbr.ru XML API — официальный источник
+    try:
+        url = "https://www.cbr.ru/scripts/XML_daily.asp"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as r:
+            xml = r.read().decode("windows-1251", errors="replace")
+        # Ключевая ставка не в XML_daily, пробуем KeyRate endpoint
+        url2 = "https://cbr.ru/hd_base/KeyRate/?UniDbQuery.Posted=True"
+        req2 = urllib.request.Request(url2, headers=headers)
+        with urllib.request.urlopen(req2, context=ctx, timeout=10) as r2:
+            html = r2.read().decode("utf-8", errors="replace")
+        # Ищем ставку в HTML таблице
+        m = _re.search(r'<td[^>]*>(\d{2}\.\d{2}\.\d{4})</td>\s*<td[^>]*>([\d,]+)</td>', html)
+        if m:
+            rate = float(m.group(2).replace(",", "."))
+            dt   = m.group(1)
+            print(f"  [CBR] Ключевая ставка: {rate}% с {dt}")
+            return rate, dt
+    except Exception as e:
+        print(f"  [CBR] cbr.ru недоступен: {e}")
+
+    # 2. MOEX ISS API — ставка RUSFAR (овернайт, близко к ключевой)
+    try:
+        url = "https://iss.moex.com/iss/statistics/engines/currency/markets/selt/rates.json?iss.meta=off"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as r:
+            data = json.loads(r.read())
+        # Ищем RUSFAR
+        for row in data.get("rates", {}).get("data", []):
+            if row and "RUSFAR" in str(row):
+                rate = float(row[1]) if len(row) > 1 else None
+                if rate:
+                    print(f"  [CBR] RUSFAR: {rate}%")
+                    return rate, None
+    except Exception as e:
+        print(f"  [CBR] MOEX недоступен: {e}")
+
+    # 3. Fallback — читаем из rules.json
+    try:
+        rules_file = BASE_DIR / "rules.json"
+        if rules_file.exists():
+            with open(rules_file, encoding="utf-8") as f:
+                rules = json.load(f)
+            rate = rules.get("cbr_rate")
+            if rate:
+                print(f"  [CBR] Fallback из rules.json: {rate}%")
+                return rate, rules.get("cbr_rate_updated", "unknown")
+    except Exception as e:
+        print(f"  [CBR] rules.json ошибка: {e}")
+
+    print("  [CBR] Используем дефолт 14.0%")
+    return 14.0, None
+
+
 def calc_deposit_comparison(today_str, tinkoff_portfolio):
     """
     Расчёт: чистые вложения vs вклад Сбербанка.
