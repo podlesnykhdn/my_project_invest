@@ -1869,5 +1869,36 @@
       "note": "ETF — долгов нет",
       "updated": "2026-06-24"
     }
+  },
+  "cbr_rate": 14.0,
+  "cbr_rate_updated": "2026-08-20",
+  "cbr_note": "Снижена на 0.25 б.п. на заседании 25.07.2026",
+  "dividends_paid": {
+    "X5": {
+      "amount": 245,
+      "shares": 42,
+      "date_paid": "2026-07-22",
+      "reinvested": true,
+      "reinvested_into": "SBER",
+      "reinvested_shares": 4,
+      "net_received": 8952
+    },
+    "SBER": {
+      "amount": 37.64,
+      "shares": 80,
+      "date_paid": "2026-08-03",
+      "net_received": 2620,
+      "status": "выплачены"
+    },
+    "BELU": {
+      "amount": 10,
+      "shares": 12,
+      "date_paid": "2026-07-09",
+      "net_received": 104,
+      "status": "выплачены"
+    }
+  },
+  "next_dividends": {
+    "note": "Объявленных дивидендов нет. Следующие ожидаются: SBER лето 2027, X5 конец 2026"
   }
 }
