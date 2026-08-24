@@ -766,9 +766,9 @@ function _depRenderCards() {
     spent = bRows.reduce((s,r)=>s+r.total,0);
     sold  = sRows.reduce((s,r)=>s+r.total,0);
     // Вклад по этому тикеру
-        // dep_inc = сумма с процентами, посчитана на Python
-    depV = bRows.reduce((s,r)=>s+r.dep_inc,0)
-         - sRows.reduce((s,r)=>s+r.dep_inc,0);
+        // dep_full = total × (1 + rate × days/365) — полная сумма на вкладе
+    depV = bRows.reduce((s,r)=>s+r.dep_full,0)
+         - sRows.reduce((s,r)=>s+r.dep_full,0);
     // Текущая стоимость из _E
     const pos = ((_E.tinkoff_portfolio||{}).positions||[]).find(p=>p.ticker===t)||{};
     curV = +(pos.qty||0) * +(pos.curr_price||0);
