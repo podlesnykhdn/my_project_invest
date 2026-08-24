@@ -814,8 +814,8 @@ function _depRenderSummary() {
   const currVal   = heldQty*currPrice;
   const avgPrice  = +(pos.avg_price||0);
     // Используем r.days из _DEP_ROWS (посчитано на Python)
-  const depV = bRows.reduce((s,r)=>s+r.dep_inc,0)
-             - sRows.reduce((s,r)=>s+r.dep_inc,0);
+  const depV = bRows.reduce((s,r)=>s+r.dep_full,0)
+             - sRows.reduce((s,r)=>s+r.dep_full,0);
   const netSpent  = spent-received;
   const pnl       = currVal-netSpent;
   const pnlPct    = netSpent>0?(pnl/netSpent*100):0;
