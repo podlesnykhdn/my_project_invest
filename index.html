@@ -872,7 +872,7 @@ function _depRenderTable() {
   tbody.innerHTML = rows.map(r=>{
     const isSell = r.type==='sell';
     const color  = _DEP_COLORS[r.ticker]||'#94a3b8';
-    if(!isSell){ totalQty+=Math.abs(r.qty); totalSpent+=r.total; totalDep+=r.dep_inc; }
+    if(!isSell){ totalQty+=Math.abs(r.qty); totalSpent+=r.total; totalDep+=r.dep_full; }
     else{ totalQty-=Math.abs(r.qty); totalSpent-=r.total; }
     return `<tr style="border-bottom:1px solid var(--border);${isSell?'background:rgba(239,68,68,.07)':''}">
       <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${r.date}</td>
