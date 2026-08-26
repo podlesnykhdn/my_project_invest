@@ -1,198 +1,206 @@
 #!/usr/bin/env python3
 """
-update_dashboard.py — обновляет _E в index.html актуальными данными из логов.
-Запускается автоматически после каждого сбора данных (bots.yml).
+update_dashboard.py — обновляет index.html актуальными данными из Tinkoff API.
+Пересобирает _E, _DEP_ROWS, _DEP_SUMMARY, _DEP_HISTORY, _TGLD_HISTORY каждый день.
 """
 import json, re, sys
 from datetime import datetime, timezone, timedelta, date
 from pathlib import Path
+from collections import defaultdict
 
 BASE_DIR = Path(__file__).parent
-TODAY = datetime.now(timezone(timedelta(hours=3))).strftime("%Y-%m-%d")
-TODAY_D = date.fromisoformat(TODAY)
+TODAY    = datetime.now(timezone(timedelta(hours=3))).strftime("%Y-%m-%d")
+TODAY_D  = date.fromisoformat(TODAY)
 
-# Читаем свежий лог
-log_file = BASE_DIR / "logs" / "collector" / f"{TODAY}.json"
-if not log_file.exists():
-    print(f"Лог {TODAY} не найден")
-    sys.exit(0)
-
-with open(log_file, encoding="utf-8") as f:
-    ld = json.load(f)
-
-tp = ld.get("tinkoff_portfolio", {})
-if not tp:
-    print("tinkoff_portfolio пустой")
-    sys.exit(0)
-
-# Читаем operations_history
-ops_file = BASE_DIR / "logs" / "operations_history.json"
-buys, sells, divs = [], [], {}
-if ops_file.exists():
-    with open(ops_file, encoding="utf-8") as f:
-        ops = json.load(f)
-    MY = {"SBER","X5","LENT","BELU","TGLD"}
-    buys  = [b for b in ops.get("buys",[])  if b.get("ticker") in MY]
-    sells = [s for s in ops.get("sells",[]) if s.get("ticker") in MY]
-    divs  = ops.get("dividends_by_ticker", {})
-
-# Ставки Сбера
-RATES = [
+SBER_DEPOSIT_RATES = [
     (date(2024,1,1),10.0),(date(2024,9,20),12.0),(date(2024,10,29),13.5),
     (date(2025,2,22),12.0),(date(2025,6,9),10.0),(date(2025,9,1),9.0),
     (date(2025,12,20),9.0),(date(2026,1,5),8.0),(date(2026,2,20),7.5),
     (date(2026,4,1),7.0),(date(2026,4,30),6.5),
 ]
-def get_rate(d):
-    rate = RATES[0][1]
-    for rd, r in RATES:
+def get_rate(d_str):
+    d = date.fromisoformat(d_str) if isinstance(d_str, str) else d_str
+    rate = SBER_DEPOSIT_RATES[0][1]
+    for rd, r in SBER_DEPOSIT_RATES:
         if d >= rd: rate = r
         else: break
     return rate
 
-for b in buys: b["rate"] = get_rate(date.fromisoformat(b["date"]))
-for s in sells: s["rate"] = get_rate(date.fromisoformat(s["date"]))
+MY_TICKERS = {"SBER","X5","LENT","BELU","TGLD"}
 
-# Deposit comparison
-total_spent = sum(b["total"] for b in buys)
-total_sold  = sum(s["total"] for s in sells)
-net_inv     = total_spent - total_sold
-dep_val = (sum(b["total"]*(1+b["rate"]/100*(TODAY_D-date.fromisoformat(b["date"])).days/365) for b in buys)
-         - sum(s["total"]*(1+s["rate"]/100*(TODAY_D-date.fromisoformat(s["date"])).days/365) for s in sells))
-curr_val = tp.get("total_current", 0)
-diff = curr_val - dep_val
+def load_operations():
+    ops_file = BASE_DIR / "logs" / "operations_history.json"
+    if not ops_file.exists():
+        print("  [update] operations_history.json не найден")
+        return [], [], {}
+    with open(ops_file, encoding="utf-8") as f:
+        ops = json.load(f)
+    buys  = [b for b in ops.get("buys",[])  if b.get("ticker") in MY_TICKERS]
+    sells = [s for s in ops.get("sells",[]) if s.get("ticker") in MY_TICKERS]
+    divs  = ops.get("dividends_by_ticker", {})
+    for b in buys:  b["rate"] = get_rate(b["date"])
+    for s in sells: s["rate"] = get_rate(s["date"])
+    return buys, sells, divs
 
-dc = {
-    "date": TODAY, "total_spent": round(total_spent,2),
-    "total_sold": round(total_sold,2), "net_invested": round(net_inv,2),
-    "deposit_value": round(dep_val,2), "deposit_income": round(dep_val-net_inv,2),
-    "stocks_current": round(curr_val,2), "diff": round(diff,2),
-    "sber_rate_today": get_rate(TODAY_D),
-}
-
-# История для графика
-history = []
-log_dir = BASE_DIR / "logs" / "collector"
-for log_path in sorted(log_dir.glob("*.json")):
-    try:
-        with open(log_path, encoding="utf-8") as f:
-            log = json.load(f)
-        sc = log.get("tinkoff_portfolio",{}).get("total_current", 0)
-        log_dc = log.get("deposit_comparison", {})
-        if sc and log_dc.get("deposit_value"):
-            history.append({
-                "date": log_path.stem, "stocks": int(sc),
-                "deposit": int(log_dc["deposit_value"]),
-                "invested": int(log_dc.get("net_invested", net_inv))
-            })
-    except: pass
-
-# Строим rows для таблицы
-all_ops = sorted(
-    [{"type":"buy",**b} for b in buys] + [{"type":"sell",**s} for s in sells],
-    key=lambda x: x["date"]
-)
-rows_js = []
-dates_uniq = sorted(set(o["date"] for o in all_ops))
-for d in dates_uniq:
-    day_ops = [o for o in all_ops if o["date"] == d]
-    day_net = sum(o["total"] if o["type"]=="buy" else -o["total"] for o in day_ops)
-    days_held = (TODAY_D - date.fromisoformat(d)).days
-    dep_inc = sum(o["total"]*(o["rate"]/100)*(days_held/365) for o in day_ops if o["type"]=="buy")
-    for i, op in enumerate(day_ops):
-        is_sell = op["type"] == "sell"
-        rows_js.append({
-            "date": d if i==0 else "", "type": op["type"],
-            "ticker": op["ticker"], "qty": int(op["qty"]) if not is_sell else -int(op["qty"]),
-            "price": round(op["price"],2), "total": round(op["total"],2),
-            "day_net": round(abs(day_net),2) if i==0 else 0,
-            "rate": op["rate"], "days": days_held if i==0 else 0,
-            "dep_inc": round(dep_inc,2) if i==0 else 0, "is_first": i==0,
+def build_dep_rows(buys, sells):
+    all_ops = sorted(
+        [{"type":"buy",**b} for b in buys] + [{"type":"sell",**s} for s in sells],
+        key=lambda x: (x["date"], x["type"])
+    )
+    day_nets = defaultdict(float)
+    for op in all_ops:
+        day_nets[op["date"]] += op["total"] if op["type"]=="buy" else -op["total"]
+    rows = []
+    prev_date = None
+    for op in all_ops:
+        d        = op["date"]
+        days     = (TODAY_D - date.fromisoformat(d)).days
+        rate     = op["rate"]
+        is_sell  = op["type"] == "sell"
+        is_first = (d != prev_date)
+        prev_date = d
+        dep_full = round(op["total"] * (1 + rate/100 * days/365), 2)
+        rows.append({
+            "date":      d if is_first else "",
+            "real_date": d,
+            "type":      op["type"],
+            "ticker":    op["ticker"],
+            "qty":       int(op["qty"]) if not is_sell else -int(op["qty"]),
+            "price":     round(op["price"], 2),
+            "total":     round(op["total"], 2),
+            "day_net":   round(abs(day_nets[d]), 2) if is_first else 0,
+            "rate":      rate,
+            "days":      days,
+            "dep_full":  dep_full,
+            "dep_inc":   round(dep_full - op["total"], 2),
+            "is_sell":   is_sell,
+            "is_first":  is_first,
         })
+    return rows
 
-# Читаем index.html и обновляем
-index_file = BASE_DIR / "index.html"
-with open(index_file, encoding="utf-8") as f:
-    html = f.read()
-
-# Обновляем _E
-embedded = json.dumps({
-    "screener": ld.get("screener",{}), "dividends": ld.get("dividends",{}),
-    "meta": ld.get("meta",{}), "portfolio": ld.get("portfolio",{}),
-    "currency": ld.get("currency",{}), "oil": ld.get("oil",{}),
-    "rules_fired": ld.get("rules_fired",[]), "portfolio_signals": ld.get("portfolio_signals",{}),
-    "assets": ld.get("assets",[]), "inefficiencies": ld.get("inefficiencies",{}),
-    "biweekly_report": ld.get("biweekly_report"), "tinkoff_portfolio": tp,
-    "news": ld.get("news",[]), "price_history": ld.get("price_history",{}),
-    "deposit_comparison": dc,
-    "operations": {"buys": buys, "sells": sells,
-                   "dividends_by_ticker": divs, "as_of": TODAY},
-}, ensure_ascii=False)
-
-idx = html.find("const _E=")
-end = html.find(";\nlet _log=", idx)
-if idx > 0 and end > 0:
-    html = html[:idx] + f"const _E={embedded}" + html[end:]
-
-# Обновляем _DEP_SUMMARY
-dep_sum = f'''const _DEP_SUMMARY = {{
-  total_spent:  {round(total_spent,2)},
-  total_sold:   {round(total_sold,2)},
-  net_invested: {round(net_inv,2)},
-  deposit_val:  {round(dep_val,2)},
-  curr_val:     {round(curr_val,2)},
-  diff:         {round(diff,2)},
-  as_of:        "{TODAY}",
-}};'''
-old_sum = re.search(r'const _DEP_SUMMARY = \{[^;]+\};', html, re.DOTALL)
-if old_sum:
-    html = html[:old_sum.start()] + dep_sum + html[old_sum.end():]
-
-# Обновляем _DEP_ROWS
-old_rows = re.search(r'const _DEP_ROWS = \[.*?\];', html, re.DOTALL)
-if old_rows:
-    html = html[:old_rows.start()] + f"const _DEP_ROWS = {json.dumps(rows_js, ensure_ascii=False)};" + html[old_rows.end():]
-
-# Обновляем _DEP_HISTORY
-old_hist = re.search(r'const _DEP_HISTORY = \[.*?\];', html, re.DOTALL)
-if old_hist:
-    html = html[:old_hist.start()] + f"const _DEP_HISTORY = {json.dumps(history, ensure_ascii=False)};" + html[old_hist.end():]
-
-# _logD
-html = re.sub(r"_logD='[\d-]+'", f"_logD='{TODAY}'", html)
-
-
-# Обновляем _TGLD_HISTORY — добавляем сегодняшнюю точку
-import re as _re
-usd_today  = ld.get("currency", {}).get("usd", 0)
-tgld_today = next((p["curr_price"] for p in tp.get("positions", []) if p.get("ticker")=="TGLD"), 0)
-
-if usd_today and tgld_today:
-    new_point = {
-        "date":           TODAY,
-        "usd_rub":        round(usd_today, 2),
-        "tgld_price":     round(tgld_today, 2),
-        "tgld_rub_x_usd": round(tgld_today * usd_today, 2),
+def build_dep_summary(buys, sells, curr_val):
+    total_spent = sum(b["total"] for b in buys)
+    total_sold  = sum(s["total"] for s in sells)
+    net_inv     = total_spent - total_sold
+    dep_total   = (
+        sum(b["total"]*(1+b["rate"]/100*(TODAY_D-date.fromisoformat(b["date"])).days/365) for b in buys)
+      - sum(s["total"]*(1+s["rate"]/100*(TODAY_D-date.fromisoformat(s["date"])).days/365) for s in sells)
+    )
+    return {
+        "total_spent": round(total_spent,2), "total_sold": round(total_sold,2),
+        "net_invested": round(net_inv,2), "deposit_val": round(dep_total,2),
+        "curr_val": round(curr_val,2), "diff": round(curr_val-dep_total,2),
+        "deposit_income": round(dep_total-net_inv,2),
+        "sber_rate_today": get_rate(TODAY),
     }
-    # Читаем текущую историю из HTML
-    m = _re.search(r'const _TGLD_HISTORY = (\[.*?\]);', html, _re.DOTALL)
-    if m:
+
+def build_dep_history():
+    log_dir = BASE_DIR / "logs" / "collector"
+    history = []
+    for lp in sorted(log_dir.glob("*.json")):
         try:
-            hist = json.loads(m.group(1))
-            # Обновляем или добавляем сегодняшнюю точку
-            existing = next((i for i,r in enumerate(hist) if r["date"]==TODAY), None)
-            if existing is not None:
-                hist[existing] = new_point
-            else:
-                hist.append(new_point)
-            # Записываем обратно
-            html = html[:m.start()] + f"const _TGLD_HISTORY = {json.dumps(hist, ensure_ascii=False)};" + html[m.end():]
-            print(f"  [TGLD] История обновлена: {len(hist)} дней, сегодня TGLD={tgld_today}₽ USD={usd_today}₽")
-        except Exception as e:
-            print(f"  [TGLD] Ошибка обновления истории: {e}")
+            with open(lp, encoding="utf-8") as f: log = json.load(f)
+            sc = log.get("tinkoff_portfolio",{}).get("total_current",0)
+            dc = log.get("deposit_comparison",{})
+            if sc and dc.get("deposit_value"):
+                history.append({"date":lp.stem,"stocks":int(sc),
+                    "deposit":int(dc["deposit_value"]),"invested":int(dc.get("net_invested",0))})
+        except: pass
+    return history
 
-with open(index_file, "w", encoding="utf-8") as f:
-    f.write(html)
+def build_tgld_history():
+    log_dir = BASE_DIR / "logs" / "collector"
+    history = []
+    for lp in sorted(log_dir.glob("*.json")):
+        try:
+            with open(lp, encoding="utf-8") as f: log = json.load(f)
+            tgld = next((p for p in log.get("tinkoff_portfolio",{}).get("positions",[])
+                        if p.get("ticker")=="TGLD"), None)
+            if not tgld: continue
+            curr = log.get("currency",{})
+            usd  = float(curr.get("usd",0) or curr.get("USD",0) or 0)
+            price = float(tgld["curr_price"])
+            if price and usd:
+                history.append({"date":lp.stem,"tgld_price":round(price,2),
+                    "usd_rub":round(usd,2),"tgld_rub_x_usd":round(price*usd,2)})
+        except: pass
+    return history
 
-print(f"index.html обновлён: порт={curr_val:,.0f}₽ вклад={dep_val:,.0f}₽ разница={diff:+,.0f}₽")
-print(f"  _E: {len(buys)} покупок, {len(sells)} продаж, {len(history)} точек истории")
+def main():
+    log_file = BASE_DIR / "logs" / "collector" / f"{TODAY}.json"
+    if not log_file.exists():
+        print(f"  [update] Лог {TODAY} не найден"); sys.exit(0)
+    with open(log_file, encoding="utf-8") as f: ld = json.load(f)
+    tp       = ld.get("tinkoff_portfolio", {})
+    curr_val = tp.get("total_current", 0)
+    if not tp:
+        print("  [update] tinkoff_portfolio пустой"); sys.exit(0)
+
+    buys, sells, divs = load_operations()
+    print(f"  [update] Операций: {len(buys)} покупок, {len(sells)} продаж")
+
+    dep_rows    = build_dep_rows(buys, sells)
+    dep_summary = build_dep_summary(buys, sells, curr_val)
+    dep_history = build_dep_history()
+    tgld_hist   = build_tgld_history()
+
+    index_file = BASE_DIR / "index.html"
+    with open(index_file, encoding="utf-8") as f: html = f.read()
+
+    embedded = json.dumps({
+        "screener":ld.get("screener",{}),"dividends":ld.get("dividends",{}),
+        "meta":ld.get("meta",{}),"portfolio":ld.get("portfolio",{}),
+        "currency":ld.get("currency",{}),"oil":ld.get("oil",{}),
+        "rules_fired":ld.get("rules_fired",[]),"portfolio_signals":ld.get("portfolio_signals",{}),
+        "assets":ld.get("assets",[]),"inefficiencies":ld.get("inefficiencies",{}),
+        "biweekly_report":ld.get("biweekly_report"),"tinkoff_portfolio":tp,
+        "news":ld.get("news",[]),"price_history":ld.get("price_history",{}),
+        "deposit_comparison":{
+            "date":TODAY,"total_spent":dep_summary["total_spent"],
+            "total_sold":dep_summary["total_sold"],"net_invested":dep_summary["net_invested"],
+            "deposit_value":dep_summary["deposit_val"],"deposit_income":dep_summary["deposit_income"],
+            "stocks_current":curr_val,"diff":dep_summary["diff"],
+            "sber_rate_today":dep_summary["sber_rate_today"],
+        },
+        "operations":{"buys":buys,"sells":sells,"dividends_by_ticker":divs,"as_of":TODAY},
+    }, ensure_ascii=False)
+
+    idx = html.find("const _E="); end = html.find(";\nlet _log=", idx)
+    if idx > 0 and end > 0:
+        html = html[:idx] + "const _E=" + embedded + html[end:]
+
+    old_r = re.search(r'const _DEP_ROWS = \[.*?\];', html, re.DOTALL)
+    if old_r:
+        html = html[:old_r.start()] + "const _DEP_ROWS = " + json.dumps(dep_rows, ensure_ascii=False) + ";" + html[old_r.end():]
+
+    ds = dep_summary
+    old_s = re.search(r'const _DEP_SUMMARY = \{[^;]+\};', html, re.DOTALL)
+    if old_s:
+        new_sum = (
+            "const _DEP_SUMMARY = {\n"
+            "  total_spent:  " + str(ds["total_spent"]) + ",\n"
+            "  total_sold:   " + str(ds["total_sold"]) + ",\n"
+            "  net_invested: " + str(ds["net_invested"]) + ",\n"
+            "  deposit_val:  " + str(ds["deposit_val"]) + ",\n"
+            "  curr_val:     " + str(ds["curr_val"]) + ",\n"
+            "  diff:         " + str(ds["diff"]) + ",\n"
+            "  as_of:        \"" + TODAY + "\",\n};"
+        )
+        html = html[:old_s.start()] + new_sum + html[old_s.end():]
+
+    old_h = re.search(r'const _DEP_HISTORY = \[.*?\];', html, re.DOTALL)
+    if old_h:
+        html = html[:old_h.start()] + "const _DEP_HISTORY = " + json.dumps(dep_history, ensure_ascii=False) + ";" + html[old_h.end():]
+
+    old_t = re.search(r'const _TGLD_HISTORY = \[.*?\];', html, re.DOTALL)
+    if old_t and tgld_hist:
+        html = html[:old_t.start()] + "const _TGLD_HISTORY = " + json.dumps(tgld_hist, ensure_ascii=False) + ";" + html[old_t.end():]
+
+    html = re.sub(r"_logD='[\d-]+'", "_logD='" + TODAY + "'", html)
+
+    with open(index_file, "w", encoding="utf-8") as f: f.write(html)
+    print(f"  [update] OK: порт={curr_val:,.0f} вклад={ds['deposit_val']:,.0f} разница={ds['diff']:+,.0f}")
+    print(f"  [update] _DEP_ROWS:{len(dep_rows)} _DEP_HISTORY:{len(dep_history)} _TGLD:{len(tgld_hist)}")
+
+if __name__ == "__main__":
+    main()
