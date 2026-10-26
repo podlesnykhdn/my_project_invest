@@ -1,0 +1,816 @@
+{
+  "meta": {
+    "date": "2026-10-26",
+    "time": "03:01",
+    "month": 10,
+    "weekday": 0,
+    "is_friday": false
+  },
+  "currency": {
+    "usd": 80.54,
+    "eur": 90.24,
+    "cny": 12.0557,
+    "usd_prev": 80.54,
+    "usd_change": 0.0
+  },
+  "oil": {
+    "price": 109.65,
+    "change": 0.0,
+    "change_pct": 0.0,
+    "source": "Yahoo Finance ✅",
+    "is_cached": false
+  },
+  "portfolio": {
+    "total_value": 306895.0,
+    "total_change": 3251.0,
+    "total_pct": 1.07,
+    "positions": [
+      {
+        "ticker": "X5",
+        "name": "ПАО «Корпоративный центр ИКС 5»",
+        "qty": 45,
+        "price": 2278.5,
+        "change": 70.5,
+        "pct": 3.19,
+        "value": 102532.0,
+        "day_rub": 3172.0,
+        "pe": 7.4,
+        "eps_ttm": 306.0,
+        "pe_sector_avg": 6.5,
+        "pe_vs_sector": "выше среднего",
+        "ath": 3764,
+        "prev_price": 2269,
+        "pct_from_ath": -39.5,
+        "near_ath": false
+      },
+      {
+        "ticker": "LENT",
+        "name": "МКПАО «Лента»",
+        "qty": 40,
+        "price": 1739.5,
+        "change": -6.5,
+        "pct": -0.37,
+        "value": 69580.0,
+        "day_rub": -260.0,
+        "pe": 6.0,
+        "eps_ttm": 290.0,
+        "pe_sector_avg": 6.5,
+        "pe_vs_sector": "на уровне среднего",
+        "ath": 2300,
+        "prev_price": 1739.5,
+        "pct_from_ath": -24.4,
+        "near_ath": false
+      },
+      {
+        "ticker": "SBER",
+        "name": "ПАО Сбербанк",
+        "qty": 302,
+        "price": 292.32,
+        "change": 1.12,
+        "pct": 0.38,
+        "value": 88281.0,
+        "day_rub": 338.0,
+        "pe": 3.7,
+        "eps_ttm": 78.4,
+        "pe_sector_avg": 5.0,
+        "pe_vs_sector": "ниже среднего",
+        "ath": 388.11,
+        "prev_price": 291.75,
+        "pct_from_ath": -24.7,
+        "near_ath": false
+      },
+      {
+        "ticker": "TGLD",
+        "name": "БПИФ «Тинькофф Золото»",
+        "qty": 3676,
+        "price": 12.65,
+        "change": 0,
+        "pct": 0,
+        "value": 46501.0,
+        "day_rub": 0,
+        "pe": null,
+        "eps_ttm": null,
+        "pe_sector_avg": null,
+        "pe_vs_sector": null,
+        "ath": null,
+        "prev_price": null,
+        "pct_from_ath": null,
+        "near_ath": false
+      }
+    ]
+  },
+  "quotes": {
+    "LENT": {
+      "price": 1739.5,
+      "prev": 1739.5,
+      "change": -6.5,
+      "pct": -0.37,
+      "volume": 41682760
+    },
+    "SBER": {
+      "price": 292.32,
+      "prev": 292.32,
+      "change": 1.12,
+      "pct": 0.38,
+      "volume": 6682339373
+    },
+    "X5": {
+      "price": 2278.5,
+      "prev": 2278.5,
+      "change": 70.5,
+      "pct": 3.19,
+      "volume": 2067995501
+    }
+  },
+  "screener": {
+    "top_volume": [
+      {
+        "ticker": "GAZP",
+        "name": "ГАЗПРОМ ао",
+        "price": 114.75,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 14363712408,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "LKOH",
+        "name": "ЛУКОЙЛ",
+        "price": 6144.5,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 8900314589,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "SBER",
+        "name": "Сбербанк",
+        "price": 292.32,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 6682339373,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "ROSN",
+        "name": "Роснефть",
+        "price": 390.05,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 5992244973,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "NVTK",
+        "name": "Новатэк ао",
+        "price": 1181.8,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 5657900432,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "T",
+        "name": "Т-Техно ао",
+        "price": 269.66,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 5050990820,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "YDEX",
+        "name": "ЯНДЕКС",
+        "price": 3400,
+        "pct": 0.0,
+        "change": 0,
+        "volume": 3867147106,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "OZON",
+        "name": "Озон",
+        "price": 3520.5,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 3362363182,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "PLZL",
+        "name": "Полюс",
+        "price": 1098.2,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 3181484232,
+        "vol_label": "⚪ Нейтрально"
+      },
+      {
+        "ticker": "VTBR",
+        "name": "ВТБ ао",
+        "price": 56.94,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 2893167044,
+        "vol_label": "⚪ Нейтрально"
+      }
+    ],
+    "cheap_growth": [
+      {
+        "ticker": "FEES",
+        "name": "Россети",
+        "price": 0.06,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 292115977,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "HYDR",
+        "name": "РусГидро",
+        "price": 0.47,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 359945915,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "UGLD",
+        "name": "ЮГК",
+        "price": 0.72,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 382960315,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "IRAO",
+        "name": "ИнтерРАОао",
+        "price": 2.81,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 896167067,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "AFKS",
+        "name": "Система ао",
+        "price": 7.78,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 1164490629,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "SVCB",
+        "name": "Совкомбанк",
+        "price": 10.32,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 594572206,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "SNGS",
+        "name": "Сургнфгз",
+        "price": 17.25,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 751214248,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "ALRS",
+        "name": "АЛРОСА ао",
+        "price": 21.07,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 975506971,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "MAGN",
+        "name": "ММК",
+        "price": 23.5,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 1781212062,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      },
+      {
+        "ticker": "RUAL",
+        "name": "РУСАЛ ао",
+        "price": 25.26,
+        "pct": 0.0,
+        "change": 0.0,
+        "volume": 623546667,
+        "score": 50,
+        "grade": "B",
+        "pays_dividends": false,
+        "dividend_next": null
+      }
+    ],
+    "rising_interest": [],
+    "rising_new": [],
+    "rising_dropped": [],
+    "ipo": [],
+    "_source": "moex_targeted"
+  },
+  "assets": [
+    {
+      "name": "Золото",
+      "ticker": "TGLD",
+      "in_portfolio": true,
+      "why_watch": "Защитный актив. Растёт при ослаблении рубля, геополитике, инфляции и снижении ставки ФРС.",
+      "price": 0,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "🔴 D",
+      "reasons": [],
+      "signals": {
+        "buy_zone": "Рубль ослабляется (USD > +2%) + мировое золото растёт",
+        "risk_zone": "Рубль укрепляется + ставка ФРС растёт",
+        "neutral": "Стабильный курс рубля и нейтральная ФРС"
+      },
+      "note": ""
+    },
+    {
+      "name": "Нефть (рублёвая)",
+      "ticker": "Brent",
+      "in_portfolio": false,
+      "why_watch": "Влияет на курс рубля и весь российский рынок. Рост нефти → укрепление рубля → позитив для акций.",
+      "price": 109.65,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "ℹ️",
+      "reasons": [
+        "Источник: Yahoo Finance ✅"
+      ],
+      "signals": {
+        "buy_zone": "Нефть Brent растёт + рубль стабилен",
+        "risk_zone": "Нефть падает > 3% + ОПЕК+ снимает ограничения",
+        "neutral": "Нефть в диапазоне $70-85"
+      },
+      "note": " (цена в USD/баррель)"
+    },
+    {
+      "name": "Серебро",
+      "ticker": "SILV",
+      "in_portfolio": false,
+      "why_watch": "Более волатильный аналог золота. Реагирует на промышленный спрос (электроника, солнечные панели) + защитный актив.",
+      "price": 0,
+      "change": 0,
+      "pct": 0,
+      "volume": 0,
+      "score": 0,
+      "grade": "🔴 D",
+      "reasons": [],
+      "signals": {
+        "buy_zone": "Золото растёт + промышленный спрос растёт + рубль слабеет",
+        "risk_zone": "Промышленный спрос падает (рецессия) + рубль укрепляется",
+        "neutral": "Золото стабильно, промышленность без изменений"
+      },
+      "note": "Серебро исторически растёт быстрее золота в бычьем цикле и падает быстрее в медвежьем"
+    }
+  ],
+  "dividends": {
+    "X5": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "LENT": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "SBER": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "FEES": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "HYDR": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "UGLD": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "IRAO": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "AFKS": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "SVCB": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "SNGS": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "ALRS": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "MAGN": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    },
+    "RUAL": {
+      "history": [],
+      "next_payment": null,
+      "pays_dividends": false
+    }
+  },
+  "biweekly_report": {
+    "period": "2026-P21 → текущий",
+    "prev_date": "2026-10-05",
+    "curr_date": "2026-10-26",
+    "prev_value": 290875.0,
+    "curr_value": 306895.0,
+    "diff_rub": 16020.0,
+    "diff_pct": 5.51,
+    "positions": [
+      {
+        "ticker": "X5",
+        "prev_price": 1924,
+        "curr_price": 2278.5,
+        "diff": 354.5,
+        "pct": 18.43
+      },
+      {
+        "ticker": "LENT",
+        "prev_price": 1748,
+        "curr_price": 1739.5,
+        "diff": -8.5,
+        "pct": -0.49
+      },
+      {
+        "ticker": "SBER",
+        "prev_price": 275.79,
+        "curr_price": 292.32,
+        "diff": 16.53,
+        "pct": 5.99
+      },
+      {
+        "ticker": "TGLD",
+        "prev_price": 13.55,
+        "curr_price": 12.65,
+        "diff": -0.9,
+        "pct": -6.64
+      }
+    ],
+    "best": {
+      "ticker": "X5",
+      "prev_price": 1924,
+      "curr_price": 2278.5,
+      "diff": 354.5,
+      "pct": 18.43
+    },
+    "worst": {
+      "ticker": "TGLD",
+      "prev_price": 13.55,
+      "curr_price": 12.65,
+      "diff": -0.9,
+      "pct": -6.64
+    }
+  },
+  "inefficiencies": {
+    "portfolio": [],
+    "market": [],
+    "total": 0,
+    "timestamp": "2026-10-26"
+  },
+  "price_history": {
+    "X5": {
+      "ticker": "X5",
+      "days_count": 365,
+      "last_date": "2026-07-21",
+      "last_close": 1941.5
+    },
+    "LENT": {
+      "ticker": "LENT",
+      "days_count": 365,
+      "last_date": "2024-01-03",
+      "last_close": 677
+    },
+    "SBER": {
+      "ticker": "SBER",
+      "days_count": 365,
+      "last_date": "2009-07-28",
+      "last_close": 40.46
+    },
+    "TGLD": {
+      "ticker": "TGLD",
+      "days_count": 365,
+      "last_date": "2023-12-01",
+      "last_close": 7.42
+    }
+  },
+  "tinkoff_portfolio": {
+    "account_id": "2231486341",
+    "account_name": "Брокерский счет",
+    "total_invested": 332720.62,
+    "total_current": 334392.25,
+    "total_pnl": 1671.63,
+    "total_pnl_pct": 0.5,
+    "total_shares": 260662.3,
+    "total_etf": 46501.4,
+    "total_bonds": 0.0,
+    "positions": [
+      {
+        "figi": "TCS03A108X38",
+        "ticker": "X5",
+        "itype": "share",
+        "qty": 45.0,
+        "avg_price": 2907.0,
+        "curr_price": 2275.5,
+        "invested": 130815.0,
+        "current_val": 102397.5,
+        "pnl": -28557.5,
+        "pnl_pct": -21.83
+      },
+      {
+        "figi": "BBG0063FKTD9",
+        "ticker": "LENT",
+        "itype": "share",
+        "qty": 40.0,
+        "avg_price": 1742.0,
+        "curr_price": 1749.0,
+        "invested": 69680.0,
+        "current_val": 69960.0,
+        "pnl": -3705.0,
+        "pnl_pct": -5.32
+      },
+      {
+        "figi": "TCS80A101X50",
+        "ticker": "TGLD",
+        "itype": "etf",
+        "qty": 3676.0,
+        "avg_price": 13.26,
+        "curr_price": 12.65,
+        "invested": 48743.76,
+        "current_val": 46501.4,
+        "pnl": -5015.46,
+        "pnl_pct": -10.29
+      },
+      {
+        "figi": "BBG004730N88",
+        "ticker": "SBER",
+        "itype": "share",
+        "qty": 302.0,
+        "avg_price": 276.43,
+        "curr_price": 292.4,
+        "invested": 83481.86,
+        "current_val": 88304.8,
+        "pnl": 4822.79,
+        "pnl_pct": 5.78
+      }
+    ],
+    "as_of": "2026-10-26"
+  },
+  "news": {
+    "portfolio_news": {
+      "X5": [],
+      "LENT": [],
+      "SBER": [],
+      "BELU": [],
+      "TGLD": []
+    },
+    "global_alerts": [
+      {
+        "id": "GEOPOLITICAL_ESCALATION",
+        "signal": "danger",
+        "message": "Геополитическая эскалация — защитная позиция по портфелю",
+        "news_title": "Сидякин: следующая война будет вестись с использованием ИИ",
+        "source": "Ведомости",
+        "portfolio_impact": {
+          "TGLD": {
+            "signal": "positive",
+            "reason": "Золото растёт в условиях неопределённости"
+          },
+          "SBER": {
+            "signal": "high_risk",
+            "reason": "Банковский сектор под давлением"
+          },
+          "X5": {
+            "signal": "neutral",
+            "reason": "Ритейл — защитный сектор"
+          },
+          "LENT": {
+            "signal": "neutral",
+            "reason": "Аналогично X5"
+          },
+          "BELU": {
+            "signal": "neutral",
+            "reason": "Защитный потребительский сектор"
+          }
+        }
+      },
+      {
+        "id": "SANCTIONS_NEW",
+        "signal": "danger",
+        "message": "Новые санкционные риски — общий негатив для российского рынка",
+        "news_title": "Вучич: победивший на выборах в Сербии «Студенческий список» введет санкции против РФ // Александр Вучич заявил о планах «Студенческого списка» ввести санкции против РФ",
+        "source": "Коммерсант",
+        "portfolio_impact": {
+          "SBER": {
+            "signal": "high_risk",
+            "reason": "Банковский сектор наиболее уязвим к санкциям"
+          },
+          "X5": {
+            "signal": "low_risk",
+            "reason": "Ритейл менее уязвим — внутренний рынок"
+          },
+          "LENT": {
+            "signal": "low_risk",
+            "reason": "Аналогично X5"
+          },
+          "BELU": {
+            "signal": "low_risk",
+            "reason": "Внутренний рынок, но импортный алкоголь под риском"
+          },
+          "TGLD": {
+            "signal": "positive",
+            "reason": "Золото — защитный актив в условиях санкций"
+          }
+        }
+      }
+    ],
+    "total_collected": 115
+  },
+  "rules_fired": [
+    {
+      "rule_id": "USD_STABLE",
+      "signal": "ok",
+      "message": "Курс доллара стабилен (80.5 руб.)",
+      "portfolio_impact": {}
+    },
+    {
+      "rule_id": "GEOPOLITICAL_ESCALATION",
+      "signal": "danger",
+      "message": "Геополитическая эскалация — защитная позиция по портфелю (Ведомости): Сидякин: следующая война будет вестись с использованием ИИ",
+      "portfolio_impact": {
+        "TGLD": {
+          "signal": "positive",
+          "reason": "Золото растёт в условиях неопределённости"
+        },
+        "SBER": {
+          "signal": "high_risk",
+          "reason": "Банковский сектор под давлением"
+        },
+        "X5": {
+          "signal": "neutral",
+          "reason": "Ритейл — защитный сектор"
+        },
+        "LENT": {
+          "signal": "neutral",
+          "reason": "Аналогично X5"
+        },
+        "BELU": {
+          "signal": "neutral",
+          "reason": "Защитный потребительский сектор"
+        }
+      }
+    },
+    {
+      "rule_id": "SANCTIONS_NEW",
+      "signal": "danger",
+      "message": "Новые санкционные риски — общий негатив для российского рынка (Коммерсант): Вучич: победивший на выборах в Сербии «Студенческий список» введет санкции проти",
+      "portfolio_impact": {
+        "SBER": {
+          "signal": "high_risk",
+          "reason": "Банковский сектор наиболее уязвим к санкциям"
+        },
+        "X5": {
+          "signal": "low_risk",
+          "reason": "Ритейл менее уязвим — внутренний рынок"
+        },
+        "LENT": {
+          "signal": "low_risk",
+          "reason": "Аналогично X5"
+        },
+        "BELU": {
+          "signal": "low_risk",
+          "reason": "Внутренний рынок, но импортный алкоголь под риском"
+        },
+        "TGLD": {
+          "signal": "positive",
+          "reason": "Золото — защитный актив в условиях санкций"
+        }
+      }
+    }
+  ],
+  "portfolio_signals": {
+    "TGLD": [
+      {
+        "signal": "positive",
+        "reason": "Золото растёт в условиях неопределённости"
+      },
+      {
+        "signal": "positive",
+        "reason": "Золото — защитный актив в условиях санкций"
+      }
+    ],
+    "SBER": [
+      {
+        "signal": "high_risk",
+        "reason": "Банковский сектор под давлением"
+      },
+      {
+        "signal": "high_risk",
+        "reason": "Банковский сектор наиболее уязвим к санкциям"
+      }
+    ],
+    "X5": [
+      {
+        "signal": "neutral",
+        "reason": "Ритейл — защитный сектор"
+      },
+      {
+        "signal": "low_risk",
+        "reason": "Ритейл менее уязвим — внутренний рынок"
+      }
+    ],
+    "LENT": [
+      {
+        "signal": "neutral",
+        "reason": "Аналогично X5"
+      },
+      {
+        "signal": "low_risk",
+        "reason": "Аналогично X5"
+      }
+    ],
+    "BELU": [
+      {
+        "signal": "neutral",
+        "reason": "Защитный потребительский сектор"
+      },
+      {
+        "signal": "low_risk",
+        "reason": "Внутренний рынок, но импортный алкоголь под риском"
+      }
+    ]
+  },
+  "deposit_comparison": {
+    "date": "2026-10-26",
+    "total_spent": 434884.61,
+    "total_sold": 100541.6,
+    "net_invested": 334343.01,
+    "deposit_value": 368715.21,
+    "deposit_income": 34372.2,
+    "stocks_current": 334392.25,
+    "diff": -34322.96,
+    "sber_rate_today": 6.5
+  }
+}
