@@ -1,7 +1,7 @@
 {
   "meta": {
     "date": "2026-11-26",
-    "time": "10:11",
+    "time": "10:23",
     "month": 11,
     "weekday": 3,
     "is_friday": false
@@ -14,14 +14,14 @@
     "usd_change": 0.0
   },
   "oil": {
-    "price": 90.09,
+    "price": 90.47,
     "change": 0.0,
     "change_pct": 0.0,
     "source": "Yahoo Finance ✅",
     "is_cached": false
   },
   "portfolio": {
-    "total_value": 273560.0,
+    "total_value": 273204.0,
     "total_change": 0,
     "total_pct": 0.0,
     "positions": [
@@ -47,28 +47,28 @@
         "ticker": "LENT",
         "name": "МКПАО «Лента»",
         "qty": 10,
-        "price": 1876.5,
+        "price": 1868.5,
         "change": 0,
         "pct": 0,
-        "value": 18765.0,
+        "value": 18685.0,
         "day_rub": 0,
-        "pe": 6.5,
+        "pe": 6.4,
         "eps_ttm": 290.0,
         "pe_sector_avg": 6.5,
         "pe_vs_sector": "на уровне среднего",
         "ath": 2300,
         "prev_price": null,
-        "pct_from_ath": -18.4,
+        "pct_from_ath": -18.8,
         "near_ath": false
       },
       {
         "ticker": "SBER",
         "name": "ПАО Сбербанк",
         "qty": 292,
-        "price": 287.31,
+        "price": 286.74,
         "change": 0,
         "pct": 0,
-        "value": 83895.0,
+        "value": 83728.0,
         "day_rub": 0,
         "pe": 3.7,
         "eps_ttm": 78.4,
@@ -76,17 +76,17 @@
         "pe_vs_sector": "ниже среднего",
         "ath": 388.11,
         "prev_price": null,
-        "pct_from_ath": -26.0,
+        "pct_from_ath": -26.1,
         "near_ath": false
       },
       {
         "ticker": "TGLD",
         "name": "БПИФ «Тинькофф Золото»",
         "qty": 3676,
-        "price": 11.51,
+        "price": 11.48,
         "change": 0,
         "pct": 0,
-        "value": 42311.0,
+        "value": 42200.0,
         "day_rub": 0,
         "pe": null,
         "eps_ttm": null,
@@ -133,7 +133,7 @@
       "ticker": "Brent",
       "in_portfolio": false,
       "why_watch": "Влияет на курс рубля и весь российский рынок. Рост нефти → укрепление рубля → позитив для акций.",
-      "price": 90.09,
+      "price": 90.47,
       "change": 0,
       "pct": 0,
       "volume": 0,
@@ -191,9 +191,9 @@
     "prev_date": "2026-11-02",
     "curr_date": "2026-11-26",
     "prev_value": 314676.0,
-    "curr_value": 273560.0,
-    "diff_rub": -41116.0,
-    "diff_pct": -13.07,
+    "curr_value": 273204.0,
+    "diff_rub": -41472.0,
+    "diff_pct": -13.18,
     "positions": [
       {
         "ticker": "X5",
@@ -205,38 +205,38 @@
       {
         "ticker": "LENT",
         "prev_price": 1863,
-        "curr_price": 1876.5,
-        "diff": 13.5,
-        "pct": 0.72
+        "curr_price": 1868.5,
+        "diff": 5.5,
+        "pct": 0.3
       },
       {
         "ticker": "SBER",
         "prev_price": 296.7,
-        "curr_price": 287.31,
-        "diff": -9.39,
-        "pct": -3.16
+        "curr_price": 286.74,
+        "diff": -9.96,
+        "pct": -3.36
       },
       {
         "ticker": "TGLD",
         "prev_price": 12.35,
-        "curr_price": 11.51,
-        "diff": -0.84,
-        "pct": -6.8
+        "curr_price": 11.48,
+        "diff": -0.87,
+        "pct": -7.04
       }
     ],
     "best": {
       "ticker": "LENT",
       "prev_price": 1863,
-      "curr_price": 1876.5,
-      "diff": 13.5,
-      "pct": 0.72
+      "curr_price": 1868.5,
+      "diff": 5.5,
+      "pct": 0.3
     },
     "worst": {
       "ticker": "TGLD",
       "prev_price": 12.35,
-      "curr_price": 11.51,
-      "diff": -0.84,
-      "pct": -6.8
+      "curr_price": 11.48,
+      "diff": -0.87,
+      "pct": -7.04
     }
   },
   "inefficiencies": {
@@ -13419,11 +13419,11 @@
     "account_id": "2231486341",
     "account_name": "Брокерский счет",
     "total_invested": 301447.08,
-    "total_current": 279526.19,
-    "total_pnl": -21920.89,
-    "total_pnl_pct": -7.27,
-    "total_shares": 231249.52,
-    "total_etf": 42310.76,
+    "total_current": 279169.47,
+    "total_pnl": -22277.61,
+    "total_pnl_pct": -7.39,
+    "total_shares": 231003.08,
+    "total_etf": 42200.48,
     "total_bonds": 0.0,
     "positions": [
       {
@@ -13444,11 +13444,11 @@
         "itype": "futures",
         "qty": -70.0,
         "avg_price": 12.325,
-        "curr_price": 12.392,
+        "curr_price": 12.396,
         "invested": -862.75,
-        "current_val": -867.44,
-        "pnl": -4595.0,
-        "pnl_pct": 532.6
+        "current_val": -867.72,
+        "pnl": -5155.0,
+        "pnl_pct": 597.51
       },
       {
         "figi": "BBG0063FKTD9",
@@ -13456,11 +13456,11 @@
         "itype": "share",
         "qty": 10.0,
         "avg_price": 1742.1,
-        "curr_price": 1876.5,
+        "curr_price": 1868.5,
         "invested": 17421.0,
-        "current_val": 18765.0,
-        "pnl": -2059.5,
-        "pnl_pct": -11.82
+        "current_val": 18685.0,
+        "pnl": -2139.5,
+        "pnl_pct": -12.28
       },
       {
         "figi": "TCS80A101X50",
@@ -13468,11 +13468,11 @@
         "itype": "etf",
         "qty": 3676.0,
         "avg_price": 13.27,
-        "curr_price": 11.51,
+        "curr_price": 11.48,
         "invested": 48780.52,
-        "current_val": 42310.76,
-        "pnl": -9206.1,
-        "pnl_pct": -18.87
+        "current_val": 42200.48,
+        "pnl": -9316.38,
+        "pnl_pct": -19.1
       },
       {
         "figi": "BBG004730N88",
@@ -13480,11 +13480,11 @@
         "itype": "share",
         "qty": 292.0,
         "avg_price": 276.43,
-        "curr_price": 287.31,
+        "curr_price": 286.74,
         "invested": 80717.56,
-        "current_val": 83894.52,
-        "pnl": 3485.91,
-        "pnl_pct": 4.32
+        "current_val": 83728.08,
+        "pnl": 3319.47,
+        "pnl_pct": 4.11
       }
     ],
     "as_of": "2026-11-26"
@@ -13535,8 +13535,8 @@
     "net_invested": 334343.01,
     "deposit_value": 371374.29,
     "deposit_income": 37031.28,
-    "stocks_current": 279526.19,
-    "diff": -91848.1,
+    "stocks_current": 279169.47,
+    "diff": -92204.82,
     "sber_rate_today": 6.5
   }
 }
